@@ -24,6 +24,7 @@ To avoid this error, refresh the URL before changing the Title field.
 
 ### Requirements
 `pip install stashapp-tools`
+
 `pip install pyYAML`
 
 ### Installation
