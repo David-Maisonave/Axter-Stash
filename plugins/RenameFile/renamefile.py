@@ -5,21 +5,23 @@ import shutil
 from pathlib import Path
 import hashlib
 
+# This is a Stash plugin which allows users to rename the video (scene) file name by editing the [Title] field located in the scene [Edit] tab.
+
 # Importing stashapi.log as log for critical events
 import stashapi.log as log
 
-# Import settings from renamefilename_settings.py
-from renamefilename_settings import config
+# Import settings from renamefile_settings.py
+from renamefile_settings import config
 
 # Get the directory of the script
 script_dir = Path(__file__).resolve().parent
 
 # Configure logging for your script
-log_file_path = script_dir / 'renamefilename.log'
+log_file_path = script_dir / 'renamefile.log'
 logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(message)s')
-logger = logging.getLogger('renamefilename')
+logger = logging.getLogger('renamefile')
 
-endpoint = config.get("graphql_endpoint") # GraphQL endpoint; Update via renamefilename_settings.py
+endpoint = config.get("graphql_endpoint") # GraphQL endpoint; Update via renamefile_settings.py
 
 # GraphQL query to fetch all scenes
 query_all_scenes = """
@@ -59,7 +61,7 @@ def form_filename(original_file_stem, scene_details, wrapper_styles, separator, 
     tag_keys_added = 0
     default_title = ''
     if_notitle_use_org_filename = config["if_notitle_use_org_filename"]
-    add_tag_if_not_in_name = config["add_tag_if_not_in_name"]
+    exclude_tag_if_in_name = config["exclude_tag_if_in_name"]
     if if_notitle_use_org_filename:
         default_title = original_file_stem
     
@@ -138,7 +140,7 @@ def form_filename(original_file_stem, scene_details, wrapper_styles, separator, 
             elif key == 'tags':
                 tags = [tag.get('name', '') for tag in scene_details.get('tags', [])]
                 for tag_name in tags:
-                    if not add_tag_if_not_in_name or tag_name.lower() not in original_file_stem.lower():
+                    if not exclude_tag_if_in_name or tag_name.lower() not in original_file_stem.lower():
                         add_tag(tag_name)
     
     new_filename = separator.join(filename_parts).replace('--', '-')
@@ -304,6 +306,7 @@ def rename_scene(scene_id, wrapper_styles, separator, key_order, stash_directory
     metadata_scan_path = original_parent_directory
     perform_metadata_scan(metadata_scan_path)
 
+    # ToDo: Add logic to the below code section so it checks base file length and checks folder length, instead of lumping them altogether.
     # Current DB schema allows file folder max length to be 255, and max base filename to be 255
     max_filename_length = int(config["max_filename_length"])
     if len(new_filename) > max_filename_length:
@@ -338,10 +341,10 @@ wrapper_styles = config["wrapper_styles"]
 separator = config["separator"]
 key_order = config["key_order"]
 
-# Read stash directory from renamefilename_settings.py
+# Read stash directory from renamefile_settings.py
 stash_directory = config.get('stash_directory', '')
 
-# Extract rename_files and move_files settings from renamefilename_settings.py
+# Extract rename_files and move_files settings from renamefile_settings.py
 rename_files_setting = config["rename_files"]
 move_files_setting = config["move_files"]
 
