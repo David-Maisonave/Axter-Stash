@@ -1,0 +1,22 @@
+name: RenameFileName
+description:   "Renames video (scene) file names when the user edits the [Title] field located in the scene [Edit] tab.
+                The file is renamed after user clicks save button.
+                Tags are appended to the file name if the tag does not already exist in the original file name.
+                Features are configurable using the renamefilename_settings.py.
+                Note: On Windows OS, the file can not be renamed while it's playing. Refresh the URL to allow file release and rename."
+version: 0.1
+url: https://github.com/David-Maisonave/Axter-Stash
+exec:
+  - python
+  - "{pluginDir}/renamefilename.py"
+interface: raw
+hooks:
+  - name: RenameFiles
+    description: Renames scene files.
+    triggeredBy:
+      - Scene.Update.Post
+tasks:
+  - name: Rename Files Task
+    description: Renames scene files.
+    defaultArgs:
+      mode: rename_files_task
