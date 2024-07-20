@@ -9,12 +9,13 @@ Note: This script is **largely** based on the [Renamer](https://github.com/Serec
   - Note: Do **NOT** include the file folder name and do **NOT** include file extension. 
 - After populating the Title field, click the save button.
 - After a few seconds, the file will get renamed and the screen will get updated with the new file name.
-- By default tag names are appended to the file name if the tag is not already included in the file name.
-  - The [Tag Append] feature can be disabled in renamefilename_settings.py by adding "tags" to the exclude_keys field.
+- By default tag names are appended to the file name if the tags do not exist in the file name.
+  - The [Tag Append] feature can be disabled by adding "tags" to the **exclude_keys** field in **renamefilename_settings.py** file.
 - Since this plugin is largely based on the [Renamer](https://github.com/Serechops/Serechops-Stash/tree/main/plugins/Renamer) plugin, it inherited some of its features, like being able to include any of the following fields when auto-renaming is executed:
   - studio, performers, date, height, video_codec, frame_rate
   - To add these fields removed the desired field(s) from **exclude_keys** in renamefilename_settings.py.
   - To change the order, modify the **key_order** field.
+
 **Note:** On Windows 10/11, the file can not be renamed while it's playing. It will result in following error:
 `
 Error: [WinError 32] The process cannot access the file because it is being used by another process
@@ -25,11 +26,6 @@ To avoid this error, refresh the URL before changing the Title field.
 ### Installation
 
 
-Renames video (scene) file names when the user edits the [Title] field located in the scene [Edit] tab.
-The file is renamed after user clicks save button.
-Tags are appended to the file name if the tag does not already exist in the original file name.When you have installed the `RenameFileName` plugin, hop into your plugins directory, RenameFileName folder > open renamefilename_settings.py with your favorite code/text editor and you'll see this:
-Features are configurable using the renamefilename_settings.py.
-Note: On Windows OS, the file can not be renamed while it's playing. Refresh the URL to allow file release and rename.
 
 ### Requirements
 
