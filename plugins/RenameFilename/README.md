@@ -1,5 +1,9 @@
 # RenameFileName:
-This is a Stash plugin which allows users to rename the video (scene) file name by editing the [Title] field located in the scene [Edit] tab.
+RenameFileName is a [Stash](https://github.com/stashapp/stash) plugin which performs the following two main task.
+- **Rename Scene File Name** (On-The-Fly)
+- **Append tag names** to file name
+
+It allows users to rename the video (scene) file name by editing the [Title] field located in the scene [Edit] tab.
 In addition, the plugin also appends tags to the file name if the tag does not already exist in the name.
 
 Note: This script is **largely** based on the [Renamer](https://github.com/Serechops/Serechops-Stash/tree/main/plugins/Renamer) script.
@@ -9,7 +13,7 @@ Note: This script is **largely** based on the [Renamer](https://github.com/Serec
   - Note: Do **NOT** include the file folder name and do **NOT** include file extension. 
 - After populating the Title field, click the save button.
 - After a few seconds, the file will get renamed and the screen will get updated with the new file name.
-- By default tag names are appended to the file name if the tags do not exist in the file name.
+- By default tag names are appended to the file name only if the tags do not exist in the original name.
   - The [Tag Append] feature can be disabled by adding "tags" to the **exclude_keys** field in **renamefilename_settings.py** file.
 - Since this plugin is largely based on the [Renamer](https://github.com/Serechops/Serechops-Stash/tree/main/plugins/Renamer) plugin, it inherited some of its features, like being able to include any of the following fields when auto-renaming is executed:
   - studio, performers, date, height, video_codec, frame_rate
