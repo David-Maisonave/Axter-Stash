@@ -19,6 +19,7 @@ Note: This script is **largely** based on the [Renamer](https://github.com/Serec
   - studio, performers, date, height, video_codec, frame_rate
   - To add these fields removed the desired field(s) from **exclude_keys** in renamefile_settings.py.
   - To change the order, modify the **key_order** field.
+  - There is a **dry_run** option in the renamefile_settings.py, and I highly recommend enabling this option before making changes to renamefile_settings.py. The renamefile.log can be reviewed to verify that the rename action will occur as expected.
 
 **Note:** On Windows 10/11, the file can not be renamed while it's playing. It will result in following error:
 `
