@@ -21,7 +21,7 @@ script_dir = Path(__file__).resolve().parent
 
 # Configure logging for your script
 log_file_path = script_dir / 'renamefile.log'
-FORMAT = "[%(asctime)s - LN:%(lineno)s - %(funcName)20s()] %(message)s"
+FORMAT = "[%(asctime)s - LN:%(lineno)s] %(message)s"
 logging.basicConfig(filename=log_file_path, level=logging.INFO, format=FORMAT)
 logger = logging.getLogger('renamefile')
 DEFAULT_ENDPOINT = "http://localhost:9999/graphql" # Default GraphQL endpoint
@@ -52,15 +52,14 @@ settings = {
 }
 if "renamefile" in pluginConfiguration:
     settings.update(pluginConfiguration["renamefile"])
-logger.info("settings: %s " % (settings,))
 # ------------------------------------------
 debugTracing = settings["zzdebugTracing"]
-logger.info(f"\n\nStarting (debugTracing={debugTracing})************************************************\n")
 
 # Extract dry_run setting from settings
 dry_run = settings["dryRun"]
 dry_run_prefix = ''
-if debugTracing: logger.info("Debug Tracing................")
+logger.info(f"\nStarting (debugTracing={debugTracing}) (dry_run={dry_run})************************************************")
+if debugTracing: logger.info("settings: %s " % (settings,))
 if dry_run:
     logger.info("Dry run mode is enabled.")
     dry_run_prefix = "Would've "
@@ -331,8 +330,9 @@ def perform_metadata_scan(metadata_scan_path):
             metadataScan(input: { paths: "%s" })
         }
     """ % metadata_scan_path_windows
-    logger.info(f"Attempting metadata scan mutation with path: {metadata_scan_path_windows}")
-    logger.info(f"Mutation string: {mutation_metadata_scan}")
+    if debugTracing: 
+        logger.info(f"Attempting metadata scan mutation with path: {metadata_scan_path_windows}")
+        logger.info(f"Mutation string: {mutation_metadata_scan}")
     graphql_request(mutation_metadata_scan)
 
 def rename_scene(scene_id, wrapper_styles, stash_directory):  
@@ -373,7 +373,7 @@ def rename_scene(scene_id, wrapper_styles, stash_directory):
     if rename_files:
         new_path = original_parent_directory / (newFilenameWithExt)
         new_path_info = {'new_file_path': new_path}
-        logger.info(f"{dry_run_prefix}New filename: {new_path}")
+        if debugTracing: logger.info(f"{dry_run_prefix}New filename: {new_path}")
 
     if move_files and original_parent_directory.name != scene_details['studio']['name']:
         new_path = original_parent_directory / scene_details['studio']['name'] / (new_filename + Path(original_file_path).suffix)
@@ -449,7 +449,7 @@ elif not new_filename:
     logger.info("No changes were made.")
 else:
     logger.info("Change success!")
-logger.info("*********************************\nEXITING*********************************\n*********************************\n")
+if debugTracing: logger.info("\n*********************************\nEXITING   ***********************\n*********************************")
 # ToDo List
     # Add logic to max_filename_length code so it checks base file length and checks folder length, instead of lumping them altogether.
     # Add logic to update Sqlite DB on file name change, instead of perform_metadata_scan.
