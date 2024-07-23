@@ -4,7 +4,7 @@ description:   "Renames video (scene) file names when the user edits the [Title]
                 Optionally, tags and performers can be appended to the file name when rename occurs.
                 Additional options available in file renamefile_settings.py.
                 Note: On Windows OS, the file can not be renamed while it's playing. Refresh the URL to allow file release and rename."
-version: 0.2.5
+version: 0.2.6
 url: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/RenameFile
 ui:
 settings:
