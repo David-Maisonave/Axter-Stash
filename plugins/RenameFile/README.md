@@ -37,7 +37,7 @@ To avoid this error, refresh the URL before changing the Title field.
 ### Installation
 - Follow **Requirements** instructions.
 - In the stash plugin directory (C:\Users\MyUserName\.stash\plugins), create a folder named **RenameFile**.
-- Copy all the plugin files to this folder.(**C:\Users\MyUserName\.stash\plugins\RenameFile**).
+- Copy all the plugin files to this folder.(**C:\Users\MyUserName\\.stash\plugins\RenameFile**).
 - Restart Stash.
 
 That's it!!!
