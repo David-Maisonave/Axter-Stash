@@ -43,4 +43,6 @@ To avoid this error, refresh the URL before changing the Title field.
 That's it!!!
 
 ### Options
-To change options, see **renamefile_settings.py** file. After making changes, go to http://localhost:9999/settings?tab=plugins, and click [Reload Plugins].
+- Main options are accessible in the GUI via Settings->Plugins->Plugins->[RenameFile].
+- Advanced options are avialable in the **renamefile_settings.py** file. After making changes, go to http://localhost:9999/settings?tab=plugins, and click [Reload Plugins].
+
