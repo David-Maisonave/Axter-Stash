@@ -10,14 +10,15 @@ config = {
     # Define wrapper styles for different parts of the filename.
     # Use '[]' for square brackets, '{}' for curly brackets, '()' for parentheses, or an empty string for None.
     "wrapper_styles": {
-        "studio": '[]',        # Modify these values to change how each part of the filename is wrapped.
+        "studio": '{}',        # Modify these values to change how each part of the filename is wrapped.
         "title": '',         # Use '[]' for square brackets, '{}' for curly brackets, '()' for parentheses, or an empty string for None.
-        "performers": '()',    # Modify these values to change how each part of the filename is wrapped.
-        "date": '[]',          # Use '[]' for square brackets, '{}' for curly brackets, '()' for parentheses, or an empty string for None.
-        "height": '()',        # Modify these values to change how each part of the filename is wrapped.
-        "video_codec": '[]',   # Use '[]' for square brackets, '{}' for curly brackets, '()' for parentheses, or an empty string for None.
-        "frame_rate": '[]',    # Modify these values to change how each part of the filename is wrapped.
-        "tag": '[]'            # Modify these values to change how each tag part of the filename is wrapped.
+        "performers": '()',
+        "galleries": '()', 
+        "date": '()',      
+        "height": '',      
+        "video_codec": '', 
+        "frame_rate": '',  
+        "tag": '[]'        
     },
     # Define whether files should be renamed when moved
     "rename_files": True,

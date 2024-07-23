@@ -25,7 +25,7 @@ FORMAT = "[%(asctime)s - LN:%(lineno)s] %(message)s"
 logging.basicConfig(filename=log_file_path, level=logging.INFO, format=FORMAT)
 logger = logging.getLogger('renamefile')
 DEFAULT_ENDPOINT = "http://localhost:9999/graphql" # Default GraphQL endpoint
-DEFAULT_FIELD_KEY_LIST = "title, performers, tags" # Default Field Key List with the desired order
+DEFAULT_FIELD_KEY_LIST = "title,performers,studio,tags" # Default Field Key List with the desired order
 DEFAULT_SEPERATOR = "-"
 PLUGIN_ARGS = False
 
@@ -39,19 +39,19 @@ FRAGMENT_SERVER = json_input["server_connection"]
 stash = StashInterface(FRAGMENT_SERVER)
 pluginConfiguration = stash.get_configuration()["plugins"]
 settings = {
-    "dryRun": False,
-    "fileRenameViaMove": False,
     "performerAppend": False,
-    "performerIncludeInFileName": False,
+    "studioAppend": False,
     "tagAppend": False,
-    "tagIncludeInFileName": False,
-    "zFieldKeyList": DEFAULT_FIELD_KEY_LIST,
+    "z_keyFIeldsIncludeInFileName": False,
+    "zafileRenameViaMove": False,
+    "zfieldKeyList": DEFAULT_FIELD_KEY_LIST,
     "zgraphqlEndpoint": DEFAULT_ENDPOINT,
     "zmaximumTagKeys": 12,
     "zpathToExclude": "",
     "zseparators": DEFAULT_SEPERATOR,
     "ztagWhitelist": "",
     "zzdebugTracing": False,
+    "zzdryRun": False,
 }
 if "renamefile" in pluginConfiguration:
     settings.update(pluginConfiguration["renamefile"])
@@ -59,7 +59,7 @@ if "renamefile" in pluginConfiguration:
 debugTracing = settings["zzdebugTracing"]
 
 # Extract dry_run setting from settings
-dry_run = settings["dryRun"]
+dry_run = settings["zzdryRun"]
 dry_run_prefix = ''
 try:
     PLUGIN_ARGS = json_input['args']["mode"]
@@ -88,9 +88,9 @@ if not endpoint or endpoint == "":
     endpoint = DEFAULT_ENDPOINT
 # Extract rename_files and move_files settings from renamefile_settings.py
 rename_files = config["rename_files"]
-move_files = settings["fileRenameViaMove"]
+move_files = settings["zafileRenameViaMove"]
 if debugTracing: logger.info("Debug Tracing................")
-fieldKeyList = settings["zFieldKeyList"] # Default Field Key List with the desired order
+fieldKeyList = settings["zfieldKeyList"] # Default Field Key List with the desired order
 if not fieldKeyList or fieldKeyList == "":
     fieldKeyList = DEFAULT_FIELD_KEY_LIST
 fieldKeyList = fieldKeyList.replace(" ", "")
@@ -148,8 +148,7 @@ def form_filename(original_file_stem, scene_details, wrapper_styles):
     tag_keys_added = 0
     default_title = ''
     if_notitle_use_org_filename = config["if_notitle_use_org_filename"]
-    include_tag_if_in_name = settings["tagIncludeInFileName"]
-    include_performer_if_in_name = settings["performerIncludeInFileName"]
+    include_keyField_if_in_name = settings["z_keyFIeldsIncludeInFileName"]
     if if_notitle_use_org_filename:
         default_title = original_file_stem
     # ...................
@@ -187,12 +186,20 @@ def form_filename(original_file_stem, scene_details, wrapper_styles):
     
     for key in fieldKeyList:
         if key == 'studio':
-            studio_name = scene_details.get('studio', {}).get('name', '')
-            if studio_name:
-                if wrapper_styles.get('studio'):
-                    filename_parts.append(f"{wrapper_styles['studio'][0]}{studio_name}{wrapper_styles['studio'][1]}")
-                else:
-                    filename_parts.append(studio_name)
+            if settings["studioAppend"]:
+                if debugTracing: logger.info("Debug Tracing................")
+                studio_name = scene_details.get('studio', {})
+                if debugTracing: logger.info(f"Debug Tracing (studio_name={studio_name})................")
+                if studio_name:
+                    studio_name = scene_details.get('studio', {}).get('name', '')
+                    if debugTracing: logger.info(f"Debug Tracing (studio_name={studio_name})................")
+                    if studio_name:
+                        if debugTracing: logger.info("Debug Tracing................")
+                        if include_keyField_if_in_name or studio_name.lower() not in title.lower():
+                            if wrapper_styles.get('studio'):
+                                filename_parts.append(f"{wrapper_styles['studio'][0]}{studio_name}{wrapper_styles['studio'][1]}")
+                            else:
+                                filename_parts.append(studio_name)
         elif key == 'title':
             if title:  # This value has already been fetch in start of function because it needs to be defined before tags and performers
                 if wrapper_styles.get('title'):
@@ -203,8 +210,8 @@ def form_filename(original_file_stem, scene_details, wrapper_styles):
             if settings["performerAppend"]:
                 performers = '-'.join([performer.get('name', '') for performer in scene_details.get('performers', [])])
                 if performers:
-                    if debugTracing: logger.info(f"Debug Tracing (include_performer_if_in_name={include_performer_if_in_name})................")
-                    if include_performer_if_in_name or performers.lower() not in title.lower():
+                    if debugTracing: logger.info(f"Debug Tracing (include_keyField_if_in_name={include_keyField_if_in_name})................")
+                    if include_keyField_if_in_name or performers.lower() not in title.lower():
                         if debugTracing: logger.info(f"Debug Tracing (performers={performers})................")
                         if wrapper_styles.get('performers'):
                             filename_parts.append(f"{wrapper_styles['performers'][0]}{performers}{wrapper_styles['performers'][1]}")
@@ -212,7 +219,9 @@ def form_filename(original_file_stem, scene_details, wrapper_styles):
                             filename_parts.append(performers)
         elif key == 'date':
             scene_date = scene_details.get('date', '')
+            if debugTracing: logger.info("Debug Tracing................")
             if scene_date:
+                if debugTracing: logger.info("Debug Tracing................")
                 if wrapper_styles.get('date'):
                     filename_parts.append(f"{wrapper_styles['date'][0]}{scene_date}{wrapper_styles['date'][1]}")
                 else:
@@ -233,23 +242,40 @@ def form_filename(original_file_stem, scene_details, wrapper_styles):
                 else:
                     filename_parts.append(video_codec)
         elif key == 'frame_rate':
-            frame_rate = str(scene_details.get('files', [{}])[0].get('frame_rate', '')) + ' FPS'  # Convert to string and append ' FPS'
+            frame_rate = str(scene_details.get('files', [{}])[0].get('frame_rate', '')) + 'FPS'  # Convert to string and append ' FPS'
             if frame_rate:
                 if wrapper_styles.get('frame_rate'):
                     filename_parts.append(f"{wrapper_styles['frame_rate'][0]}{frame_rate}{wrapper_styles['frame_rate'][1]}")
                 else:
                     filename_parts.append(frame_rate)
+        elif key == 'galleries':
+            galleries = [gallery.get('title', '') for gallery in scene_details.get('galleries', [])]
+            if debugTracing: logger.info("Debug Tracing................")
+            for gallery_name in galleries:
+                if debugTracing: logger.info(f"Debug Tracing (include_keyField_if_in_name={include_keyField_if_in_name}) (gallery_name={gallery_name})................")
+                if include_keyField_if_in_name or gallery_name.lower() not in title.lower():
+                    if wrapper_styles.get('galleries'):
+                        filename_parts.append(f"{wrapper_styles['galleries'][0]}{gallery_name}{wrapper_styles['galleries'][1]}")
+                        if debugTracing: logger.info("Debug Tracing................")
+                    else:
+                        filename_parts.append(gallery_name)
+                        if debugTracing: logger.info("Debug Tracing................")
+                    if debugTracing: logger.info(f"Debug Tracing (gallery_name={gallery_name})................")
+            if debugTracing: logger.info("Debug Tracing................")
         elif key == 'tags':
             if settings["tagAppend"]:
                 tags = [tag.get('name', '') for tag in scene_details.get('tags', [])]
                 if debugTracing: logger.info("Debug Tracing................")
                 for tag_name in tags:
-                    if debugTracing: logger.info(f"Debug Tracing (include_tag_if_in_name={include_tag_if_in_name})................")
-                    if include_tag_if_in_name or tag_name.lower() not in title.lower():
+                    if debugTracing: logger.info(f"Debug Tracing (include_keyField_if_in_name={include_keyField_if_in_name}) (tag_name={tag_name})................")
+                    if include_keyField_if_in_name or tag_name.lower() not in title.lower():
                         add_tag(tag_name)
                         if debugTracing: logger.info(f"Debug Tracing (tag_name={tag_name})................")
+                if debugTracing: logger.info("Debug Tracing................")
     
+    if debugTracing: logger.info("Debug Tracing................")
     new_filename = separator.join(filename_parts).replace(double_separator, separator)
+    if debugTracing: logger.info(f"Debug Tracing (new_filename={new_filename})................")
 
     # Check if the scene's path matches any of the excluded paths
     if exclude_paths and should_exclude_path(scene_details):
@@ -270,6 +296,9 @@ def find_scene_by_id(scene_id):
                 height
                 video_codec
                 frame_rate
+            }
+            galleries {
+                title
             }
             studio {
                 name
