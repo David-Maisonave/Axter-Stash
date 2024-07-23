@@ -70,7 +70,11 @@ hooks:
     triggeredBy:
       - Scene.Update.Post
 tasks:
-  - name: Rename Files Task
-    description: Renames scene files.
+  # - name: Fetch Tags
+    # description: Get tags from duplicate file names.
+    # defaultArgs:
+      # mode: fetch_dup_filename_tags
+  - name: Rename Last Scene
+    description: Renames file of last updated scene.
     defaultArgs:
       mode: rename_files_task
