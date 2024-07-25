@@ -26,6 +26,4 @@ config = {
     "if_notitle_use_org_filename": True, # Warning: Do not recommend setting this to False.
     # Current Stash DB schema only allows maximum base file name length to be 255
     "max_filename_length": 255,
-    # "max_filefolder_length": 255, # For future useage
-    # "max_filebase_length": 255, # For future useage
 }

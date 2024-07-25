@@ -435,8 +435,6 @@ def rename_scene(scene_id, wrapper_styles, stash_directory):
     metadata_scan_path = original_parent_directory
     perform_metadata_scan(metadata_scan_path)
 
-    # ToDo: Add logic to the below code section so it checks base file length and checks folder length, instead of lumping them altogether.
-    # Current DB schema allows file folder max length to be 255, and max base filename to be 255
     max_filename_length = int(config["max_filename_length"])
     if len(new_filename) > max_filename_length:
         extension_length = len(Path(original_file_path).suffix)
@@ -506,7 +504,5 @@ if debugTracing: logger.info("\n*********************************\nEXITING   ***
 
 
 # ToDo List
-    # Add logic to max_filename_length code so it checks base file length and checks folder length, instead of lumping them altogether.
     # Add logic to update Sqlite DB on file name change, instead of perform_metadata_scan.
-    # Get variables from the Plugins Settings UI instead of from renamefile_settings.py
     # Add code to get tags from duplicate filenames
