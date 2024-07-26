@@ -1,5 +1,5 @@
 # This is a Stash plugin which allows users to rename the video (scene) file name by editing the [Title] field located in the scene [Edit] tab.
-# By David Maisonave (aka Axter) 2024
+# By David Maisonave (aka Axter) Jul-2024
 # Get the latest developers version from following link: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/RenameFile
 # Based on source code from  https://github.com/Serechops/Serechops-Stash/tree/main/plugins/Renamer
 
@@ -20,7 +20,7 @@ from renamefile_settings import config
 # Get the directory of the script
 script_dir = Path(__file__).resolve().parent
 
-# Configure logging for your script
+# Configure logging for this script with max log file size
 log_file_path = script_dir / 'renamefile.log'
 rfh = RotatingFileHandler(
     filename=log_file_path, 
