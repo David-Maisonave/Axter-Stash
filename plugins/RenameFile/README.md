@@ -21,7 +21,7 @@ Note: This script is **largely** based on the [Renamer](https://github.com/Serec
   - To add these fields see the [Key Fields] option in Settings->Plugins->Plugins->[RenameFile].
   - The [Key Fields] can also be used to change the order for the file name format.
 - There are many options in Plugins->[RenameFile] UI, and all the options have detailed descriptions. Please advise us if any of the options need further clarification, and provide example details.
-  - **[Key Fields]**: (This option may require more detail then could be provided in the GUI)
+  - **[Key Fields]**: (This option may require more detail than could be provided in the GUI)
     - Define key fields to use to format the file name. This is a comma seperated list, and the list should be in the desired format order. (Default=title,performers,studio,tags)
       - For example, if the user wants the performers name before the title, set the performers name first.
       - Example:"performers,title,tags".
