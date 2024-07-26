@@ -39,13 +39,15 @@ Error: [WinError 32] The process cannot access the file because it is being used
 To avoid this error, refresh the URL before changing the Title field.
 
 ### Requirements
-`pip install stashapp-tools`
-
-`pip install pyYAML`
+pip install -r requirements.txt
+- Or manually install each requirement:
+  - `pip install stashapp-tools`
+  - `pip install pyYAML`
+  - `pip install requests`
 
 ### Installation
 - Follow **Requirements** instructions.
-- In the stash plugin directory (C:\Users\MyUserName\.stash\plugins), create a folder named **RenameFile**.
+- Create a folder named **RenameFile**, in the stash plugin directory (C:\Users\MyUserName\.stash\plugins).
 - Copy all the plugin files to this folder.(**C:\Users\MyUserName\\.stash\plugins\RenameFile**).
 - Restart Stash.
 
