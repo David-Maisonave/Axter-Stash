@@ -21,6 +21,15 @@ Note: This script is **largely** based on the [Renamer](https://github.com/Serec
   - To add these fields see the [Key Fields] option in Settings->Plugins->Plugins->[RenameFile].
   - The [Key Fields] can also be used to change the order for the file name format.
 - There are many options in Plugins->[RenameFile] UI, and all the options have detailed descriptions. Please advise us if any of the options need further clarification, and provide example details.
+  - **[Key Fields]**: (This option may require more detail then could be provided in the GUI)
+    - Define key fields to use to format the file name. This is a comma seperated list, and the list should be in the desired format order. (Default=title,performers,studio,tags)
+      - For example, if the user wants the performers name before the title, set the performers name first.
+      - Example:"performers,title,tags".
+     - This is an example of user adding height:"title,performers,tags,height"
+     - Here's an example using all of the supported fields: "title,performers,tags,studio,galleries,resolution,width,height,video_codec,frame_rate,date".
+     - The **resolution** field equals width + height.
+     - The date field is **not** populated by default unless the user explicitly adds the date value to a scene.
+     - If **[Key Fields]** is empty, the default value is used. (Default=title,performers,studio,tags)
 - There are additional options in renamefile_settings.py, but these options should only be changed by advanced users, and any changes should be tested first with the [Dry-Run] option enabled.
 
 **Note:** On Windows 10/11, the file can not be renamed while it's playing. It will result in following error:
