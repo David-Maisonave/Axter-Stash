@@ -1,4 +1,4 @@
-# Importing config dictionary
+# By David Maisonave (aka Axter) 2024
 # RenameFile plugin main configuration options are available on the Stash GUI under Settings->Plugins->Plugins->[RenameFile].
 # Most users should only use the GUI options.
 # The configuration options in this file are for advanced users ONLY!!!
@@ -9,16 +9,33 @@
 config = {
     # Define wrapper styles for different parts of the filename.
     # Use '[]' for square brackets, '{}' for curly brackets, '()' for parentheses, or an empty string for None.
-    "wrapper_styles": {
-        "studio": '{}',        # Modify these values to change how each part of the filename is wrapped.
-        "title": '',         # Use '[]' for square brackets, '{}' for curly brackets, '()' for parentheses, or an empty string for None.
+    "wrapper_styles": {     # Modify these values to change how each part of the filename is wrapped.
+        "title": '',
         "performers": '()',
+        "tag": '[]',     
+        "studio": '{}',
         "galleries": '()', 
-        "date": '()',      
+        "resolution": '',   # Contains both WITH and HEIGHT
+        "width": '',      
         "height": '',      
         "video_codec": '', 
         "frame_rate": '',  
-        "tag": '[]'        
+        "date": '()',       # This field is not populated in the DB by default.  It's usually empty.
+    },
+    # Define the field postfix
+    "postfix_styles": {
+        "title": '', 
+        "performers": '',
+        "tag": '',
+        "studio": '',
+        "galleries": '', 
+        "resolution": 'P',              # Contains both WITH and HEIGHT   
+        "width": 'W',
+        "height": 'P',
+        "width_height_seperator": 'x',  # Used in RESOLUTION field as the string seperating WITH and HEIGHT. Example: 720x480 or 1280X720
+        "video_codec": '', 
+        "frame_rate": 'FR',  
+        "date": '',      
     },
     # Define whether files should be renamed when moved
     "rename_files": True,

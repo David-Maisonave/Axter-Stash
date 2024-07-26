@@ -9,6 +9,8 @@ desktop.ini
 *.ipch
 *.lib
 *.log
+*.log.1
+*.log.2
 *.manifest
 *.obj
 *.pch
