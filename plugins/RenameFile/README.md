@@ -48,8 +48,8 @@ pip install -r requirements.txt
 ### Installation
 - Follow **Requirements** instructions.
 - Create a folder named **RenameFile**, in the stash plugin directory (C:\Users\MyUserName\.stash\plugins).
-- Copy all the plugin files to this folder.(**C:\Users\MyUserName\\.stash\plugins\RenameFile**).
-- Restart Stash.
+- Download the latest version from the following link: [RenameFile](https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/RenameFile), and copy the plugin files to folder.(**C:\Users\MyUserName\\.stash\plugins\RenameFile**).
+- Click the **[Reload Plugins]** button in Stash->Settings->Plugins->Plugins.
 
 That's it!!!
 
