@@ -17,6 +17,6 @@ ChangeFileMonitor is a [Stash](https://github.com/stashapp/stash) plugin which u
 That's it!!!
 
 ### Options
-- Main options are accessible in the GUI via Settings->Plugins->Plugins->[ChangeFileMonitor].
-- Advanced options are avialable in the **changefilemonitor_settings.py** file. After making changes, go to http://localhost:9999/settings?tab=plugins, and click [Reload Plugins].
+- All options are accessible in the GUI via Settings->Plugins->Plugins->[ChangeFileMonitor].
+
 
