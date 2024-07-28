@@ -10,5 +10,4 @@ files:
 - README.md
 - changefilemonitor.yml
 - changefilemonitor.py
-- changefilemonitor_settings.py
 - requirements.txt

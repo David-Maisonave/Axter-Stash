@@ -12,7 +12,6 @@ import logging
 from logging.handlers import RotatingFileHandler
 import stashapi.log as log # Importing stashapi.log as log for critical events ONLY
 from stashapi.stashapp import StashInterface
-from changefilemonitor_settings import config # Import settings from changefilemonitor_settings.py
 from watchdog.observers import Observer # This is also needed for event attributes
 import watchdog  # pip install watchdog  # https://pythonhosted.org/watchdog/
 from threading import Lock, Condition
