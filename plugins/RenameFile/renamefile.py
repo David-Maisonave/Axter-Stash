@@ -17,8 +17,7 @@ from renamefile_settings import config # Import settings from renamefile_setting
 
 # **********************************************************************
 # Constant global variables --------------------------------------------
-SCRIPT_DIR = Path(__file__).resolve().parent  # Get the directory of the script
-LOG_FILE_PATH = SCRIPT_DIR / 'renamefile.log' 
+LOG_FILE_PATH = log_file_path = f"{Path(__file__).resolve().parent}\\{Path(__file__).stem}.log"
 FORMAT = "[%(asctime)s - LN:%(lineno)s] %(message)s"
 DEFAULT_ENDPOINT = "http://localhost:9999/graphql" # Default GraphQL endpoint
 DEFAULT_FIELD_KEY_LIST = "title,performers,studio,tags" # Default Field Key List with the desired order
