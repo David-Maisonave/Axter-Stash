@@ -2,6 +2,7 @@
 ChangeFileMonitor is a [Stash](https://github.com/stashapp/stash) plugin which updates Stash if any changes occurs in the Stash library paths.
 
 ### Using ChangeFileMonitor
+Go to **Stash->Settings->Task->[Plugin Tasks]->ChangeFileMonitor**, and click on the [Start Library Monitor] button.
 
 ### Requirements
 `pip install stashapp-tools`
