@@ -3,6 +3,7 @@ ChangeFileMonitor is a [Stash](https://github.com/stashapp/stash) plugin which u
 
 ### Using ChangeFileMonitor
 Go to **Stash->Settings->Task->[Plugin Tasks]->ChangeFileMonitor**, and click on the [Start Library Monitor] button.
+![ChangeFileMonitor_Task](https://github.com/user-attachments/assets/f275a70f-8e86-42a4-b2c1-98b3f4935334)
 
 ### Requirements
 `pip install stashapp-tools`
