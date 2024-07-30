@@ -1,4 +1,4 @@
-# FileMonitor: Ver 0.1.0 (By David Maisonave)
+# FileMonitor: Ver 0.2.0 (By David Maisonave)
 FileMonitor is a [Stash](https://github.com/stashapp/stash) plugin which updates Stash if any changes occurs in the Stash library paths.
 
 ### Using FileMonitor as a plugin
