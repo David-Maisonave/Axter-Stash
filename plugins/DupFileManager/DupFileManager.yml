@@ -1,0 +1,46 @@
+name: DupFileManager
+description: Manages duplicate files.
+version: 0.1.0
+url: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/DupFileManager
+settings:
+  ignoreReparsepoints:
+    displayName: Ignore Reparse Points
+    description: Enable to ignore reparse-points when deleting duplicates.
+    type: BOOLEAN
+  ignoreSymbolicLinks:
+    displayName: Ignore Symbolic Links
+    description: Enable to ignore symbolic links when deleting duplicates.
+    type: BOOLEAN
+  mergeDupFilename:
+    displayName: Before deletion, merge potential source in the duplicate file names for tag names, performers, and studios.
+    description: Enable to 
+    type: BOOLEAN
+  moveToTrashCan:
+    displayName: Trash Can
+    description: Enable to move files to trash can instead of permanently delete file.
+    type: BOOLEAN
+  zzdebugTracing:
+    displayName: Debug Tracing
+    description: (Default=false) [***For Advanced Users***] Enable debug tracing. When enabled, additional tracing logging is added to Stash\plugins\DupFileManager\DupFileManager.log
+    type: BOOLEAN
+  zzdryRun:
+    displayName: Dry Run
+    description: Enable to run script in [Dry Run] mode. In this mode, Stash does NOT call meta_scan, and only logs the action it would have taken.
+    type: BOOLEAN
+exec:
+  - python
+  - "{pluginDir}/DupFileManager.py"
+interface: raw
+tasks:
+  - name: Merge Duplicate Filename
+    description: Merge duplicate filename sourcetag names, performers, and studios.
+    defaultArgs:
+      mode: merge_dup_filename_task
+  - name: Delete Duplicates
+    description: Delete duplicate files
+    defaultArgs:
+      mode: delete_duplicates
+  - name: Dry Run Delete Duplicates
+    description: Only perform a dry run (logging only) of duplicate file deletions. Dry Run setting is ignore when running this task.
+    defaultArgs:
+      mode: dryrun_delete_duplicates

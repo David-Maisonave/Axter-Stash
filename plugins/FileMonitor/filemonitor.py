@@ -2,19 +2,13 @@
 # By David Maisonave (aka Axter) Jul-2024 (https://www.axter.com/)
 # Get the latest developers version from following link: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor
 # Note: To call this script outside of Stash, pass any argument. 
-#       Example:    python filemonitor.py foofoo
+#       Example:    python filemonitor.py start
 import os
 import sys
-import time
-import shutil
-import fileinput
-import hashlib
 import json
 from pathlib import Path
-import requests
 import logging
 from logging.handlers import RotatingFileHandler
-import stashapi.log as log # Importing stashapi.log as log for critical events ONLY
 from stashapi.stashapp import StashInterface
 from watchdog.observers import Observer # This is also needed for event attributes
 import watchdog  # pip install watchdog  # https://pythonhosted.org/watchdog/
@@ -26,18 +20,8 @@ from filemonitor_config import config # Import settings from filemonitor_config.
 # Constant global variables --------------------------------------------
 LOG_FILE_PATH = log_file_path = f"{Path(__file__).resolve().parent}\\{Path(__file__).stem}.log" 
 FORMAT = "[%(asctime)s - LN:%(lineno)s] %(message)s"
-PLUGIN_ARGS = False
 PLUGIN_ARGS_MODE = False
 PLUGIN_ID = Path(__file__).stem.lower()
-# GraphQL query to fetch all scenes
-QUERY_ALL_SCENES = """
-    query AllScenes {
-        allScenes {
-            id
-            updated_at
-        }
-    }
-"""
 RFH = RotatingFileHandler(
     filename=LOG_FILE_PATH, 
     mode='a',
@@ -73,9 +57,6 @@ try:
     if len(sys.argv) == 1:
         print(f"Attempting to read stdin. (len(sys.argv)={len(sys.argv)})", file=sys.stderr)
         StdInRead = sys.stdin.read()
-        # for line in fileinput.input():
-            # StdInRead = line
-            # break
     else:
         if len(sys.argv) > 1 and sys.argv[1].lower() == "stop":
             stopLibraryMonitoring = True
@@ -124,11 +105,10 @@ for item in STASHPATHSCONFIG:
 DRY_RUN = settings["zzdryRun"]
 dry_run_prefix = ''
 try:
-    PLUGIN_ARGS         = json_input['args']
     PLUGIN_ARGS_MODE    = json_input['args']["mode"]
 except:
     pass
-logger.info(f"\nStarting (runningInPluginMode={runningInPluginMode}) (debugTracing={debugTracing}) (DRY_RUN={DRY_RUN}) (PLUGIN_ARGS_MODE={PLUGIN_ARGS_MODE}) (PLUGIN_ARGS={PLUGIN_ARGS})************************************************")
+logger.info(f"\nStarting (runningInPluginMode={runningInPluginMode}) (debugTracing={debugTracing}) (DRY_RUN={DRY_RUN}) (PLUGIN_ARGS_MODE={PLUGIN_ARGS_MODE})************************************************")
 if debugTracing: logger.info(f"Debug Tracing (stash.get_configuration()={stash.get_configuration()})................")
 if debugTracing: logger.info("settings: %s " % (settings,))
 if debugTracing: logger.info(f"Debug Tracing (STASHCONFIGURATION={STASHCONFIGURATION})................")
@@ -260,6 +240,7 @@ def start_library_monitor():
 # Stops monitoring after triggered by the next file change.
 # ToDo: Add logic so it doesn't have to wait until the next file change
 def stop_library_monitor():
+    import time
     if debugTracing: logger.info("Opening shared memory map.")
     try:
         shm_a = shared_memory.SharedMemory(name="DavidMaisonaveAxter_FileMonitor", create=False, size=4)

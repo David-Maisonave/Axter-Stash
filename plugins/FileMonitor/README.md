@@ -1,4 +1,4 @@
-# FileMonitor: Ver 0.2.0 (By David Maisonave)
+# FileMonitor: Ver 0.3.0 (By David Maisonave)
 FileMonitor is a [Stash](https://github.com/stashapp/stash) plugin which updates Stash if any changes occurs in the Stash library paths.
 
 ### Using FileMonitor as a plugin
@@ -25,11 +25,12 @@ FileMonitor is a [Stash](https://github.com/stashapp/stash) plugin which updates
 - Follow **Requirements** instructions.
 - In the stash plugin directory (C:\Users\MyUserName\.stash\plugins), create a folder named **FileMonitor**.
 - Copy all the plugin files to this folder.(**C:\Users\MyUserName\\.stash\plugins\FileMonitor**).
-- Restart Stash.
+- Click the **[Reload Plugins]** button in Stash->Settings->Plugins->Plugins.
 
 That's it!!!
 
 ### Options
-- All options are accessible in the GUI via Settings->Plugins->Plugins->[FileMonitor].
+- All are accessible in the GUI via Settings->Plugins->Plugins->[FileMonitor].
+- More options available in filemonitor_config.py.
 
 
