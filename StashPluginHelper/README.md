@@ -199,5 +199,5 @@ Logs in logging level logging.WARN.
   - What to log out to. Default = LOG_TO_FILE + LOG_TO_STASH
 
 
-### Requirements
+## Requirements
 `pip install stashapp-tools --upgrade`
