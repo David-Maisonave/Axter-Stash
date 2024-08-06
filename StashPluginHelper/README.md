@@ -53,6 +53,34 @@ plugin.Log(f"Value for TIMEOUT = {TIMEOUT}")
 # Trace logs out only when DEBUG_TRACING is enabled.
 plugin.Trace(f"plugin.PLUGIN_TASK_NAME = {plugin.PLUGIN_TASK_NAME}")
 ```
+#### Example #3
+- An example for a plugin that can also run in command line mode. It parses command line argument using argparse before calling StashPluginHelper. This allows it to pass in the stash-url and/or trace option to StashPluginHelper constructor.
+``` python
+from StashPluginHelper import StashPluginHelper
+from MyPlugin_config import config
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument('--url', '-u', dest='stash_url', type=str, help='Add Stash URL')
+parser.add_argument('--trace', '-t', dest='trace', action='store_true', help='Enables debug trace mode.')
+parse_args = parser.parse_args()
+
+plugin = StashPluginHelper(
+        stash_url=parse_args.stash_url,
+        debugTracing=parse_args.trace,
+        config=config)
+
+plugin.Log(f"plugin.DEBUG_TRACING = {plugin.DEBUG_TRACING}")
+
+plugin.Log(f"Value for RUNNING_IN_COMMAND_LINE_MODE = {plugin.RUNNING_IN_COMMAND_LINE_MODE}")
+
+plugin.Log(f"Value for CALLED_AS_STASH_PLUGIN = {plugin.CALLED_AS_STASH_PLUGIN}")
+
+if not plugin.RUNNING_IN_COMMAND_LINE_MODE and not plugin.CALLED_AS_STASH_PLUGIN:
+    # By default, errors go out to both plugin log file and std-err.
+    #     In plugin mode, std-err get sent to stash log file.
+    #     In command line mode, std-err goes out to console.
+    plugin.Error("This should never happen.")
+```
 
 ### Requirements
 `pip install stashapp-tools --upgrade`
