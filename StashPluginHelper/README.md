@@ -1,41 +1,32 @@
-# This Plugin is under construction!!!
+# StashPluginHelper: Ver 0.1.0 (By David Maisonave)
+StashPluginHelper is a class that performs common implementation used in most plugins.
 
-# DupFileManager: Ver 0.1.0 (By David Maisonave)
-DupFileManager is a [Stash](https://github.com/stashapp/stash) plugin which manages duplicate file in the Stash system.
 ### Features
-- Can merge potential source in the duplicate file names for tag names, performers, and studios.
-  - Normally when Stash searches the file name for tag names, performers, and studios, it only does so using the primary file. This plugin scans the duplicate files to see if additional fields are available.
-- Delete duplicate file task with the following options:
-  - Options in plugin UI (Settings->Plugins->Plugins->[DupFileManager])
-    - Ignore reparse-points. By default, reparse-points are not deleted.
-    - Ignore symbolic links. By default, symbolic links are not deleted.
-    - Before deletion, merge potential source in the duplicate file names for tag names, performers, and studios.
-    - Optionally permanently duplicates or moved them to **trash can** / alternate folder.
-  - Options available via DupFileManager_config.py
-    - Use a white list of preferential directories to determine which duplicate should be the primary.
-    - Use a black list to determine which duplicates should be deleted first.
-    - Use an ignore list to avoid specific directories. No action is taken on any file in the ignore list.
-    - Target directories list. If this list is populated, only files under these directories are process. If list is empty, all files are processed (excluding those in ignore list).
-	- Alternative path to move duplicate files. Path needs to be in the same drive as the duplicate file. 
-	  - Example: "C:\TempDeleteFolder"
+- Log Features:
+  - Optionally log out to multiple outputs for each Log or Trace call.
+  - Logging includes source code line number.
+  - Sets a maximum plugin log file size.
+- Stash Interface Features:
+  - Sets STASH_INTERFACE with StashInterface
+  - Gets STASH_URL value from command line argument and/or from STDIN_READ
+  - Sets FRAGMENT_SERVER based on command line arguments or STDIN_READ
+  - Sets PLUGIN_ID based on the main script file name (in lower case)
+  - Gets PLUGIN_TASK_NAME value
+  - Sets pluginSettings (The plugin UI settings)
+- Misc Features:
+  - Gets DRY_RUN value from command line argument and/or from UI and/or from config file.
+  - Gets DEBUG_TRACING value from command line argument and/or from UI and/or from config file.
+  - Sets RUNNING_IN_COMMAND_LINE_MODE to True if detects multiple arguments
+  - Sets CALLED_AS_STASH_PLUGIN to True if it's able to read from STDIN_READ
 
-### Using DupFileManager
-This Plugin is under construction!!!
+### Using StashPluginHelper
+from filemonitor_config import config
+settings = {
+    "recursiveDisabled": False,
+    "zzdebugTracing": False,
+    "zzdryRun": False,
+}
+plugin = StashPluginHelper(settings=settings, config=config)
 
 ### Requirements
-`pip install stashapp-tools`
-`pip install --upgrade stashapp-tools`
-`pip install pyYAML`
-
-### Installation
-- Follow **Requirements** instructions.
-- In the stash plugin directory (C:\Users\MyUserName\.stash\plugins), create a folder named **DupFileManager**.
-- Copy all the plugin files to this folder.(**C:\Users\MyUserName\\.stash\plugins\DupFileManager**).
-- Click the **[Reload Plugins]** button in Stash->Settings->Plugins->Plugins.
-
-That's it!!!
-
-### Options
-- Options are accessible in the GUI via Settings->Plugins->Plugins->[DupFileManager].
-- More options available in DupFileManager_config.py.
-
+`pip install stashapp-tools --upgrade`
