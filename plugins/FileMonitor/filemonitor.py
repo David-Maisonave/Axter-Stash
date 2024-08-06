@@ -35,8 +35,7 @@ plugin = StashPluginHelper(
         stash_url=parse_args.stash_url,
         debugTracing=parse_args.trace,
         settings=settings,
-        config=config,
-        mainScriptName = __file__)
+        config=config)
 plugin.Status()
 plugin.Log(f"\nStarting (__file__={__file__}) (plugin.CALLED_AS_STASH_PLUGIN={plugin.CALLED_AS_STASH_PLUGIN}) (plugin.DEBUG_TRACING={plugin.DEBUG_TRACING}) (plugin.DRY_RUN={plugin.DRY_RUN}) (plugin.PLUGIN_TASK_NAME={plugin.PLUGIN_TASK_NAME})************************************************")
 
