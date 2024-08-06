@@ -21,8 +21,8 @@ StashPluginHelper is a class that performs common implementation used in most pl
 
 ### StashPluginHelper Usage
 #### Example #1
-- All the arguments for StashPluginHelper class are optional.
-  - It can be called with no arguments if the plugin has NO UI settings and NO associated (*_config.py) file.
+- All the arguments for **StashPluginHelper** class are optional.
+  - StashPluginHelper can be called with no arguments if the plugin has NO UI settings and NO associated (*_config.py) file.
 ``` python
 from StashPluginHelper import StashPluginHelper
 plugin = StashPluginHelper()
@@ -81,6 +81,46 @@ if not plugin.RUNNING_IN_COMMAND_LINE_MODE and not plugin.CALLED_AS_STASH_PLUGIN
     #     In command line mode, std-err goes out to console.
     plugin.Error("This should never happen.")
 ```
+
+### StashPluginHelper arguments
+- debugTracing
+  - Default: False
+  - Set to true to enable debug tracing, and to open the plugin log file with logging level logging.DEBUG.
+  - When debugTracing is false, the Trace logging does not output any logging unless argument (**logAlways**=True) is pass to Trace.
+- logFormat
+  - Plugin log line format. Default = `"[%(asctime)s] %(message)s"`
+- dateFmt
+  - Date format when logging to plugin log file. Default = `"%y%m%d %H:%M:%S"`
+- maxbytes
+  - Maximum size of plugin log file. Default = 1MB
+- backupcount
+  - Backup counts when log file size reaches max size
+- logToWrnSet
+  - Customize the target output set which will get warning logging
+- logToErrSet
+  - Customize the target output set which will get error logging
+- logToNormSet
+  - Customize the target output set which will get normal logging
+- logFilePath
+  - Plugin log file. If empty, the log file name will be set based on current python file name and path
+- mainScriptName
+  - The main plugin script file name (full path)
+- pluginID
+  - Plugin ID
+- settings
+  - Default settings for the plugin UI fields
+- config
+  - From pluginName_config.py or pluginName_setting.py
+- fragmentServer
+  - Fragment server data.
+- stash_url
+  - Stash URL (endpoint URL) Example: http://localhost:9999
+- DebugTraceFieldName
+  - Field name (in settings or config) for DebugTrace. Default = `"zzdebugTracing"`
+- DryRunFieldName
+  - Field name (in settings or config) for DryRun. Default = `"zzdryRun"`
+
+
 
 ### Requirements
 `pip install stashapp-tools --upgrade`
