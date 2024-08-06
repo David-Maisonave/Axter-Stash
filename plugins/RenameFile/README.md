@@ -41,7 +41,7 @@ To avoid this error, refresh the URL before changing the Title field.
 ### Requirements
 pip install -r requirements.txt
 - Or manually install each requirement:
-  - `pip install stashapp-tools`
+  - `pip install stashapp-tools --upgrade`
   - `pip install pyYAML`
   - `pip install requests`
 
