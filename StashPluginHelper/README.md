@@ -27,7 +27,8 @@ StashPluginHelper is a class that performs common implementation used in most pl
 from StashPluginHelper import StashPluginHelper
 plugin = StashPluginHelper()
 
-plugin.Trace() # Trace command which logs out only when DEBUG_TRACING is enabled, and by default only logs to plugin log file.
+# Trace command which logs out only when DEBUG_TRACING is enabled, and by default only logs to plugin log file.
+plugin.Trace()
 ```
 
 #### Example #2
@@ -44,10 +45,13 @@ settings = {
 plugin = StashPluginHelper(settings=settings, config=config)
 
 fooFoo = plugin.pluginSettings["enableFooFoo"]  # Gets plugin UI setting named enableFooFoo
-yetAnotherSetting = plugin.pluginConfig["someSettingName"] # Gets setting from MyPlugin_config.py
+TIMEOUT = plugin.pluginConfig['timeOut'] # Gets setting from MyPlugin_config.py
 
-plugin.Log(f"FooFoo = {FooFoo}") # By default, logging level is INFO, and output goes to the console and plugin log file.
-plugin.Trace(f"plugin.PLUGIN_TASK_NAME = {plugin.PLUGIN_TASK_NAME}") # logs out only when DEBUG_TRACING is enabled
+ # By default, logging level is INFO, and output goes to the console and plugin log file.
+plugin.Log(f"Value for TIMEOUT = {TIMEOUT}")
+
+# Trace logs out only when DEBUG_TRACING is enabled.
+plugin.Trace(f"plugin.PLUGIN_TASK_NAME = {plugin.PLUGIN_TASK_NAME}")
 ```
 
 ### Requirements
