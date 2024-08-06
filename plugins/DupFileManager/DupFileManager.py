@@ -89,23 +89,54 @@ settings = {
     "zzdebugTracing": False,
     "zzdryRun": False,
 }
+CanUpdatePluginConfigSettings = False
+try:
+    plugins_configuration = stash.find_plugins_config()
+    CanUpdatePluginConfigSettings = True
+except Exception as e:
+    logger.exception('Got exception on main handler')
+    logger.error('This exception most likely occurred because stashapp-tools needs to be upgraded. To fix this error, run the following command:\npip install --upgrade stashapp-tools')
+    pass
 
-if PLUGIN_ID in PLUGINCONFIGURATION:
+if PLUGIN_ID in PLUGINCONFIGURATION and (not CanUpdatePluginConfigSettings or 'INITIAL_VALUES_SET1' in PLUGINCONFIGURATION[PLUGIN_ID]):
     settings.update(PLUGINCONFIGURATION[PLUGIN_ID])
 # ----------------------------------------------------------------------
 debugTracing = settings["zzdebugTracing"]
 debugTracing = True
 
 
+for item in STASHPATHSCONFIG: 
+    stashPaths.append(item["path"])
+
+# Extract dry_run setting from settings
+DRY_RUN = settings["zzdryRun"]
+dry_run_prefix = ''
+try:
+    PLUGIN_ARGS_MODE    = json_input['args']["mode"]
+except:
+    pass
+logger.info(f"\nStarting (runningInPluginMode={runningInPluginMode}) (debugTracing={debugTracing}) (DRY_RUN={DRY_RUN}) (PLUGIN_ARGS_MODE={PLUGIN_ARGS_MODE}) (stash.stash_version()={stash.stash_version()})************************************************")
+if debugTracing: logger.info(f"Debug Tracing (stash.get_configuration()={stash.get_configuration()})")
+if debugTracing: logger.info("settings: %s " % (settings,))
+if debugTracing: logger.info(f"Debug Tracing (STASHCONFIGURATION={STASHCONFIGURATION})")
+if debugTracing: logger.info(f"Debug Tracing (stashPaths={stashPaths})")
+if debugTracing: logger.info(f"Debug Tracing (PLUGIN_ID={PLUGIN_ID})")
+if debugTracing: logger.info(f"Debug Tracing (PLUGINCONFIGURATION={PLUGINCONFIGURATION})")
+
 if PLUGIN_ID in PLUGINCONFIGURATION:
-    if 'ignoreSymbolicLinks' not in PLUGINCONFIGURATION[PLUGIN_ID]:
-        logger.info(f"Debug Tracing (PLUGIN_ID={PLUGIN_ID})................")
-        logger.info(f"Debug Tracing (PLUGINCONFIGURATION={PLUGINCONFIGURATION})................")
+    if 'INITIAL_VALUES_SET1' not in PLUGINCONFIGURATION[PLUGIN_ID]:
+        if debugTracing: logger.info(f"Initializing plugin ({PLUGIN_ID}) settings (PLUGINCONFIGURATION[PLUGIN_ID]={PLUGINCONFIGURATION[PLUGIN_ID]})")
         try:
-            plugin_configuration = stash.find_plugins_config()
-            logger.info(f"Debug Tracing (plugin_configuration={plugin_configuration})................")
+            plugins_configuration = stash.find_plugins_config()
+            if debugTracing: logger.info(f"Debug Tracing (plugins_configuration={plugins_configuration})")
+            stash.configure_plugin(PLUGIN_ID, {"INITIAL_VALUES_SET1": True})
+            logger.info('Called stash.configure_plugin(PLUGIN_ID, {"INITIAL_VALUES_SET1": True})')
+            plugins_configuration = stash.find_plugins_config()
+            if debugTracing: logger.info(f"Debug Tracing (plugins_configuration={plugins_configuration})")
             stash.configure_plugin(PLUGIN_ID, settings)
-            stash.configure_plugin(PLUGIN_ID, {"zmaximumTagKeys": 12})
+            logger.info('Called stash.configure_plugin(PLUGIN_ID, settings)')
+            plugins_configuration = stash.find_plugins_config()
+            if debugTracing: logger.info(f"Debug Tracing (plugins_configuration={plugins_configuration})")
         except Exception as e:
             logger.exception('Got exception on main handler')
             try:
@@ -119,24 +150,6 @@ if PLUGIN_ID in PLUGINCONFIGURATION:
         # stash.configure_plugin(PLUGIN_ID, settings) # , init_defaults=True
     if debugTracing: logger.info("Debug Tracing................")    
 
-for item in STASHPATHSCONFIG: 
-    stashPaths.append(item["path"])
-
-# Extract dry_run setting from settings
-DRY_RUN = settings["zzdryRun"]
-dry_run_prefix = ''
-try:
-    PLUGIN_ARGS_MODE    = json_input['args']["mode"]
-except:
-    pass
-logger.info(f"\nStarting (runningInPluginMode={runningInPluginMode}) (debugTracing={debugTracing}) (DRY_RUN={DRY_RUN}) (PLUGIN_ARGS_MODE={PLUGIN_ARGS_MODE})************************************************")
-if debugTracing: logger.info(f"Debug Tracing (stash.get_configuration()={stash.get_configuration()})................")
-if debugTracing: logger.info("settings: %s " % (settings,))
-if debugTracing: logger.info(f"Debug Tracing (STASHCONFIGURATION={STASHCONFIGURATION})................")
-if debugTracing: logger.info(f"Debug Tracing (stashPaths={stashPaths})................")
-if debugTracing: logger.info(f"Debug Tracing (PLUGIN_ID={PLUGIN_ID})................")
-if debugTracing: logger.info(f"Debug Tracing (PLUGINCONFIGURATION={PLUGINCONFIGURATION})................")
-
 if DRY_RUN:
     logger.info("Dry run mode is enabled.")
     dry_run_prefix = "Would've "
@@ -144,7 +157,76 @@ if debugTracing: logger.info("Debug Tracing................")
 # ----------------------------------------------------------------------
 # **********************************************************************
 
+def realpath(path):
+    """
+    get_symbolic_target for win
+    """
+    try:
+        import win32file
+        f = win32file.CreateFile(path, win32file.GENERIC_READ,
+                                 win32file.FILE_SHARE_READ, None,
+                                 win32file.OPEN_EXISTING,
+                                 win32file.FILE_FLAG_BACKUP_SEMANTICS, None)
+        target = win32file.GetFinalPathNameByHandle(f, 0)
+        # an above gives us something like u'\\\\?\\C:\\tmp\\scalarizr\\3.3.0.7978'
+        return target.strip('\\\\?\\')
+    except ImportError:
+        handle = open_dir(path)
+        target = get_symbolic_target(handle)
+        check_closed(handle)
+        return target
+
+def isReparsePoint(path):
+    import win32api
+    import win32con
+    FinalPathname = realpath(path)
+    logger.info(f"(path='{path}') (FinalPathname='{FinalPathname}')")
+    if FinalPathname != path:
+        logger.info(f"Symbolic link '{path}'")
+        return True
+    if not os.path.isdir(path):
+        path = os.path.dirname(path)
+    return win32api.GetFileAttributes(path) & win32con.FILE_ATTRIBUTE_REPARSE_POINT
+
 def mangeDupFiles():
+    import platform
+    if debugTracing: logger.info(f"Debug Tracing (platform.system()={platform.system()})")
+    myTestPath1 = r"B:\V\V\Tip\POV - Holly Molly petite ginger anal slut - RedTube.mp4" # not a reparse point or symbolic link
+    myTestPath2 = r"B:\_\SpecialSet\Amateur Anal Attempts\BRCC test studio name.m2ts" # reparse point
+    myTestPath3 = r"B:\_\SpecialSet\Amateur Anal Attempts\Amateur Anal Attempts 4.mp4" #symbolic link
+    myTestPath4 = r"E:\Stash\plugins\RenameFile\README.md" #symbolic link
+    myTestPath5 = r"E:\_\David-Maisonave\Axter-Stash\plugins\RenameFile\README.md" #symbolic link
+    myTestPath6 = r"E:\_\David-Maisonave\Axter-Stash\plugins\DeleteMe\Renamer\README.md" # not reparse point
+    logger.info(f"Testing '{myTestPath1}'")
+    if isReparsePoint(myTestPath1):
+        logger.info(f"isSymLink '{myTestPath1}'")
+    else:
+        logger.info(f"Not isSymLink '{myTestPath1}'")
+        
+    if isReparsePoint(myTestPath2):
+        logger.info(f"isSymLink '{myTestPath2}'")
+    else:
+        logger.info(f"Not isSymLink '{myTestPath2}'")
+        
+    if isReparsePoint(myTestPath3):
+        logger.info(f"isSymLink '{myTestPath3}'")
+    else:
+        logger.info(f"Not isSymLink '{myTestPath3}'")
+        
+    if isReparsePoint(myTestPath4):
+        logger.info(f"isSymLink '{myTestPath4}'")
+    else:
+        logger.info(f"Not isSymLink '{myTestPath4}'")
+        
+    if isReparsePoint(myTestPath5):
+        logger.info(f"isSymLink '{myTestPath5}'")
+    else:
+        logger.info(f"Not isSymLink '{myTestPath5}'")
+        
+    if isReparsePoint(myTestPath6):
+        logger.info(f"isSymLink '{myTestPath6}'")
+    else:
+        logger.info(f"Not isSymLink '{myTestPath6}'")
     return
 
 if mangeDupFilesTask:

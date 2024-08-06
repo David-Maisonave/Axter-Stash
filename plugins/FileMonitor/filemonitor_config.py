@@ -4,6 +4,14 @@
 config = {
     # Enable to run metadata_generate (Generate Content) after metadata scan.
     "runGenerateContent": False,
+    # Enable to run scan when triggered by on_any_event.
+    "onAnyEvent": False,
+    # Timeout in seconds. This is how often it will check if a stop signal is sent.
+    "timeOut": 60,
+    # Enable to exit FileMonitor by creating special file in plugin folder\working
+    "createSpecFileToExit": True,
+    # Enable to delete special file imediately after it's created in stop process
+    "deleteSpecFileInStop": False,
     
     # The following fields are ONLY used when running FileMonitor in script mode
     "endpoint_Scheme" : "http", # Define endpoint to use when contacting the Stash server

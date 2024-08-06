@@ -24,6 +24,7 @@ This Plugin is under construction!!!
 
 ### Requirements
 `pip install stashapp-tools`
+`pip install --upgrade stashapp-tools`
 `pip install pyYAML`
 
 ### Installation
