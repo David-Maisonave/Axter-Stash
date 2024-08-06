@@ -19,9 +19,11 @@ FileMonitor is a [Stash](https://github.com/stashapp/stash) plugin which updates
   - The restart command restarts FileMonitor as a Task in Stash.
 
 ### Requirements
-- `pip install stashapp-tools --upgrade`
-- `pip install pyYAML`
-- `pip install watchdog`
+- pip install -r requirements.txt
+- Or manually install each requirement:
+  - `pip install stashapp-tools --upgrade`
+  - `pip install pyYAML`
+  - `pip install watchdog`
 
 ### Installation
 - Follow **Requirements** instructions.
