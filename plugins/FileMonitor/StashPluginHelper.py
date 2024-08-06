@@ -102,7 +102,7 @@ class StashPluginHelper:
         if stash_url and len(stash_url): self.STASH_URL = stash_url
         self.MAIN_SCRIPT_NAME = mainScriptName if mainScriptName != "" else __main__.__file__
         self.PLUGIN_ID = pluginID if pluginID != "" else pathlib.Path(self.MAIN_SCRIPT_NAME).stem.lower()
-        print(f"self.MAIN_SCRIPT_NAME={self.MAIN_SCRIPT_NAME}, self.PLUGIN_ID={self.PLUGIN_ID}", file=sys.stderr)
+        # print(f"self.MAIN_SCRIPT_NAME={self.MAIN_SCRIPT_NAME}, self.PLUGIN_ID={self.PLUGIN_ID}", file=sys.stderr)
         self.LOG_FILE_NAME = logFilePath if logFilePath != "" else f"{pathlib.Path(self.MAIN_SCRIPT_NAME).resolve().parent}{os.sep}{pathlib.Path(self.MAIN_SCRIPT_NAME).stem}.log" 
         self.LOG_FILE_DIR = pathlib.Path(self.LOG_FILE_NAME).resolve().parent 
         RFH = RotatingFileHandler(

@@ -8,8 +8,8 @@ config = {
     "onAnyEvent": False,
     # Enable to monitor changes in file system for modification flag. This option is NOT needed for Windows, because on Windows changes are triggered via CREATE, DELETE, and MOVE flags. Other OS may differ.
     "scanModified": False,
-    # Timeout in seconds. This is how often it will check if a stop signal is sent.
-    "timeOut": 3600,
+    # Timeout in seconds. This is how often it will check if another job (Task) is in the queue.
+    "timeOut": 60, # Not needed when running in command line mode.
     # Enable to exit FileMonitor by creating special file in plugin folder\working
     "createSpecFileToExit": True,
     # Enable to delete special file imediately after it's created in stop process

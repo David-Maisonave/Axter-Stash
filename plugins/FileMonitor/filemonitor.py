@@ -22,7 +22,14 @@ parser.add_argument('--url', '-u', dest='stash_url', type=str, help='Add Stash U
 parser.add_argument('--trace', '-t', dest='trace', action='store_true', help='Enables debug trace mode.')
 parser.add_argument('--stop', '-s', dest='stop', action='store_true', help='Stop (kill) a running FileMonitor task.')
 parser.add_argument('--restart', '-r', dest='restart', action='store_true', help='Restart FileMonitor.')
+parser.add_argument('--silent', '--quit', '-q', dest='quit', action='store_true', help='Run in silent mode. No output to console or stderr. Use this when running from pythonw.exe')
 parse_args = parser.parse_args()
+
+logToErrSet = 0
+logToNormSet = 0
+if parse_args.quit:
+    logToErrSet = 1
+    logToNormSet = 1
 
 settings = {
     "recursiveDisabled": False,
@@ -33,7 +40,10 @@ plugin = StashPluginHelper(
         stash_url=parse_args.stash_url,
         debugTracing=parse_args.trace,
         settings=settings,
-        config=config)
+        config=config,
+        logToErrSet=logToErrSet,
+        logToNormSet=logToNormSet
+        )
 plugin.Status()
 plugin.Log(f"\nStarting (__file__={__file__}) (plugin.CALLED_AS_STASH_PLUGIN={plugin.CALLED_AS_STASH_PLUGIN}) (plugin.DEBUG_TRACING={plugin.DEBUG_TRACING}) (plugin.DRY_RUN={plugin.DRY_RUN}) (plugin.PLUGIN_TASK_NAME={plugin.PLUGIN_TASK_NAME})************************************************")
 
@@ -68,6 +78,22 @@ plugin.Trace(f"(stashPaths={stashPaths})")
 if plugin.DRY_RUN:
     plugin.Log("Dry run mode is enabled.")
 plugin.Trace(f"(SCAN_MODIFIED={SCAN_MODIFIED}) (SCAN_ON_ANY_EVENT={SCAN_ON_ANY_EVENT}) (RECURSIVE={RECURSIVE})")
+
+def isJobWaitingToRun():
+    i = 1
+    while i < 999:
+        jobDetails = plugin.STASH_INTERFACE.find_job(i)
+        if jobDetails:
+            plugin.Trace(f"(Job ID({i})={jobDetails})")
+            if jobDetails['status'] == "READY" and jobDetails['description'] != "Running plugin task: Start Library Monitor":
+                return i
+        else:
+            plugin.Trace(f"Last job {i}")
+            break
+        i += 1    
+    return 0
+
+plugin.Trace(f"isJobWaitingToRun() = {isJobWaitingToRun()})")
 
 def start_library_monitor():
     global shouldUpdate
@@ -154,6 +180,8 @@ def start_library_monitor():
         observer.schedule(event_handler, path, recursive=RECURSIVE)
         plugin.Trace(f"Observing {path}")
     observer.start()
+    JobIsRunning = False
+    PutPluginBackOnTaskQueAndExit = False
     plugin.Trace("Starting loop")
     try:
         while True:
@@ -161,11 +189,19 @@ def start_library_monitor():
             with mutex:
                 while not shouldUpdate:
                     plugin.Trace("Wait start")
-                    signal.wait(timeout=SIGNAL_TIMEOUT)
+                    if plugin.CALLED_AS_STASH_PLUGIN:
+                        signal.wait(timeout=SIGNAL_TIMEOUT)
+                    else:
+                        signal.wait()
                     plugin.Trace("Wait end")
                     if shm_buffer[0] != CONTINUE_RUNNING_SIG:
                         plugin.Log(f"Breaking out of loop. (shm_buffer[0]={shm_buffer[0]})")
                         break
+                    JobIdInTheQue = isJobWaitingToRun()
+                    if plugin.CALLED_AS_STASH_PLUGIN and JobIdInTheQue:
+                        plugin.Log(f"Another task (JobID={JobIdInTheQue}) is waiting on the queue. Will restart FileMonitor to allow other task to run.")
+                        JobIsRunning = True
+                        shouldUpdate = True
                 shouldUpdate = False
                 TmpTargetPaths = []
                 for TargetPath in TargetPaths:
@@ -186,16 +222,19 @@ def start_library_monitor():
                     if RUN_GENERATE_CONTENT:
                         plugin.STASH_INTERFACE.metadata_generate()
                 if plugin.CALLED_AS_STASH_PLUGIN and shm_buffer[0] == CONTINUE_RUNNING_SIG:
-                    plugin.STASH_INTERFACE.run_plugin_task(plugin_id=plugin.PLUGIN_ID, task_name="Start Library Monitor")
-                    plugin.Trace("Exiting plugin so that metadata_scan task can run.")
-                    return
+                    PutPluginBackOnTaskQueAndExit = True
             else:
                 plugin.Trace("Nothing to scan.")
-            if shm_buffer[0] != CONTINUE_RUNNING_SIG:
+            
+            if shm_buffer[0] != CONTINUE_RUNNING_SIG:               
                 plugin.Log(f"Exiting Change File Monitor. (shm_buffer[0]={shm_buffer[0]})")
                 shm_a.close()
                 shm_a.unlink()  # Call unlink only once to release the shared memory
                 raise KeyboardInterrupt
+            elif JobIsRunning or PutPluginBackOnTaskQueAndExit:
+                plugin.STASH_INTERFACE.run_plugin_task(plugin_id=plugin.PLUGIN_ID, task_name="Start Library Monitor")
+                plugin.Trace("Exiting plugin so that other task can run.")
+                return
     except KeyboardInterrupt:
         observer.stop()
         plugin.Trace("Stopping observer")
