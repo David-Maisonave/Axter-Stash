@@ -12,6 +12,8 @@ config = {
     "createSpecFileToExit": True,
     # Enable to delete special file imediately after it's created in stop process
     "deleteSpecFileInStop": False,
+    # When enabled, if CREATE flag is triggered, DupFileManager task is called if the plugin is installed.
+    "onCreateCallDupFileManager": False, # Not yet implemented!!!!
     
     # The following fields are ONLY used when running FileMonitor in script mode
     "endpoint_Scheme" : "http", # Define endpoint to use when contacting the Stash server
