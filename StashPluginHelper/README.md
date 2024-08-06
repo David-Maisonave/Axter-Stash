@@ -3,7 +3,7 @@ StashPluginHelper is a class that performs common implementation used in most pl
 
 ## Features
 - Log Features:
-  - Optionally log out to multiple outputs for each Log or Trace call.
+  - Logs out to multiple outputs for each Log or Trace call.
   - Logging includes source code line number.
   - Sets a maximum plugin log file size.
 - Stash Interface Features:
