@@ -7,14 +7,6 @@ settings:
     displayName: No Recursive
     description: Enable stop monitoring paths recursively.
     type: BOOLEAN
-  runCleanAfterDelete:
-    displayName: Run Clean
-    description: Enable to run metadata clean task after file deletion.
-    type: BOOLEAN
-  scanModified:
-    displayName: Scan Modifications
-    description: Enable to monitor changes in file system for modification flag. This option is NOT needed for Windows, because on Windows changes are triggered via CREATE, DELETE, and MOVE flags. Other OS may differ.
-    type: BOOLEAN
   zzdebugTracing:
     displayName: Debug Tracing
     description: (Default=false) [***For Advanced Users***] Enable debug tracing. When enabled, additional tracing logging is added to Stash\plugins\FileMonitor\filemonitor.log

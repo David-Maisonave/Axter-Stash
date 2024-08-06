@@ -26,8 +26,6 @@ parse_args = parser.parse_args()
 
 settings = {
     "recursiveDisabled": False,
-    "runCleanAfterDelete": False,
-    "scanModified": False,
     "zzdebugTracing": False,
     "zzdryRun": False,
 }
@@ -46,8 +44,8 @@ shouldUpdate = False
 TargetPaths = []
 
 RECURSIVE = plugin.pluginSettings["recursiveDisabled"] == False
-SCAN_MODIFIED = plugin.pluginSettings["scanModified"]
-RUN_CLEAN_AFTER_DELETE = plugin.pluginSettings["runCleanAfterDelete"]
+SCAN_MODIFIED = plugin.pluginConfig["scanModified"]
+RUN_CLEAN_AFTER_DELETE = plugin.pluginConfig["runCleanAfterDelete"]
 RUN_GENERATE_CONTENT = plugin.pluginConfig['runGenerateContent']
 SCAN_ON_ANY_EVENT = plugin.pluginConfig['onAnyEvent']
 SIGNAL_TIMEOUT = plugin.pluginConfig['timeOut']

@@ -6,12 +6,17 @@ config = {
     "runGenerateContent": False,
     # Enable to run scan when triggered by on_any_event.
     "onAnyEvent": False,
+    # Enable to monitor changes in file system for modification flag. This option is NOT needed for Windows, because on Windows changes are triggered via CREATE, DELETE, and MOVE flags. Other OS may differ.
+    "scanModified": False,
     # Timeout in seconds. This is how often it will check if a stop signal is sent.
     "timeOut": 60,
     # Enable to exit FileMonitor by creating special file in plugin folder\working
     "createSpecFileToExit": True,
     # Enable to delete special file imediately after it's created in stop process
     "deleteSpecFileInStop": False,
+    # Enable to run metadata clean task after file deletion.
+    "runCleanAfterDelete": False,
+    
     # When enabled, if CREATE flag is triggered, DupFileManager task is called if the plugin is installed.
     "onCreateCallDupFileManager": False, # Not yet implemented!!!!
     
