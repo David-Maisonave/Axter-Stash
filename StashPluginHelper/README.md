@@ -1,5 +1,5 @@
 # StashPluginHelper: Ver 0.1.0 (By David Maisonave)
-StashPluginHelper is a class that performs common implementation used in most plugins.
+StashPluginHelper.py is a class that performs common implementation used in most plugins.
 
 ## Features
 - Log Features:
