@@ -1,7 +1,7 @@
 # StashPluginHelper: Ver 0.1.0 (By David Maisonave)
 StashPluginHelper is a class that performs common implementation used in most plugins.
 
-### Features
+## Features
 - Log Features:
   - Optionally log out to multiple outputs for each Log or Trace call.
   - Logging includes source code line number.
@@ -19,7 +19,7 @@ StashPluginHelper is a class that performs common implementation used in most pl
   - Sets RUNNING_IN_COMMAND_LINE_MODE to True if detects multiple arguments
   - Sets CALLED_AS_STASH_PLUGIN to True if it's able to read from STDIN_READ
 
-### StashPluginHelper Usage
+## StashPluginHelper Usage
 #### Example #1
 - All the arguments for **StashPluginHelper** class are optional.
   - StashPluginHelper can be called with no arguments if the plugin has NO UI settings and NO associated (*_config.py) file.
@@ -82,7 +82,7 @@ if not plugin.RUNNING_IN_COMMAND_LINE_MODE and not plugin.CALLED_AS_STASH_PLUGIN
     plugin.Error("This should never happen.")
 ```
 
-### StashPluginHelper arguments
+## StashPluginHelper Arguments
 - debugTracing
   - Default: False
   - Set to true to enable debug tracing, and to open the plugin log file with logging level logging.DEBUG.
@@ -91,20 +91,27 @@ if not plugin.RUNNING_IN_COMMAND_LINE_MODE and not plugin.CALLED_AS_STASH_PLUGIN
   - Plugin log line format. Default = `"[%(asctime)s] %(message)s"`
 - dateFmt
   - Date format when logging to plugin log file. Default = `"%y%m%d %H:%M:%S"`
+  - The default value is design to be compact, and it's **not** designed to look pretty.
+  - For a more pleasent look try the following format instead: `"%y-%m-%d %H:%M:%S"`
 - maxbytes
   - Maximum size of plugin log file. Default = 1MB
 - backupcount
-  - Backup counts when log file size reaches max size
+  - The number of backup log files when log file size reaches max size.
 - logToWrnSet
   - Customize the target output set which will get warning logging
 - logToErrSet
   - Customize the target output set which will get error logging
 - logToNormSet
   - Customize the target output set which will get normal logging
-- logFilePath
-  - Plugin log file. If empty, the log file name will be set based on current python file name and path
 - mainScriptName
-  - The main plugin script file name (full path)
+  - The main plugin script file name (full path).
+  - If empty, value is set based on \_\_main\_\_.\_\_file\_\_
+    - **Warning**: \_\_main\_\_.\_\_file\_\_ will fail if the main script uses `if __name__ == "__main__": `
+      - For the above type of code, the **mainScriptName** field becomes a **required** field.
+- logFilePath
+  - Plugin log file.
+  - If empty, the log file name will be set based on the mainScriptName.
+    - `f"{pathlib.Path(self.MAIN_SCRIPT_NAME).resolve().parent}{os.sep}{pathlib.Path(self.MAIN_SCRIPT_NAME).stem}.log" `
 - pluginID
   - Plugin ID
 - settings
@@ -120,6 +127,76 @@ if not plugin.RUNNING_IN_COMMAND_LINE_MODE and not plugin.CALLED_AS_STASH_PLUGIN
 - DryRunFieldName
   - Field name (in settings or config) for DryRun. Default = `"zzdryRun"`
 
+## StashPluginHelper Functions
+### Log
+By default, logs out messages to both plugin log file and to console. And it logs at logging level INFO.
+It automatically gets the source code line number of the calling source code, unless lineNo is set.
+#### Log Arguments
+- logMsg
+  - The message to log out.
+  - This is the only **required** argument.
+- printTo
+  - What to log out to. Default = log_to_norm which by default equals (LOG_TO_FILE + LOG_TO_CONSOLE)
+  - Possible values which can be combined:
+    - LOG_TO_FILE
+    - LOG_TO_CONSOLE
+    - LOG_TO_STDERR
+    - LOG_TO_STASH
+- logLevel
+  - Logging level. Default = logging.INFO.
+  - Possible values:
+    - logging.DEBUG
+    - logging.INFO
+    - logging.WARN
+    - logging.ERROR
+    - logging.CRITICAL
+- lineNo
+  - Calling source code line number. Default = -1.
+  - When value is -1, the Log function will automatically get line number using `inspect.currentframe().f_back.f_lineno`.
+- levelStr
+  - Use this variable to override the default level prefix message.
+- logAlways
+  - When set to True, it will cause logging to occur even if log file was open with logging level INFO.
+  - Only applies to the plugin log file.
+
+### Trace
+By default, only logs out if debug trace is enabled, and it logs in logging level DEBUG and only the the plugin log file.
+#### Trace Arguments
+- logMsg
+  - Message to log out.
+  - This is an optional argument. If empty the message value is set to `f"Line number {lineNo}..."`.
+- printTo
+  - What to log out to. Default = LOG_TO_FILE
+    - Default value logs to the plugin log file only.
+  - Possible values which can be combined:
+    - LOG_TO_FILE
+    - LOG_TO_CONSOLE
+    - LOG_TO_STDERR
+    - LOG_TO_STASH
+- logAlways
+  - When set to True, it will cause logging to occur even if log file was open with logging level INFO.
+
+### Error
+By default, logs out message to LOG_TO_FILE and LOG_TO_STDERR.
+In plugin mode, LOG_TO_STDERR goes to the Stash primary log file.
+In command line mode, LOG_TO_STDERR gets sent to the console screen.
+Logs in logging level logging.ERROR.
+#### Error Arguments
+- logMsg
+  - Message to log out.
+  - This is the only **required** argument.
+- printTo
+  - What to log out to. Default = LOG_TO_FILE + LOG_TO_STDERR
+
+### Warn
+By default, logs out message to LOG_TO_FILE and LOG_TO_STASH.
+Logs in logging level logging.WARN.
+#### Warn Arguments
+- logMsg
+  - Message to log out.
+  - This is the only **required** argument.
+- printTo
+  - What to log out to. Default = LOG_TO_FILE + LOG_TO_STASH
 
 
 ### Requirements
