@@ -9,12 +9,14 @@ FileMonitor is a [Stash](https://github.com/stashapp/stash) plugin which updates
 
 ### Using FileMonitor as a script
 **FileMonitor** can be called as a standalone script.
-- To start monitoring call the script and pass any argument.
-  - python filemonitor.py **start**
-- To stop **FileMonitor**, pass argument **stop**.
-  - python filemonitor.py **stop**
-  - After running above command line, **FileMonitor** will stop after the next file change occurs.
+- To start monitoring call the script and pass --url and the Stash URL.
+  - python filemonitor.py --url http://localhost:9999
+- To stop **FileMonitor**, pass argument **--stop**.
+  - python filemonitor.py **--stop**
   - The stop command works to stop the standalone job and the Stash plugin task job.
+- To restart **FileMonitor**, pass argument **--restart**.
+  - python filemonitor.py **--restart**
+  - The restart command restarts FileMonitor as a Task in Stash.
 
 ### Requirements
 `pip install stashapp-tools`
