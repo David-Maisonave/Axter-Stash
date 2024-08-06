@@ -79,13 +79,17 @@ if plugin.DRY_RUN:
     plugin.Log("Dry run mode is enabled.")
 plugin.Trace(f"(SCAN_MODIFIED={SCAN_MODIFIED}) (SCAN_ON_ANY_EVENT={SCAN_ON_ANY_EVENT}) (RECURSIVE={RECURSIVE})")
 
+StopLibraryMonitorWaitingInTaskQueue = False
 def isJobWaitingToRun():
+    global StopLibraryMonitorWaitingInTaskQueue
     i = 1
     while i < 999:
         jobDetails = plugin.STASH_INTERFACE.find_job(i)
         if jobDetails:
             plugin.Trace(f"(Job ID({i})={jobDetails})")
-            if jobDetails['status'] == "READY" and jobDetails['description'] != "Running plugin task: Start Library Monitor":
+            if jobDetails['status'] == "READY":
+                if jobDetails['description'] == "Running plugin task: Stop Library Monitor":
+                    StopLibraryMonitorWaitingInTaskQueue = True
                 return i
         else:
             plugin.Trace(f"Last job {i}")
@@ -93,7 +97,8 @@ def isJobWaitingToRun():
         i += 1    
     return 0
 
-plugin.Trace(f"isJobWaitingToRun() = {isJobWaitingToRun()})")
+if plugin.CALLED_AS_STASH_PLUGIN:
+    plugin.Trace(f"isJobWaitingToRun() = {isJobWaitingToRun()})")
 
 def start_library_monitor():
     global shouldUpdate
@@ -226,8 +231,8 @@ def start_library_monitor():
             else:
                 plugin.Trace("Nothing to scan.")
             
-            if shm_buffer[0] != CONTINUE_RUNNING_SIG:               
-                plugin.Log(f"Exiting Change File Monitor. (shm_buffer[0]={shm_buffer[0]})")
+            if shm_buffer[0] != CONTINUE_RUNNING_SIG or StopLibraryMonitorWaitingInTaskQueue:               
+                plugin.Log(f"Exiting Change File Monitor. (shm_buffer[0]={shm_buffer[0]}) (StopLibraryMonitorWaitingInTaskQueue={StopLibraryMonitorWaitingInTaskQueue})")
                 shm_a.close()
                 shm_a.unlink()  # Call unlink only once to release the shared memory
                 raise KeyboardInterrupt
@@ -268,7 +273,7 @@ def stop_library_monitor():
     shm_a.unlink()  # Call unlink only once to release the shared memory
     return
     
-if parse_args.stop or parse_args.restart:
+if parse_args.stop or parse_args.restart or plugin.PLUGIN_TASK_NAME == "stop_library_monitor":
     stop_library_monitor()
     if parse_args.restart:
         time.sleep(5)

@@ -24,3 +24,7 @@ tasks:
     description: Monitors paths in Stash library for media file changes, and updates Stash.
     defaultArgs:
       mode: start_library_monitor
+  - name: Stop Library Monitor
+    description: Stops library monitoring within 2 minute.
+    defaultArgs:
+      mode: stop_library_monitor
