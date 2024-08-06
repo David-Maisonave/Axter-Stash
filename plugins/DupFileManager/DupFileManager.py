@@ -3,6 +3,9 @@
 # Get the latest developers version from following link: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/DupFileManager
 # Note: To call this script outside of Stash, pass any argument. 
 #       Example:    python DupFileManager.py start
+
+# Research following links to complete this plugin:
+#       https://github.com/WithoutPants/stash-plugin-duplicate-finder
 import os
 import sys
 import time
