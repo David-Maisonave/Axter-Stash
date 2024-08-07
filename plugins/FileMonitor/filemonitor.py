@@ -80,8 +80,10 @@ if plugin.DRY_RUN:
 plugin.Trace(f"(SCAN_MODIFIED={SCAN_MODIFIED}) (SCAN_ON_ANY_EVENT={SCAN_ON_ANY_EVENT}) (RECURSIVE={RECURSIVE})")
 
 StopLibraryMonitorWaitingInTaskQueue = False
+JobIdInTheQue = 0
 def isJobWaitingToRun():
     global StopLibraryMonitorWaitingInTaskQueue
+    global JobIdInTheQue
     i = 1
     while i < 999:
         jobDetails = plugin.STASH_INTERFACE.find_job(i)
@@ -90,12 +92,14 @@ def isJobWaitingToRun():
             if jobDetails['status'] == "READY":
                 if jobDetails['description'] == "Running plugin task: Stop Library Monitor":
                     StopLibraryMonitorWaitingInTaskQueue = True
-                return i
+                JobIdInTheQue = i
+                return True
         else:
             plugin.Trace(f"Last job {i}")
             break
         i += 1    
-    return 0
+    JobIdInTheQue = 0
+    return False
 
 if plugin.CALLED_AS_STASH_PLUGIN:
     plugin.Trace(f"isJobWaitingToRun() = {isJobWaitingToRun()})")
@@ -193,20 +197,19 @@ def start_library_monitor():
             TmpTargetPaths = []
             with mutex:
                 while not shouldUpdate:
+                    if plugin.CALLED_AS_STASH_PLUGIN and isJobWaitingToRun():
+                        plugin.Log(f"Another task (JobID={JobIdInTheQue}) is waiting on the queue. Will restart FileMonitor to allow other task to run.")
+                        JobIsRunning = True
+                        break
+                    if shm_buffer[0] != CONTINUE_RUNNING_SIG:
+                        plugin.Log(f"Breaking out of loop. (shm_buffer[0]={shm_buffer[0]})")
+                        break
                     plugin.Trace("Wait start")
                     if plugin.CALLED_AS_STASH_PLUGIN:
                         signal.wait(timeout=SIGNAL_TIMEOUT)
                     else:
                         signal.wait()
                     plugin.Trace("Wait end")
-                    if shm_buffer[0] != CONTINUE_RUNNING_SIG:
-                        plugin.Log(f"Breaking out of loop. (shm_buffer[0]={shm_buffer[0]})")
-                        break
-                    JobIdInTheQue = isJobWaitingToRun()
-                    if plugin.CALLED_AS_STASH_PLUGIN and JobIdInTheQue:
-                        plugin.Log(f"Another task (JobID={JobIdInTheQue}) is waiting on the queue. Will restart FileMonitor to allow other task to run.")
-                        JobIsRunning = True
-                        shouldUpdate = True
                 shouldUpdate = False
                 TmpTargetPaths = []
                 for TargetPath in TargetPaths:
