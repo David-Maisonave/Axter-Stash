@@ -3,13 +3,10 @@
 # Get the latest developers version from following link: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor
 # Note: To call this script outside of Stash, pass --url and the Stash URL.
 #       Example:    python filemonitor.py --url http://localhost:9999
-import os
-import time
-import pathlib
-import argparse
+import os, time, pathlib, argparse
 from StashPluginHelper import StashPluginHelper
-from watchdog.observers import Observer # This is also needed for event attributes
 import watchdog  # pip install watchdog  # https://pythonhosted.org/watchdog/
+from watchdog.observers import Observer # This is also needed for event attributes
 from threading import Lock, Condition
 from multiprocessing import shared_memory
 from filemonitor_config import config # Import settings from filemonitor_config.py
@@ -72,20 +69,51 @@ STASHPATHSCONFIG = plugin.STASH_CONFIGURATION['stashes']
 stashPaths = []
 for item in STASHPATHSCONFIG: 
     stashPaths.append(item["path"])
-stashPaths.append(SPECIAL_FILE_DIR)
 plugin.Trace(f"(stashPaths={stashPaths})")
 
 if plugin.DRY_RUN:
     plugin.Log("Dry run mode is enabled.")
 plugin.Trace(f"(SCAN_MODIFIED={SCAN_MODIFIED}) (SCAN_ON_ANY_EVENT={SCAN_ON_ANY_EVENT}) (RECURSIVE={RECURSIVE})")
 
+# ToDo: Add logic here for reoccurring scheduler
+def runTask(task):
+    if task['task'] == "Clean":
+        plugin.STASH_INTERFACE.metadata_clean(paths=stashPaths, dry_run=plugin.DRY_RUN)
+    elif task['task'] == "Generate":
+        plugin.STASH_INTERFACE.metadata_generate()
+    elif task['task'] == "Backup":
+        plugin.STASH_INTERFACE.call_GQL("mutation { backupDatabase(input: {download: false})}")
+    elif task['task'] == "Scan":
+        plugin.STASH_INTERFACE.metadata_scan(paths=stashPaths)
+    # elif task['task'] == "Create Tags":
+        # plugin.STASH_INTERFACE.run_plugin_task(plugin_id="pathParser", task_name="Create Tags")
+    elif task['task'] == "Auto Tag":
+        plugin.Warn("Auto Tag is not implemented!!!")
+    else:
+        plugin.STASH_INTERFACE.run_plugin_task(plugin_id=task['pluginId'], task_name=task['task'])
+
+
+def reoccurringScheduler():
+    import schedule # pip install schedule  # https://github.com/dbader/schedule
+    for task in plugin.pluginConfig['task_reoccurring_scheduler']:
+        if task['hours'] > 0:
+            plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' at {task['hours']} hour(s) interval")
+            schedule.every(task['hours']).hours.do(runTask, task)
+
+if plugin.pluginConfig['turnOnScheduler']:
+    reoccurringScheduler()
+
+FileMonitorPluginIsOnTaskQue =  plugin.CALLED_AS_STASH_PLUGIN
 StopLibraryMonitorWaitingInTaskQueue = False
 JobIdInTheQue = 0
 def isJobWaitingToRun():
     global StopLibraryMonitorWaitingInTaskQueue
     global JobIdInTheQue
+    global FileMonitorPluginIsOnTaskQue
+    FileMonitorPluginIsOnTaskQue = False
+    jobIsWaiting = False
     i = 1
-    while i < 999:
+    while True:
         jobDetails = plugin.STASH_INTERFACE.find_job(i)
         if jobDetails:
             plugin.Trace(f"(Job ID({i})={jobDetails})")
@@ -93,13 +121,15 @@ def isJobWaitingToRun():
                 if jobDetails['description'] == "Running plugin task: Stop Library Monitor":
                     StopLibraryMonitorWaitingInTaskQueue = True
                 JobIdInTheQue = i
-                return True
+                jobIsWaiting = True
+            elif jobDetails['status'] == "RUNNING" and jobDetails['description'] == "Running plugin task: Start Library Monitor":
+                FileMonitorPluginIsOnTaskQue = True
         else:
             plugin.Trace(f"Last job {i}")
             break
         i += 1    
     JobIdInTheQue = 0
-    return False
+    return jobIsWaiting
 
 if plugin.CALLED_AS_STASH_PLUGIN:
     plugin.Trace(f"isJobWaitingToRun() = {isJobWaitingToRun()})")
@@ -188,6 +218,7 @@ def start_library_monitor():
     for path in stashPaths:
         observer.schedule(event_handler, path, recursive=RECURSIVE)
         plugin.Trace(f"Observing {path}")
+    observer.schedule(event_handler, SPECIAL_FILE_DIR, recursive=RECURSIVE)
     observer.start()
     JobIsRunning = False
     PutPluginBackOnTaskQueAndExit = False
@@ -198,9 +229,12 @@ def start_library_monitor():
             with mutex:
                 while not shouldUpdate:
                     if plugin.CALLED_AS_STASH_PLUGIN and isJobWaitingToRun():
-                        plugin.Log(f"Another task (JobID={JobIdInTheQue}) is waiting on the queue. Will restart FileMonitor to allow other task to run.")
-                        JobIsRunning = True
-                        break
+                        if FileMonitorPluginIsOnTaskQue:
+                            plugin.Log(f"Another task (JobID={JobIdInTheQue}) is waiting on the queue. Will restart FileMonitor to allow other task to run.")
+                            JobIsRunning = True
+                            break
+                        else:
+                            plugin.Warn("Not restarting because FileMonitor is no longer on Task Queue")
                     if shm_buffer[0] != CONTINUE_RUNNING_SIG:
                         plugin.Log(f"Breaking out of loop. (shm_buffer[0]={shm_buffer[0]})")
                         break
@@ -229,7 +263,7 @@ def start_library_monitor():
                         plugin.STASH_INTERFACE.metadata_clean(paths=TmpTargetPaths, dry_run=plugin.DRY_RUN)
                     if RUN_GENERATE_CONTENT:
                         plugin.STASH_INTERFACE.metadata_generate()
-                if plugin.CALLED_AS_STASH_PLUGIN and shm_buffer[0] == CONTINUE_RUNNING_SIG:
+                if plugin.CALLED_AS_STASH_PLUGIN and shm_buffer[0] == CONTINUE_RUNNING_SIG and FileMonitorPluginIsOnTaskQue:
                     PutPluginBackOnTaskQueAndExit = True
             else:
                 plugin.Trace("Nothing to scan.")
