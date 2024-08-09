@@ -7,6 +7,10 @@ settings:
     displayName: No Recursive
     description: Enable to STOP monitoring paths recursively.
     type: BOOLEAN
+  turnOnScheduler:
+    displayName: Scheduler
+    description: Enable to turn on the scheduler. See filemonitor_config.py for more details.
+    type: BOOLEAN
   zzdebugTracing:
     displayName: Debug Tracing
     description: (Default=false) [***For Advanced Users***] Enable debug tracing. When enabled, additional tracing logging is added to Stash\plugins\FileMonitor\filemonitor.log

@@ -18,8 +18,6 @@ config = {
     "runCleanAfterDelete": False,
     
     # The scheduler my only work reliably when FileMonitor runs as a service.
-    # Enable to turn on scheduler_task_list
-    "turnOnScheduler": True,
     # Reoccurring scheduler task list.
     "task_reoccurring_scheduler": [
         # Frequency can be in minutes, hours, or days.

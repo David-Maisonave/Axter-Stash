@@ -30,6 +30,7 @@ if parse_args.quit:
 
 settings = {
     "recursiveDisabled": False,
+    "turnOnScheduler": False,
     "zzdebugTracing": False,
     "zzdryRun": False,
 }
@@ -137,7 +138,7 @@ def reoccurringScheduler():
 def checkSchedulePending():
     import schedule # pip install schedule  # https://github.com/dbader/schedule
     schedule.run_pending()
-if plugin.pluginConfig['turnOnScheduler']:
+if plugin.pluginSettings['turnOnScheduler']:
     reoccurringScheduler()
 
 def start_library_monitor():
@@ -244,7 +245,7 @@ def start_library_monitor():
                     if shm_buffer[0] != CONTINUE_RUNNING_SIG:
                         plugin.Log(f"Breaking out of loop. (shm_buffer[0]={shm_buffer[0]})")
                         break
-                    if plugin.pluginConfig['turnOnScheduler']:
+                    if plugin.pluginSettings['turnOnScheduler']:
                         checkSchedulePending()
                     plugin.Trace("Wait start")
                     if plugin.CALLED_AS_STASH_PLUGIN:
