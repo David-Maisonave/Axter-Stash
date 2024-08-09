@@ -48,6 +48,7 @@ To configure the schedule or to add new task, edit the **task_reoccurring_schedu
 - The scheduler feature requires `pip install schedule`
 - If the user leaves the scheduler disabled, **schedule** does NOT have to be installed.
 - The scheduler will **NOT** work properly when FileMonitor is run as a plugin.
+- The current scheduler code does **NOT** work persistently. That means the schedule always restarts when the program restarts. This may be fixed in future FileMonitor versions.
 
 ### Requirements
 - pip install -r requirements.txt
