@@ -77,7 +77,7 @@ class StashPluginHelper:
     log_to_err_set = LOG_TO_FILE + LOG_TO_STDERR # This can be changed by the calling source in order to customize what targets get error messages
     log_to_norm = LOG_TO_FILE + LOG_TO_CONSOLE # Can be change so-as to set target output for normal logging
     log_to_wrn_set = LOG_TO_FILE + LOG_TO_STASH # This can be changed by the calling source in order to customize what targets get warning messages
-    
+
     def __init__(self, 
                     debugTracing = None,            # Set debugTracing to True so as to output debug and trace logging
                     logFormat = LOG_FORMAT,         # Plugin log line format
@@ -142,7 +142,7 @@ class StashPluginHelper:
                     self.FRAGMENT_SERVER['Scheme'] = endpointUrlArr[0]
                     self.FRAGMENT_SERVER['Host'] = endpointUrlArr[1][2:]
                     self.FRAGMENT_SERVER['Port'] = endpointUrlArr[2]
-            self.STASH_INTERFACE = StashInterface(self.FRAGMENT_SERVER)
+            self.STASH_INTERFACE = self.ExtendStashInterface(self.FRAGMENT_SERVER)
         else:
             try:
                 self.STDIN_READ = sys.stdin.read()
@@ -155,7 +155,7 @@ class StashPluginHelper:
                 self.PLUGIN_TASK_NAME = self.JSON_INPUT["args"]["mode"]
             self.FRAGMENT_SERVER = self.JSON_INPUT["server_connection"]
             self.STASH_URL = f"{self.FRAGMENT_SERVER['Scheme']}://{self.FRAGMENT_SERVER['Host']}:{self.FRAGMENT_SERVER['Port']}"
-            self.STASH_INTERFACE = StashInterface(self.FRAGMENT_SERVER)
+            self.STASH_INTERFACE = self.ExtendStashInterface(self.FRAGMENT_SERVER)
             
         if self.STASH_INTERFACE:
             self.PLUGIN_CONFIGURATION = self.STASH_INTERFACE.get_configuration()["plugins"]
@@ -239,3 +239,27 @@ class StashPluginHelper:
             lineNo = inspect.currentframe().f_back.f_lineno
         self.Log(f"StashPluginHelper Status: (CALLED_AS_STASH_PLUGIN={self.CALLED_AS_STASH_PLUGIN}), (RUNNING_IN_COMMAND_LINE_MODE={self.RUNNING_IN_COMMAND_LINE_MODE}), (DEBUG_TRACING={self.DEBUG_TRACING}), (DRY_RUN={self.DRY_RUN}), (PLUGIN_ID={self.PLUGIN_ID}), (PLUGIN_TASK_NAME={self.PLUGIN_TASK_NAME}), (STASH_URL={self.STASH_URL}), (MAIN_SCRIPT_NAME={self.MAIN_SCRIPT_NAME})",
             printTo, logLevel, lineNo)
+    
+    # Extends class StashInterface with functions which are not yet in the class
+    class ExtendStashInterface(StashInterface):
+        def metadata_autotag(self, paths:list=[], dry_run=False):
+            if not paths:
+                return
+
+            query = """
+            mutation MetadataAutoTag($input:AutoTagMetadataInput!) {
+                metadataAutoTag(input: $input)
+            }
+            """
+
+            metadata_autotag_input = {
+                "paths": paths
+            }
+            result = self.call_GQL(query, {"input": metadata_autotag_input})
+            return result
+
+        def backup_database(self):
+            return self.call_GQL("mutation { backupDatabase(input: {download: false})}")
+
+        def optimise_database(self):
+            return self.call_GQL("mutation OptimiseDatabase { optimiseDatabase }")

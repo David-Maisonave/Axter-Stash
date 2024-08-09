@@ -17,20 +17,22 @@ config = {
     # Enable to run metadata clean task after file deletion.
     "runCleanAfterDelete": False,
     
+    # The scheduler my only work reliably when FileMonitor runs in command line mode (as a service)
     # Enable to turn on scheduler_task_list
     "turnOnScheduler": True,
-    # Reoccurring scheduler task list. To activate schedule, change number from zero to the number of hours interval
+    # Reoccurring scheduler task list.
     "task_reoccurring_scheduler": [
-        # Example: To perform a 'Clean' task every 48 hours, change zero to 48
-        # Hours Conversion: 24=Daily, 168=Weekly, 720=Monthly, 1440=Bi-Monthly, 2160=Quarterly, 8760=Yearly
-        {"task" : "Clean",      "hours" : 48},  # Maintenance Clean (every 2 days)
-        {"task" : "Generate",   "hours" : 168}, # Generated Content (Weekly)
-        {"task" : "Backup",     "hours" : 720}, # Backup Backup (Monthly)
-        {"task" : "Scan",       "hours" : 168}, # Library Scan (Weekly)
-        # {"task" : "Create Tags",   "hours" : 24},# Requires plugin [Path Parser]
-        {"task" : "Create Tags", "pluginId" : "pathParser", "hours" : 24}, # Requires plugin [Path Parser]
-        {"task" : "Auto Tag",   "hours" : 0},   # !!! Not yet implemented!!!
-        {"task" : "MyTaskHere", "pluginId" : "MyPluginId", "hours" : 0},   # Place holder for custom task.
+        # Frequency can be in minutes, hours, or days.
+        # A zero frequency value disables the task.
+        {"task" : "Clean",      "days" : 2},  # Maintenance -> [Clean] (every 2 days)
+        {"task" : "Generate",   "days" : 7}, # Generated Content-> [Generate] (Weekly)
+        {"task" : "Backup",     "days" : 30}, # Backup -> [Backup] (Monthly)
+        {"task" : "Scan",       "days" : 7}, # Library -> [Scan] (Weekly)
+        {"task" : "Auto Tag",   "hours" : 24},  # Auto Tag -> [Auto Tag] (Daily)
+        {"task" : "Optimise Database",   "hours" : 24},  # Maintenance -> [Optimise Database] (Daily)
+        {"task" : "Create Tags", "pluginId" : "pathParser", "days" : 1}, # Requires plugin [Path Parser] (Daily)
+        {"task" : "PluginButtonName_Here", "pluginId" : "PluginId_Here", "hours" : 0},   # Place holder for custom task.
+        # Add additional task here.
     ],
     # Maximum backups to keep. When scheduler is enabled, and the Backup runs, delete older backups after reaching maximum backups.
     "BackupsMax" : 6, # Not yet implemented!!!

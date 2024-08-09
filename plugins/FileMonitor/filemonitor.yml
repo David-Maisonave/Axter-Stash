@@ -1,6 +1,6 @@
 name: FileMonitor
 description: Monitors the Stash library folders, and updates Stash if any changes occurs in the Stash library paths.
-version: 0.6.1
+version: 0.7.0
 url: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor
 settings:
   recursiveDisabled:
@@ -20,8 +20,12 @@ exec:
   - "{pluginDir}/filemonitor.py"
 interface: raw
 tasks:
-  - name: Start Library Monitor
-    description: Monitors paths in Stash library for media file changes, and updates Stash.
+  - name: Start Library Monitor Service
+    description: Run as a SERVICE to monitors paths in Stash library for media file changes, and updates Stash. Recommended start method.
+    defaultArgs:
+      mode: start_library_monitor_service
+  - name: Start Library Monitor Plugin
+    description: Run as a plugin (not recommended method)
     defaultArgs:
       mode: start_library_monitor
   - name: Stop Library Monitor

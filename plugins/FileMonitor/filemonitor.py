@@ -3,7 +3,7 @@
 # Get the latest developers version from following link: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor
 # Note: To call this script outside of Stash, pass --url and the Stash URL.
 #       Example:    python filemonitor.py --url http://localhost:9999
-import os, time, pathlib, argparse
+import os, sys, time, pathlib, argparse
 from StashPluginHelper import StashPluginHelper
 import watchdog  # pip install watchdog  # https://pythonhosted.org/watchdog/
 from watchdog.observers import Observer # This is also needed for event attributes
@@ -50,6 +50,7 @@ signal = Condition(mutex)
 shouldUpdate = False
 TargetPaths = []
 
+SHAREDMEMORY_NAME = "DavidMaisonaveAxter_FileMonitor"
 RECURSIVE = plugin.pluginSettings["recursiveDisabled"] == False
 SCAN_MODIFIED = plugin.pluginConfig["scanModified"]
 RUN_CLEAN_AFTER_DELETE = plugin.pluginConfig["runCleanAfterDelete"]
@@ -84,30 +85,25 @@ def isJobWaitingToRun():
     global FileMonitorPluginIsOnTaskQue
     FileMonitorPluginIsOnTaskQue = False
     jobIsWaiting = False
-    i = 1
-    while True:
-        jobDetails = plugin.STASH_INTERFACE.find_job(i)
-        if jobDetails:
-            plugin.Trace(f"(Job ID({i})={jobDetails})")
-            if jobDetails['status'] == "READY":
-                if jobDetails['description'] == "Running plugin task: Stop Library Monitor":
-                    StopLibraryMonitorWaitingInTaskQueue = True
-                JobIdInTheQue = i
-                jobIsWaiting = True
-            elif jobDetails['status'] == "RUNNING" and jobDetails['description'] == "Running plugin task: Start Library Monitor":
-                FileMonitorPluginIsOnTaskQue = True
-        else:
-            plugin.Trace(f"Last job {i}")
-            break
-        i += 1    
+    taskQue = plugin.STASH_INTERFACE.job_queue()
+    for jobDetails in taskQue:
+        plugin.Trace(f"(Job ID({jobDetails['id']})={jobDetails})")
+        if jobDetails['status'] == "READY":
+            if jobDetails['description'] == "Running plugin task: Stop Library Monitor":
+                StopLibraryMonitorWaitingInTaskQueue = True
+            JobIdInTheQue = jobDetails['id']
+            jobIsWaiting = True
+        elif jobDetails['status'] == "RUNNING" and jobDetails['description'].find("Start Library Monitor") > -1:
+            FileMonitorPluginIsOnTaskQue = True  
     JobIdInTheQue = 0
     return jobIsWaiting
 
 if plugin.CALLED_AS_STASH_PLUGIN:
     plugin.Trace(f"isJobWaitingToRun() = {isJobWaitingToRun()})")
 
-# ToDo: Add logic here for reoccurring scheduler
+# Reoccurring scheduler code
 def runTask(task):
+    plugin.Trace(f"Running task {task}")
     if task['task'] == "Clean":
         plugin.STASH_INTERFACE.metadata_clean(paths=stashPaths, dry_run=plugin.DRY_RUN)
     elif task['task'] == "Generate":
@@ -116,21 +112,29 @@ def runTask(task):
         plugin.STASH_INTERFACE.call_GQL("mutation { backupDatabase(input: {download: false})}")
     elif task['task'] == "Scan":
         plugin.STASH_INTERFACE.metadata_scan(paths=stashPaths)
-    # elif task['task'] == "Create Tags":
-        # plugin.STASH_INTERFACE.run_plugin_task(plugin_id="pathParser", task_name="Create Tags")
     elif task['task'] == "Auto Tag":
-        plugin.Warn("Auto Tag is not implemented!!!")
+        plugin.STASH_INTERFACE.metadata_autotag(paths=stashPaths, dry_run=plugin.DRY_RUN)
+    elif task['task'] == "Optimise Database":
+        plugin.STASH_INTERFACE.optimise_database()
     else:
+        # ToDo: Add code to check if plugin is installed.
+        plugin.Trace(f"Running plugin task pluginID={task['pluginId']}, task name = {task['task']}")
         plugin.STASH_INTERFACE.run_plugin_task(plugin_id=task['pluginId'], task_name=task['task'])
-
-
 def reoccurringScheduler():
     import schedule # pip install schedule  # https://github.com/dbader/schedule
     for task in plugin.pluginConfig['task_reoccurring_scheduler']:
-        if task['hours'] > 0:
-            plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' at {task['hours']} hour(s) interval")
+        if 'days' in task and task['days'] > 0:
+            plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' at {task['days']} days interval")
+            schedule.every(task['days']).days.do(runTask, task)
+        elif 'hours' in task and task['hours'] > 0:
+            plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' at {task['hours']} hours interval")
             schedule.every(task['hours']).hours.do(runTask, task)
-
+        elif 'minutes' in task and task['minutes'] > 0:
+            plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' at {task['minutes']} minutes interval")
+            schedule.every(task['minutes']).minutes.do(runTask, task)
+def checkSchedulePending():
+    import schedule # pip install schedule  # https://github.com/dbader/schedule
+    schedule.run_pending()
 if plugin.pluginConfig['turnOnScheduler']:
     reoccurringScheduler()
 
@@ -139,9 +143,9 @@ def start_library_monitor():
     global TargetPaths    
     try:
         # Create shared memory buffer which can be used as singleton logic or to get a signal to quit task from external script
-        shm_a = shared_memory.SharedMemory(name="DavidMaisonaveAxter_FileMonitor", create=True, size=4)
+        shm_a = shared_memory.SharedMemory(name=SHAREDMEMORY_NAME, create=True, size=4)
     except:
-        plugin.Error("Could not open shared memory map. Change File Monitor must be running. Can not run multiple instance of Change File Monitor.")
+        plugin.Error(f"Could not open shared memory map ({SHAREDMEMORY_NAME}). Change File Monitor must be running. Can not run multiple instance of Change File Monitor.")
         return
     type(shm_a.buf)
     shm_buffer = shm_a.buf
@@ -238,6 +242,8 @@ def start_library_monitor():
                     if shm_buffer[0] != CONTINUE_RUNNING_SIG:
                         plugin.Log(f"Breaking out of loop. (shm_buffer[0]={shm_buffer[0]})")
                         break
+                    if plugin.pluginConfig['turnOnScheduler']:
+                        checkSchedulePending()
                     plugin.Trace("Wait start")
                     if plugin.CALLED_AS_STASH_PLUGIN:
                         signal.wait(timeout=SIGNAL_TIMEOUT)
@@ -251,7 +257,9 @@ def start_library_monitor():
                     if TargetPath == SPECIAL_FILE_DIR:
                         if os.path.isfile(SPECIAL_FILE_NAME):
                             shm_buffer[0] = STOP_RUNNING_SIG
-                            plugin.Log(f"Detected trigger file to kill FileMonitor. {SPECIAL_FILE_NAME}", printTo = plugin.LOG_TO_FILE + plugin.LOG_TO_CONSOLE + plugin.LOG_TO_STASH)
+                            plugin.Log(f"[SpFl]Detected trigger file to kill FileMonitor. {SPECIAL_FILE_NAME}", printTo = plugin.LOG_TO_FILE + plugin.LOG_TO_CONSOLE + plugin.LOG_TO_STASH)
+                        else:
+                            plugin.Trace(f"[SpFl]Did not find file {SPECIAL_FILE_NAME}.")
                 TargetPaths = []
                 TmpTargetPaths = list(set(TmpTargetPaths))
             if TmpTargetPaths != []:
@@ -285,7 +293,6 @@ def start_library_monitor():
     observer.join()
     plugin.Trace("Exiting function")
 
-# This function is only useful when called outside of Stash. 
 #       Example: python filemonitor.py --stop
 def stop_library_monitor():
     if CREATE_SPECIAL_FILE_TO_EXIT:
@@ -296,10 +303,10 @@ def stop_library_monitor():
             os.remove(SPECIAL_FILE_NAME)
     plugin.Trace("Opening shared memory map.")
     try:
-        shm_a = shared_memory.SharedMemory(name="DavidMaisonaveAxter_FileMonitor", create=False, size=4)
+        shm_a = shared_memory.SharedMemory(name=SHAREDMEMORY_NAME, create=False, size=4)
     except:
-        pass
-        plugin.Log("Could not open shared memory map. Change File Monitor must not be running.")
+        # If FileMonitor is running as plugin, then it's expected behavior that SharedMemory will not be avialable.
+        plugin.Trace(f"Could not open shared memory map ({SHAREDMEMORY_NAME}). Change File Monitor must not be running.")
         return
     type(shm_a.buf)
     shm_buffer = shm_a.buf
@@ -318,6 +325,23 @@ if parse_args.stop or parse_args.restart or plugin.PLUGIN_TASK_NAME == "stop_lib
         plugin.Trace(f"Restart FileMonitor EXIT")
     else:
         plugin.Trace(f"Stop FileMonitor EXIT")
+elif plugin.PLUGIN_TASK_NAME == "start_library_monitor_service":
+    import subprocess
+    import platform
+    is_windows = any(platform.win32_ver())
+    PythonExe = f"{sys.executable}"
+    # PythonExe = PythonExe.replace("python.exe", "pythonw.exe")
+    args = [f"{PythonExe}", f"{pathlib.Path(__file__).resolve().parent}{os.sep}filemonitor.py", '--url', f"{plugin.STASH_URL}"]
+    plugin.Trace(f"args={args}")
+    if is_windows:
+        plugin.Trace("Executing process using Windows DETACHED_PROCESS")
+        DETACHED_PROCESS = 0x00000008
+        pid = subprocess.Popen(args,creationflags=DETACHED_PROCESS, shell=True).pid
+    else:
+        plugin.Trace("Executing process using normal Popen")
+        pid = subprocess.Popen(args).pid
+    plugin.Trace(f"pid={pid}")
+    plugin.Trace(f"start_library_monitor_service EXIT")
 elif plugin.PLUGIN_TASK_NAME == "start_library_monitor" or not plugin.CALLED_AS_STASH_PLUGIN:
     start_library_monitor()
     plugin.Trace(f"start_library_monitor EXIT")
