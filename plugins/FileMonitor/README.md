@@ -1,9 +1,10 @@
 # FileMonitor: Ver 0.7.1 (By David Maisonave)
 FileMonitor is a [Stash](https://github.com/stashapp/stash) plugin which updates Stash if any changes occurs in the Stash library paths.
 
-### Using FileMonitor as a plugin
-- To start monitoring file changes, go to **Stash->Settings->Task->[Plugin Tasks]->FileMonitor**, and click on the [Start Library Monitor] button.
-  - ![FileMonitor_Task](https://github.com/user-attachments/assets/f275a70f-8e86-42a4-b2c1-98b3f4935334)
+### Starting FileMonitor from the UI
+From the GUI, FileMonitor can be started as a service or as a plugin. The recommended method is to start it as a service
+- To start monitoring file changes, go to **Stash->Settings->Task->[Plugin Tasks]->FileMonitor**, and click on the [Start Library Monitor Service] button.
+  - 
 - To stop this task, go to **Stash->Settings->Task->[Task Queue]**, and click on the **[x]**.
   - ![Kill_FileMonitor_Task](https://github.com/user-attachments/assets/a3f4abca-f3a2-49fa-9db5-e0c733e0aeb1)
 
