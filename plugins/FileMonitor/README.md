@@ -66,7 +66,7 @@ To configure the schedule or to add new task, edit the **task_reoccurring_schedu
 That's it!!!
 
 ### Options
-- All are accessible in the GUI via Settings->Plugins->Plugins->[FileMonitor].
-- More options available in filemonitor_config.py.
+- Main options are accessible in the GUI via Settings->Plugins->Plugins->[FileMonitor].
+- Additional options available in filemonitor_config.py.
 
 
