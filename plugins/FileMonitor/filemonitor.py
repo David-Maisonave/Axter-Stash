@@ -148,7 +148,7 @@ def start_library_monitor():
         # Create shared memory buffer which can be used as singleton logic or to get a signal to quit task from external script
         shm_a = shared_memory.SharedMemory(name=SHAREDMEMORY_NAME, create=True, size=4)
     except:
-        plugin.Error(f"Could not open shared memory map ({SHAREDMEMORY_NAME}). Change File Monitor must be running. Can not run multiple instance of Change File Monitor.")
+        plugin.Error(f"Could not open shared memory map ({SHAREDMEMORY_NAME}). Change File Monitor must be running. Can not run multiple instance of Change File Monitor. Stop FileMonitor before trying to start it again.")
         return
     type(shm_a.buf)
     shm_buffer = shm_a.buf
@@ -318,19 +318,20 @@ def stop_library_monitor():
     plugin.Trace(f"Shared memory map opended, and flag set to {shm_buffer[0]}")
     shm_a.close()
     shm_a.unlink()  # Call unlink only once to release the shared memory
-    return
-    
-if parse_args.stop or parse_args.restart or plugin.PLUGIN_TASK_NAME == "stop_library_monitor":
-    stop_library_monitor()
-    if parse_args.restart:
-        time.sleep(5)
-        plugin.STASH_INTERFACE.run_plugin_task(plugin_id=plugin.PLUGIN_ID, task_name="Start Library Monitor")
-        plugin.Trace(f"Restart FileMonitor EXIT")
-    else:
-        plugin.Trace(f"Stop FileMonitor EXIT")
-elif plugin.PLUGIN_TASK_NAME == "start_library_monitor_service":
+
+def start_library_monitor_service():
     import subprocess
     import platform
+    # First check if FileMonitor is already running
+    try:
+        shm_a = shared_memory.SharedMemory(name=SHAREDMEMORY_NAME, create=False, size=4)
+        shm_a.close()
+        shm_a.unlink()
+        plugin.Error("FileMonitor is already running. Need to stop FileMonitor before trying to start it again.")
+        return
+    except:
+        pass
+        plugin.Trace("FileMonitor is not running, so safe to start it as a service.")
     is_windows = any(platform.win32_ver())
     PythonExe = f"{sys.executable}"
     # PythonExe = PythonExe.replace("python.exe", "pythonw.exe")
@@ -344,6 +345,17 @@ elif plugin.PLUGIN_TASK_NAME == "start_library_monitor_service":
         plugin.Trace("Executing process using normal Popen")
         pid = subprocess.Popen(args).pid
     plugin.Trace(f"pid={pid}")
+    
+if parse_args.stop or parse_args.restart or plugin.PLUGIN_TASK_NAME == "stop_library_monitor":
+    stop_library_monitor()
+    if parse_args.restart:
+        time.sleep(5)
+        plugin.STASH_INTERFACE.run_plugin_task(plugin_id=plugin.PLUGIN_ID, task_name="Start Library Monitor")
+        plugin.Trace(f"Restart FileMonitor EXIT")
+    else:
+        plugin.Trace(f"Stop FileMonitor EXIT")
+elif plugin.PLUGIN_TASK_NAME == "start_library_monitor_service":
+    start_library_monitor_service()
     plugin.Trace(f"start_library_monitor_service EXIT")
 elif plugin.PLUGIN_TASK_NAME == "start_library_monitor" or not plugin.CALLED_AS_STASH_PLUGIN:
     start_library_monitor()
