@@ -17,7 +17,7 @@ config = {
     # Enable to run metadata clean task after file deletion.
     "runCleanAfterDelete": False,
     
-    # The scheduler my only work reliably when FileMonitor runs in command line mode (as a service)
+    # The scheduler my only work reliably when FileMonitor runs as a service.
     # Enable to turn on scheduler_task_list
     "turnOnScheduler": True,
     # Reoccurring scheduler task list.

@@ -122,6 +122,8 @@ def runTask(task):
         plugin.STASH_INTERFACE.run_plugin_task(plugin_id=task['pluginId'], task_name=task['task'])
 def reoccurringScheduler():
     import schedule # pip install schedule  # https://github.com/dbader/schedule
+    # ToDo: Extend schedule class so it works persistently (remember schedule between restarts)
+    #       Or replace schedule with apscheduler https://github.com/agronholm/apscheduler
     for task in plugin.pluginConfig['task_reoccurring_scheduler']:
         if 'days' in task and task['days'] > 0:
             plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' at {task['days']} days interval")

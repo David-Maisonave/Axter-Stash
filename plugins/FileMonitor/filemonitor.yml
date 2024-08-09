@@ -5,7 +5,7 @@ url: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonito
 settings:
   recursiveDisabled:
     displayName: No Recursive
-    description: Enable stop monitoring paths recursively.
+    description: Enable to STOP monitoring paths recursively.
     type: BOOLEAN
   zzdebugTracing:
     displayName: Debug Tracing
@@ -24,11 +24,11 @@ tasks:
     description: Run as a SERVICE to monitors paths in Stash library for media file changes, and updates Stash. Recommended start method.
     defaultArgs:
       mode: start_library_monitor_service
-  - name: Start Library Monitor Plugin
-    description: Run as a plugin (not recommended method)
-    defaultArgs:
-      mode: start_library_monitor
   - name: Stop Library Monitor
     description: Stops library monitoring within 2 minute.
     defaultArgs:
       mode: stop_library_monitor
+  - name: Run as a Plugin
+    description: Run [Library Monitor] as a plugin (*not recommended method*)
+    defaultArgs:
+      mode: start_library_monitor
