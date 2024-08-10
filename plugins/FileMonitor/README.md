@@ -2,7 +2,7 @@
 FileMonitor is a [Stash](https://github.com/stashapp/stash) plugin which updates Stash if any changes occurs in the Stash library paths.
 It also has a scheduler which can be used to schedule reoccurring task.
 
-### Starting FileMonitor from the UI
+## Starting FileMonitor from the UI
 From the GUI, FileMonitor can be started as a service or as a plugin. The recommended method is to start it as a service. When started as a service, it will jump on the Task Queue momentarily, and then disappear as it starts running in the background.
 - To start monitoring file changes, go to **Stash->Settings->Task->[Plugin Tasks]->FileMonitor**, and click on the [Start Library Monitor Service] button.
   - ![FileMonitorService](https://github.com/user-attachments/assets/5c72845e-6c1c-4e06-8e43-5949fe0b91a3)
@@ -11,7 +11,7 @@ From the GUI, FileMonitor can be started as a service or as a plugin. The recomm
 - The **[Run as a Plugin]** option is mainaly available for backwards compatibility and for test purposes.
   
 
-### Using FileMonitor as a script
+## Using FileMonitor as a script
 **FileMonitor** can be called as a standalone script.
 - To start monitoring call the script and pass --url and the Stash URL.
   - python filemonitor.py --url http://localhost:9999
@@ -22,7 +22,7 @@ From the GUI, FileMonitor can be started as a service or as a plugin. The recomm
   - python filemonitor.py **--restart**
   - The restart command restarts FileMonitor as a Task in Stash.
 
-### Reoccurring Task Scheduler
+# Reoccurring Task Scheduler
 To enable the scheduler go to **Stash->Settings->Plugins->Plugins->FileMonitor** and enable the **Scheduler** option.
 ![ReoccurringTaskScheduler](https://github.com/user-attachments/assets/5a7bf6a4-3bd6-4692-a6c3-e9f8f4664f14)
 
@@ -84,7 +84,7 @@ To configure the schedule or to add new task, edit the **task_reoccurring_schedu
   - If the user leaves the scheduler disabled, **schedule** does NOT have to be installed.
 - For best results use the scheduler with FileMonitor running as a service.
 
-### Requirements
+## Requirements
 - pip install -r requirements.txt
 - Or manually install each requirement:
   - `pip install stashapp-tools --upgrade`
@@ -92,7 +92,7 @@ To configure the schedule or to add new task, edit the **task_reoccurring_schedu
   - `pip install watchdog`
   - `pip install schedule`
 
-### Installation
+## Installation
 - Follow **Requirements** instructions.
 - In the stash plugin directory (C:\Users\MyUserName\.stash\plugins), create a folder named **FileMonitor**.
 - Copy all the plugin files to this folder.(**C:\Users\MyUserName\\.stash\plugins\FileMonitor**).
@@ -100,7 +100,7 @@ To configure the schedule or to add new task, edit the **task_reoccurring_schedu
 
 That's it!!!
 
-### Options
+## Options
 - Main options are accessible in the GUI via Settings->Plugins->Plugins->[FileMonitor].
 - Additional options available in filemonitor_config.py.
 
