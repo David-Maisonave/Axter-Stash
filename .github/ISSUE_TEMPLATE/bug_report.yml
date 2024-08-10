@@ -34,6 +34,13 @@ body:
     validations:
       required: true      
   - type: input
+    id: device
+    attributes:
+      label: Smartphone and tablts (please complete the following information)
+      placeholder: e.g. iPhone6, Galaxy Tab A9+
+    validations:
+      required: false      
+  - type: input
     id: browser
     attributes:
       label: What browser and version?

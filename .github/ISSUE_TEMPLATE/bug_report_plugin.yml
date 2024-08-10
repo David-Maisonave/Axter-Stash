@@ -39,7 +39,7 @@ body:
       label: Smartphone and tablts (please complete the following information)
       placeholder: e.g. iPhone6, Galaxy Tab A9+
     validations:
-      required: true      
+      required: false      
   - type: input
     id: browser
     attributes:
