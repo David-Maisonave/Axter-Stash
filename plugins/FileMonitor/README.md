@@ -28,18 +28,33 @@ To enable the scheduler **Stash->Settings->Plugins->Plugins->FileMonitor** and e
 
 To configure the schedule or to add new task, edit the **task_reoccurring_scheduler** section in the **filemonitor_config.py** file.
 ```` python
+# The reoccurring scheduler task list.
+# Frequency can be in minutes, hours, or days. A zero frequency value disables the task.
+# For weekly and monthly task, use the syntax as done in the **Generate** and **Backup** task below.
 "task_reoccurring_scheduler": [
-	# Frequency can be in minutes, hours, or days.
-	# A zero frequency value disables the task.
 	{"task" : "Clean",      "days" : 2},  # Maintenance -> [Clean] (every 2 days)
-	{"task" : "Generate",   "days" : 7}, # Generated Content-> [Generate] (Weekly)
-	{"task" : "Backup",     "days" : 30}, # Backup -> [Backup] (Monthly)
-	{"task" : "Scan",       "days" : 7}, # Library -> [Scan] (Weekly)
 	{"task" : "Auto Tag",   "hours" : 24},  # Auto Tag -> [Auto Tag] (Daily)
 	{"task" : "Optimise Database",   "hours" : 24},  # Maintenance -> [Optimise Database] (Daily)
-	{"task" : "Create Tags", "pluginId" : "pathParser", "days" : 1}, # Requires plugin [Path Parser] (Daily)
-	{"task" : "PluginButtonName_Here", "pluginId" : "PluginId_Here", "hours" : 0},   # Place holder for custom task.
-	# Add additional task here.
+	
+	# The following is the syntax used for plugins. A plugin task requires the plugin name for the [task] field, and the plugin-ID for the [pluginId] field.
+	{"task" : "Create Tags", "pluginId" : "pathParser", "days" : 0}, # This task requires plugin [Path Parser]. To enable this task change the zero to a positive number.
+	
+	# Note: For a weekly task do NOT use days. Instead use the weekday method which is more reliable. The hour section in time MUST be a two digit number, and use military time format. Example: 1PM = "13:00"
+	{"task" : "Generate",   "weekday" : "sunday",   "time" : "07:00"}, # Generated Content-> [Generate] (Every Sunday at 7AM)
+	{"task" : "Scan",       "weekday" : "sunday",   "time" : "03:00"}, # Library -> [Scan] (Weekly) (Every Sunday at 3AM)
+	
+	# To perform a task monthly, specify the day of the month as in the weekly schedule format, and add a monthly field.
+		# The monthly field value must be 1, 2, 3, or 4.
+			# 1 = 1st specified weekday of the month. Example 1st monday.
+			# 2 = 2nd specified weekday of the month. Example 2nd monday of the month.
+			# 3 = 3rd specified weekday of the month.
+			# 4 = 4th specified weekday of the month.
+	# Example monthly method.
+	{"task" : "Backup",     "weekday" : "saturday",   "time" : "01:00", "monthly" : 2}, # Backup -> [Backup] 2nd saturday of the month at 1AM
+	
+	# The following is a place holder for a plugin.
+	{"task" : "PluginButtonName_Here", "pluginId" : "PluginId_Here", "hours" : 0}, # The zero frequency value makes this task disabled.
+	# Add additional plugin task here.
 ],
 ````
 - To add plugins to the task list, both the Plugin-ID and the plugin name is required. The plugin ID is usually the file name of the script without the extension.
