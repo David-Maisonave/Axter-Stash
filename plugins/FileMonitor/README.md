@@ -29,17 +29,18 @@ To enable the scheduler **Stash->Settings->Plugins->Plugins->FileMonitor** and e
 To configure the schedule or to add new task, edit the **task_reoccurring_scheduler** section in the **filemonitor_config.py** file.
 ```` python
 # The reoccurring scheduler task list.
-# Frequency can be in minutes, hours, or days. A zero frequency value disables the task.
+# Task can be scheduled to run monthly, weekly, hourly, and by minutes. For best results use the scheduler with FileMonitor running as a service.
+# The frequency field can be in minutes or hours. A zero frequency value disables the task.
 # For weekly and monthly task, use the syntax as done in the **Generate** and **Backup** task below.
 "task_reoccurring_scheduler": [
-	{"task" : "Clean",      "days" : 2},  # Maintenance -> [Clean] (every 2 days)
+	{"task" : "Clean",      "hours" : 48},  # Maintenance -> [Clean] (every 2 days)
 	{"task" : "Auto Tag",   "hours" : 24},  # Auto Tag -> [Auto Tag] (Daily)
 	{"task" : "Optimise Database",   "hours" : 24},  # Maintenance -> [Optimise Database] (Daily)
 	
 	# The following is the syntax used for plugins. A plugin task requires the plugin name for the [task] field, and the plugin-ID for the [pluginId] field.
-	{"task" : "Create Tags", "pluginId" : "pathParser", "days" : 0}, # This task requires plugin [Path Parser]. To enable this task change the zero to a positive number.
+	{"task" : "Create Tags", "pluginId" : "pathParser", "hours" : 0}, # This task requires plugin [Path Parser]. To enable this task change the zero to a positive number.
 	
-	# Note: For a weekly task do NOT use days. Instead use the weekday method which is more reliable. The hour section in time MUST be a two digit number, and use military time format. Example: 1PM = "13:00"
+	# Note: For a weekly task use the weekday method which is more reliable. The hour section in time MUST be a two digit number, and use military time format. Example: 1PM = "13:00"
 	{"task" : "Generate",   "weekday" : "sunday",   "time" : "07:00"}, # Generated Content-> [Generate] (Every Sunday at 7AM)
 	{"task" : "Scan",       "weekday" : "sunday",   "time" : "03:00"}, # Library -> [Scan] (Weekly) (Every Sunday at 3AM)
 	
