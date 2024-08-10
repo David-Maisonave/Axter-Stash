@@ -22,7 +22,7 @@ body:
   - type: input
     id: stash_ver
     attributes:
-      label: Stash Version: (from Settings -> About)
+      label: Stash Version (from Settings -> About)
       placeholder: e.g. v0.26.2
     validations:
       required: true      
