@@ -75,3 +75,10 @@ body:
       description: Optionally attach snapshot(s) which displays the bug.
     validations:
       required: false      
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Add any other context about the problem here.
+    validations:
+      required: false
