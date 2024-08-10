@@ -18,7 +18,7 @@ config = {
     "runCleanAfterDelete": False,
     
     # The reoccurring scheduler task list.
-    # The scheduler may only work reliably when FileMonitor runs as a service.
+    # For best results use the scheduler with FileMonitor running as a service.
     # Frequency can be in minutes, hours, or days. A zero frequency value disables the task.
     # For weekly and monthly task, use the syntax as done in the **Generate** and **Backup** task below.
     "task_reoccurring_scheduler": [
