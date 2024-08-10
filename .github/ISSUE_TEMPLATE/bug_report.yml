@@ -14,9 +14,9 @@ body:
         3. Scroll down to '....'
         4. See error
   - type: textarea
-    id: feature
+    id: steps
     attributes:
-      label: Please enter a clear and concise description of the bug.
+      label: Please enter Steps to reproduce the behavior.
     validations:
       required: true
   - type: input
