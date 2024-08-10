@@ -135,15 +135,15 @@ def reoccurringScheduler():
     #       Or replace schedule with apscheduler https://github.com/agronholm/apscheduler
     dayOfTheWeek = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
     for task in plugin.pluginConfig['task_reoccurring_scheduler']:
-        if 'days' in task and task['days'] > 0:
-            plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' at {task['days']} days interval")
-            schedule.every(task['days']).days.do(runTask, task)
-        elif 'hours' in task and task['hours'] > 0:
+        if 'hours' in task and task['hours'] > 0:
             plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' at {task['hours']} hours interval")
             schedule.every(task['hours']).hours.do(runTask, task)
         elif 'minutes' in task and task['minutes'] > 0:
             plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' at {task['minutes']} minutes interval")
             schedule.every(task['minutes']).minutes.do(runTask, task)
+        elif 'days' in task and task['days'] > 0:
+            plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' at {task['days']} days interval")
+            schedule.every(task['days']).days.do(runTask, task)
         elif 'weekday' in task and task['weekday'].lower() in dayOfTheWeek and 'time' in task:
             plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' (weekly) every {task['weekday']} at {task['time']}")
             if task['weekday'].lower() == "monday":
