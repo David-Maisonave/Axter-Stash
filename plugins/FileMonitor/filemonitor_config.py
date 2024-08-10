@@ -40,7 +40,7 @@ config = {
                 # 3 = 3rd specified weekday of the month.
                 # 4 = 4th specified weekday of the month.
         # Example monthly method.
-        {"task" : "Backup",     "weekday" : "saturday",   "time" : "01:00", "monthly" : 2}, # Backup -> [Backup] 2nd saturday of the month at 1AM
+        {"task" : "Backup",     "weekday" : "saturday",   "time" : "02:30", "monthly" : 2}, # Backup -> [Backup] 2nd saturday of the month at 2:30AM
         
         # The following is a place holder for a plugin.
         {"task" : "PluginButtonName_Here", "pluginId" : "PluginId_Here", "hours" : 0}, # The zero frequency value makes this task disabled.

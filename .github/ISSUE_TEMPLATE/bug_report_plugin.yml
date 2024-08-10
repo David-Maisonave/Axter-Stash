@@ -1,0 +1,65 @@
+name: 🪲 Plugin Bug
+description: Create a plugin bug report
+title: "🪲[EnterPluginNameHere] Your_Short_title"
+labels: [Plugin_Bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+       Thank you for taking the time to fill out this bug report!
+       Fields marked with an asterisk (*) are required, and remaining fields are optional, but we encourage their usage.
+  - type: textarea
+    id: feature
+    attributes:
+      label: Please enter a clear and concise description of the bug.
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: What Operating System (OS)?
+      placeholder: e.g. Windows, MacOS, Linux
+    validations:
+      required: true      
+  - type: input
+    id: browser
+    attributes:
+      label: What browser and version?
+      placeholder: e.g. Chrome Ver:127, Firefox Ver:129, Safari Ver:1.3.2, Any
+    validations:
+      required: true
+  - type: textarea
+    id: install
+    attributes:
+      label: The pip install for the plugin
+      description: pip install stashapp-tools --upgrade,  pip install pyYAML
+    validations:
+      required: true      
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps To Reproduce
+      description: What are the steps used to reproduce this issue?
+    validations:
+      required: false      
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: What was the expected behavior?
+    validations:
+      required: false      
+  - type: textarea
+    id: logging
+    attributes:
+      label: Logging
+      description: Enter Stash logging and plugin logging file if applicable.
+    validations:
+      required: false      
+  - type: textarea
+    id: snapshots
+    attributes:
+      label: Snapshot(s)
+      description: Optionally attach snapshot(s) which displays the bug.
+    validations:
+      required: false      

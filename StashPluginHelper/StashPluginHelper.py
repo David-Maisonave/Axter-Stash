@@ -61,6 +61,7 @@ class StashPluginHelper:
     STDIN_READ = None
     FRAGMENT_SERVER = None
     logger = None
+    traceOncePreviousHits = []
     
     # Prefix message value
     LEV_TRACE = "TRACE: "
@@ -222,6 +223,20 @@ class StashPluginHelper:
             if logMsg == "":
                 logMsg = f"Line number {lineNo}..."
             self.Log(logMsg, printTo, logLev, lineNo, self.LEV_TRACE, logAlways)
+    
+    # Log once per session. Only logs the first time called from a particular line number in the code.
+    def TraceOnce(self, logMsg = "", printTo = 0, logAlways = False):
+        if printTo == 0: printTo = self.LOG_TO_FILE
+        lineNo = inspect.currentframe().f_back.f_lineno
+        logLev = logging.INFO if logAlways else logging.DEBUG
+        if self.DEBUG_TRACING or logAlways:
+            FuncAndLineNo = f"{inspect.currentframe().f_back.f_code.co_name}:{lineNo}"
+            if FuncAndLineNo in traceOncePreviousHits:
+                return
+            traceOncePreviousHits.append(FuncAndLineNo) 
+            if logMsg == "":
+                logMsg = f"Line number {lineNo}..."
+            self.Log(logMsg, printTo, logLev, lineNo, self.LEV_TRACE, logAlways)    
     
     def Warn(self, logMsg, printTo = 0):
         if printTo == 0: printTo = self.log_to_wrn_set

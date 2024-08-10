@@ -103,6 +103,7 @@ if plugin.CALLED_AS_STASH_PLUGIN:
     plugin.Trace(f"isJobWaitingToRun() = {isJobWaitingToRun()})")
 
 # Reoccurring scheduler code
+# ToDo: Change the following functions into a class called reoccurringScheduler
 def runTask(task):
     import datetime
     plugin.Trace(f"Running task {task}")
@@ -145,7 +146,10 @@ def reoccurringScheduler():
             plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' at {task['days']} days interval")
             schedule.every(task['days']).days.do(runTask, task)
         elif 'weekday' in task and task['weekday'].lower() in dayOfTheWeek and 'time' in task:
-            plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' (weekly) every {task['weekday']} at {task['time']}")
+            if 'monthly' in task:
+                plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' monthly on number {task['monthly']} {task['weekday']} at {task['time']}")
+            else:
+                plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' (weekly) every {task['weekday']} at {task['time']}")
             if task['weekday'].lower() == "monday":
                 schedule.every().monday.at(task['time']).do(runTask, task)
             elif task['weekday'].lower() == "tuesday":
@@ -213,7 +217,7 @@ def start_library_monitor():
                 shouldUpdate = True
                 signal.notify()
         else:
-            plugin.Trace(f"Ignoring modifications due to plugin UI setting. path='{event.src_path}'")
+            plugin.TraceOnce(f"Ignoring modifications due to plugin UI setting. path='{event.src_path}'")
 
     def on_moved(event):
         global shouldUpdate
@@ -235,7 +239,7 @@ def start_library_monitor():
                 shouldUpdate = True
                 signal.notify()
         else:
-            plugin.Trace("Ignoring on_any_event trigger.")
+            plugin.TraceOnce("Ignoring on_any_event trigger.")
     
     event_handler.on_created = on_created
     event_handler.on_deleted = on_deleted
