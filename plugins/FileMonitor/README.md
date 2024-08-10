@@ -60,7 +60,7 @@ To configure the schedule or to add new task, edit the **task_reoccurring_schedu
 - The scheduler list uses two types of syntax. One is **frequency** based, and the other is **weekday** based.
   - **Frequency Based**
     - The frequency field can be in **minutes** or **hours**.
-    - The frequency value must be a number greater than zero, because a frequency value of zero will disable the task on the schedule.
+    - The frequency value must be a number greater than zero. A frequency value of zero will disable the task on the schedule.
     - **Frequency Based Examples**:
       - Starts a task every 24 hours.
         - `{"task" : "Auto Tag",   "hours" : 24},`
