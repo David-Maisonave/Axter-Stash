@@ -104,7 +104,15 @@ if plugin.CALLED_AS_STASH_PLUGIN:
 
 # Reoccurring scheduler code
 def runTask(task):
+    import datetime
     plugin.Trace(f"Running task {task}")
+    if 'monthly' in task:
+        dayOfTheMonth = datetime.datetime.today().day
+        FirstAllowedDate = ((task['monthly'] - 1) * 7) + 1
+        LastAllowedDate = task['monthly'] * 7
+        if dayOfTheMonth < FirstAllowedDate or dayOfTheMonth > LastAllowedDate:
+            plugin.Log(f"Skipping task {task['task']} because today is not the right {task['weekday']} of the month. Target range is between {FirstAllowedDate} and {LastAllowedDate}.")
+            return
     if task['task'] == "Clean":
         plugin.STASH_INTERFACE.metadata_clean(paths=stashPaths, dry_run=plugin.DRY_RUN)
     elif task['task'] == "Generate":
@@ -125,6 +133,7 @@ def reoccurringScheduler():
     import schedule # pip install schedule  # https://github.com/dbader/schedule
     # ToDo: Extend schedule class so it works persistently (remember schedule between restarts)
     #       Or replace schedule with apscheduler https://github.com/agronholm/apscheduler
+    dayOfTheWeek = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
     for task in plugin.pluginConfig['task_reoccurring_scheduler']:
         if 'days' in task and task['days'] > 0:
             plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' at {task['days']} days interval")
@@ -135,6 +144,22 @@ def reoccurringScheduler():
         elif 'minutes' in task and task['minutes'] > 0:
             plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' at {task['minutes']} minutes interval")
             schedule.every(task['minutes']).minutes.do(runTask, task)
+        elif 'weekday' in task and task['weekday'].lower() in dayOfTheWeek and 'time' in task:
+            plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' (weekly) every {task['weekday']} at {task['time']}")
+            if task['weekday'].lower() == "monday":
+                schedule.every().monday.at(task['time']).do(runTask, task)
+            elif task['weekday'].lower() == "tuesday":
+                schedule.every().tuesday.at(task['time']).do(runTask, task)
+            elif task['weekday'].lower() == "wednesday":
+                schedule.every().wednesday.at(task['time']).do(runTask, task)
+            elif task['weekday'].lower() == "thursday":
+                schedule.every().thursday.at(task['time']).do(runTask, task)
+            elif task['weekday'].lower() == "friday":
+                schedule.every().friday.at(task['time']).do(runTask, task)
+            elif task['weekday'].lower() == "saturday":
+                schedule.every().saturday.at(task['time']).do(runTask, task)
+            elif task['weekday'].lower() == "sunday":
+                schedule.every().sunday.at(task['time']).do(runTask, task)
 def checkSchedulePending():
     import schedule # pip install schedule  # https://github.com/dbader/schedule
     schedule.run_pending()
