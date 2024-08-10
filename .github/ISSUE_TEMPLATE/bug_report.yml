@@ -30,7 +30,7 @@ body:
     id: os
     attributes:
       label: What Operating System (OS)?
-      placeholder: e.g. Windows, MacOS, Linux
+      placeholder: e.g. Windows, MacOS, Linux, iOS8.1 (phone OS)
     validations:
       required: true      
   - type: input
