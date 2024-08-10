@@ -237,7 +237,6 @@ def start_library_monitor():
         else:
             plugin.Trace("Ignoring on_any_event trigger.")
     
-    plugin.Trace()
     event_handler.on_created = on_created
     event_handler.on_deleted = on_deleted
     event_handler.on_modified = on_modified
