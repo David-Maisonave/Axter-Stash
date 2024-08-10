@@ -51,7 +51,7 @@ body:
     id: steps-to-reproduce
     attributes:
       label: Steps To Reproduce
-      description:        Steps to reproduce the behavior:
+      description:        Steps to reproduce the behavior
         1. Go to '...'
         2. Click on '....'
         3. Scroll down to '....'
