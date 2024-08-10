@@ -8,6 +8,11 @@ body:
       value: |
        Thank you for taking the time to fill out this bug report!
        Fields marked with an asterisk (*) are required, and remaining fields are optional, but we encourage their usage.
+       Steps to reproduce the behavior:
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
   - type: textarea
     id: feature
     attributes:
@@ -15,10 +20,24 @@ body:
     validations:
       required: true
   - type: input
+    id: stash_ver
+    attributes:
+      label: Stash Version: (from Settings -> About)
+      placeholder: e.g. v0.26.2
+    validations:
+      required: true      
+  - type: input
     id: os
     attributes:
       label: What Operating System (OS)?
-      placeholder: e.g. Windows, MacOS, Linux
+      placeholder: e.g. Windows, MacOS, Linux, iOS8.1
+    validations:
+      required: true      
+  - type: input
+    id: device
+    attributes:
+      label: Smartphone and tablts (please complete the following information):
+      placeholder: e.g. iPhone6, Galaxy Tab A9+
     validations:
       required: true      
   - type: input
