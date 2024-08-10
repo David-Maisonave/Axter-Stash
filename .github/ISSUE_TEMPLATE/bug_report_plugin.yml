@@ -14,9 +14,9 @@ body:
         3. Scroll down to '....'
         4. See error
   - type: textarea
-    id: feature
+    id: steps
     attributes:
-      label: Please enter a clear and concise description of the bug.
+      label: Please enter steps to reproduce the behavior.
     validations:
       required: true
   - type: input
@@ -54,13 +54,6 @@ body:
       description: pip install stashapp-tools --upgrade,  pip install pyYAML
     validations:
       required: true      
-  - type: textarea
-    id: steps-to-reproduce
-    attributes:
-      label: Steps To Reproduce
-      description: What are the steps used to reproduce this issue?
-    validations:
-      required: false      
   - type: textarea
     id: expected-behavior
     attributes:
