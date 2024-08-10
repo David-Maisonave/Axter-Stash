@@ -23,15 +23,11 @@ From the GUI, FileMonitor can be started as a service or as a plugin. The recomm
   - The restart command restarts FileMonitor as a Task in Stash.
 
 ### Reoccurring Task Scheduler
-To enable the scheduler **Stash->Settings->Plugins->Plugins->FileMonitor** and enable the **Scheduler** option.
+To enable the scheduler go to **Stash->Settings->Plugins->Plugins->FileMonitor** and enable the **Scheduler** option.
 ![ReoccurringTaskScheduler](https://github.com/user-attachments/assets/5a7bf6a4-3bd6-4692-a6c3-e9f8f4664f14)
 
 To configure the schedule or to add new task, edit the **task_reoccurring_scheduler** section in the **filemonitor_config.py** file.
 ```` python
-# The reoccurring scheduler task list.
-# Task can be scheduled to run monthly, weekly, hourly, and by minutes. For best results use the scheduler with FileMonitor running as a service.
-# The frequency field can be in minutes or hours. A zero frequency value disables the task.
-# For weekly and monthly task, use the syntax as done in the **Generate** and **Backup** task below.
 "task_reoccurring_scheduler": [
 	{"task" : "Clean",      "hours" : 48},  # Maintenance -> [Clean] (every 2 days)
 	{"task" : "Auto Tag",   "hours" : 24},  # Auto Tag -> [Auto Tag] (Daily)
@@ -59,12 +55,34 @@ To configure the schedule or to add new task, edit the **task_reoccurring_schedu
 ],
 ````
 - To add plugins to the task list, both the Plugin-ID and the plugin name is required. The plugin ID is usually the file name of the script without the extension.
-- The frequency field can be in minutes, hours, or days.
-- The freuency value must be a number greater than zero.
+- Task can be scheduled to run monthly, weekly, hourly, and by minutes.
+- The scheduler list uses two types of syntax. One is **frequency** based, and the other is **weekday** based.
+  - **Frequency Based**
+    - The frequency field can be in **minutes** or **hours**.
+    - The frequency value must be a number greater than zero, because a frequency value of zero will disable the task on the schedule.
+    - **Frequency Based Examples**:
+      - Starts a task every 24 hours.
+        - `{"task" : "Auto Tag",   "hours" : 24},`
+      - Starts a (**plugin**) task every 30 minutes.
+        - `{"task" : "Create Tags", "pluginId" : "pathParser", "minutes" : 30},`
+  - **weekday Based**
+    - Use the weekday based syntax for weekly and monthly schedules.
+    - Both weekly and monthly schedules must have a **weekday** field and a **time** field, which specifies the day of the week and the time to start the task.
+    - **Weekly**:
+      - **Weekly Example**:
+        - Starts a task weekly every monday and 9AM.
+          - `{"task" : "Generate",   "weekday" : "monday",   "time" : "09:00"},`
+    - **Monthly**:
+      - The monthly syntax is similar to the weekly format, but it also includes a **"monthly"** field which must be set to 1, 2, 3, or 4.
+      - **Monthly Examples**:
+        - Starts a task once a month on the 3rd sunday of the month and at 1AM.
+          - `{"task" : "Backup",     "weekday" : "sunday",   "time" : "01:00", "monthly" : 3},`
+        - Starts a task at 2PM once a month on the 1st saturday of the month.
+          - `{"task" : "Optimise Database",     "weekday" : "saturday",   "time" : "14:00", "monthly" : 1},`
+
 - The scheduler feature requires `pip install schedule`
-- If the user leaves the scheduler disabled, **schedule** does NOT have to be installed.
-- The scheduler will **NOT** work properly when FileMonitor is run as a plugin.
-- The current scheduler code does **NOT** work persistently. That means the schedule always restarts when the program restarts. This may be fixed in future FileMonitor versions.
+  - If the user leaves the scheduler disabled, **schedule** does NOT have to be installed.
+- For best results use the scheduler with FileMonitor running as a service.
 
 ### Requirements
 - pip install -r requirements.txt
