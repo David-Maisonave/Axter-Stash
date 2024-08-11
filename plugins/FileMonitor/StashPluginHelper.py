@@ -231,9 +231,9 @@ class StashPluginHelper:
         logLev = logging.INFO if logAlways else logging.DEBUG
         if self.DEBUG_TRACING or logAlways:
             FuncAndLineNo = f"{inspect.currentframe().f_back.f_code.co_name}:{lineNo}"
-            if FuncAndLineNo in traceOncePreviousHits:
+            if FuncAndLineNo in self.traceOncePreviousHits:
                 return
-            traceOncePreviousHits.append(FuncAndLineNo) 
+            self.traceOncePreviousHits.append(FuncAndLineNo) 
             if logMsg == "":
                 logMsg = f"Line number {lineNo}..."
             self.Log(logMsg, printTo, logLev, lineNo, self.LEV_TRACE, logAlways)    
