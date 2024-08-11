@@ -254,6 +254,7 @@ def start_library_monitor():
         observer.schedule(event_handler, path, recursive=RECURSIVE)
         plugin.Trace(f"Observing {path}")
     observer.schedule(event_handler, SPECIAL_FILE_DIR, recursive=RECURSIVE)
+    plugin.Trace(f"Observing FileMonitor path {SPECIAL_FILE_DIR}")
     observer.start()
     JobIsRunning = False
     PutPluginBackOnTaskQueAndExit = False
