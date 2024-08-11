@@ -49,7 +49,8 @@ config = {
     
     # Maximum backups to keep. When scheduler is enabled, and the Backup runs, delete older backups after reaching maximum backups.
     "BackupsMax" : 12, # Only works if BackupDatabasePath is properly populated.
-    "BackupDatabasePath" : "C:\\Users\\admin3\\.stash\\DbBackup", # ToDo: Implement code to automate fetching this value
+    # The BACKUP database path. ToDo: Implement code to automate fetching this value
+    "BackupDatabasePath" : "C:\\Users\\admin3\\.stash\\DbBackup", # Example populated path
     
     # When enabled, if CREATE flag is triggered, DupFileManager task is called if the plugin is installed.
     "onCreateCallDupFileManager": False, # Not yet implemented!!!!
