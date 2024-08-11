@@ -1,0 +1,38 @@
+name: FileMonitor
+description: Monitors the Stash library folders, and updates Stash if any changes occurs in the Stash library paths.
+version: 0.7.2
+url: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor
+settings:
+  recursiveDisabled:
+    displayName: No Recursive
+    description: Enable to STOP monitoring paths recursively.
+    type: BOOLEAN
+  turnOnScheduler:
+    displayName: Scheduler
+    description: Enable to turn on the scheduler. See filemonitor_config.py for more details.
+    type: BOOLEAN
+  zzdebugTracing:
+    displayName: Debug Tracing
+    description: (Default=false) [***For Advanced Users***] Enable debug tracing. When enabled, additional tracing logging is added to Stash\plugins\FileMonitor\filemonitor.log
+    type: BOOLEAN
+  zzdryRun:
+    displayName: Dry Run
+    description: Enable to run script in [Dry Run] mode. In this mode, Stash does NOT call meta_scan, and only logs the action it would have taken.
+    type: BOOLEAN
+exec:
+  - python
+  - "{pluginDir}/filemonitor.py"
+interface: raw
+tasks:
+  - name: Start Library Monitor Service
+    description: Run as a SERVICE to monitors paths in Stash library for media file changes, and updates Stash. Recommended start method.
+    defaultArgs:
+      mode: start_library_monitor_service
+  - name: Stop Library Monitor
+    description: Stops library monitoring within 2 minute.
+    defaultArgs:
+      mode: stop_library_monitor
+  - name: Run as a Plugin
+    description: Run [Library Monitor] as a plugin (*not recommended method*)
+    defaultArgs:
+      mode: start_library_monitor
