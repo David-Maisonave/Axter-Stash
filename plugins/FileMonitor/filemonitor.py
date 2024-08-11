@@ -62,10 +62,12 @@ SIGNAL_TIMEOUT = plugin.pluginConfig['timeOut']
 CREATE_SPECIAL_FILE_TO_EXIT = plugin.pluginConfig['createSpecFileToExit']
 DELETE_SPECIAL_FILE_ON_STOP = plugin.pluginConfig['deleteSpecFileInStop']
 SPECIAL_FILE_DIR = f"{plugin.LOG_FILE_DIR}{os.sep}working"
-if not os.path.exists(SPECIAL_FILE_DIR) and CREATE_SPECIAL_FILE_TO_EXIT:
+if CREATE_SPECIAL_FILE_TO_EXIT and not os.path.exists(SPECIAL_FILE_DIR):
     os.makedirs(SPECIAL_FILE_DIR)
 # Unique name to trigger shutting down FileMonitor
 SPECIAL_FILE_NAME = f"{SPECIAL_FILE_DIR}{os.sep}trigger_to_kill_filemonitor_by_david_maisonave.txt"
+if CREATE_SPECIAL_FILE_TO_EXIT and os.path.isfile(SPECIAL_FILE_NAME):
+    os.remove(SPECIAL_FILE_NAME)
 
 STASHPATHSCONFIG = plugin.STASH_CONFIGURATION['stashes']
 stashPaths = []
@@ -234,7 +236,7 @@ def start_library_monitor():
     def on_any_event(event):
         global shouldUpdate
         global TargetPaths
-        if SCAN_ON_ANY_EVENT:
+        if SCAN_ON_ANY_EVENT or event.src_path == SPECIAL_FILE_DIR:
             plugin.Log(f"Any-Event ***  '{event.src_path}'")
             TargetPaths.append(event.src_path)
             with mutex:
@@ -286,12 +288,18 @@ def start_library_monitor():
                 TmpTargetPaths = []
                 for TargetPath in TargetPaths:
                     TmpTargetPaths.append(os.path.dirname(TargetPath))
-                    if TargetPath == SPECIAL_FILE_DIR:
+                    plugin.Trace(f"Added Path {os.path.dirname(TargetPath)}")
+                    if TargetPath == SPECIAL_FILE_NAME:
                         if os.path.isfile(SPECIAL_FILE_NAME):
                             shm_buffer[0] = STOP_RUNNING_SIG
                             plugin.Log(f"[SpFl]Detected trigger file to kill FileMonitor. {SPECIAL_FILE_NAME}", printTo = plugin.LOG_TO_FILE + plugin.LOG_TO_CONSOLE + plugin.LOG_TO_STASH)
                         else:
                             plugin.Trace(f"[SpFl]Did not find file {SPECIAL_FILE_NAME}.")
+                
+                # Make sure special file does not exist, incase change was missed.
+                if CREATE_SPECIAL_FILE_TO_EXIT and os.path.isfile(SPECIAL_FILE_NAME) and shm_buffer[0] == CONTINUE_RUNNING_SIG:
+                    shm_buffer[0] = STOP_RUNNING_SIG
+                    plugin.Log(f"[SpFl]Detected trigger file to kill FileMonitor. {SPECIAL_FILE_NAME}", printTo = plugin.LOG_TO_FILE + plugin.LOG_TO_CONSOLE + plugin.LOG_TO_STASH)
                 TargetPaths = []
                 TmpTargetPaths = list(set(TmpTargetPaths))
             if TmpTargetPaths != []:
@@ -303,8 +311,8 @@ def start_library_monitor():
                         plugin.STASH_INTERFACE.metadata_clean(paths=TmpTargetPaths, dry_run=plugin.DRY_RUN)
                     if RUN_GENERATE_CONTENT:
                         plugin.STASH_INTERFACE.metadata_generate()
-                if plugin.CALLED_AS_STASH_PLUGIN and shm_buffer[0] == CONTINUE_RUNNING_SIG and FileMonitorPluginIsOnTaskQue:
-                    PutPluginBackOnTaskQueAndExit = True
+                    if plugin.CALLED_AS_STASH_PLUGIN and shm_buffer[0] == CONTINUE_RUNNING_SIG and FileMonitorPluginIsOnTaskQue:
+                        PutPluginBackOnTaskQueAndExit = True
             else:
                 plugin.Trace("Nothing to scan.")
             
@@ -315,7 +323,7 @@ def start_library_monitor():
                 raise KeyboardInterrupt
             elif JobIsRunning or PutPluginBackOnTaskQueAndExit:
                 plugin.STASH_INTERFACE.run_plugin_task(plugin_id=plugin.PLUGIN_ID, task_name=StartFileMonitorAsAPluginTaskName)
-                plugin.Trace("Exiting plugin so that other task can run.")
+                plugin.Trace(f"Exiting plugin so that other task can run. (JobIsRunning={JobIsRunning}) (PutPluginBackOnTaskQueAndExit={PutPluginBackOnTaskQueAndExit})")
                 return
     except KeyboardInterrupt:
         observer.stop()
