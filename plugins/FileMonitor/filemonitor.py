@@ -263,6 +263,7 @@ def start_library_monitor():
             TmpTargetPaths = []
             with mutex:
                 while not shouldUpdate:
+                    plugin.Trace("While not shouldUpdate")
                     if plugin.CALLED_AS_STASH_PLUGIN and isJobWaitingToRun():
                         if FileMonitorPluginIsOnTaskQue:
                             plugin.Log(f"Another task (JobID={JobIdInTheQue}) is waiting on the queue. Will restart FileMonitor to allow other task to run.")
@@ -276,10 +277,7 @@ def start_library_monitor():
                     if plugin.pluginSettings['turnOnScheduler']:
                         checkSchedulePending()
                     plugin.Trace("Wait start")
-                    if plugin.CALLED_AS_STASH_PLUGIN:
-                        signal.wait(timeout=SIGNAL_TIMEOUT)
-                    else:
-                        signal.wait()
+                    signal.wait(timeout=SIGNAL_TIMEOUT)
                     plugin.Trace("Wait end")
                 shouldUpdate = False
                 TmpTargetPaths = []
