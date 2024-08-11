@@ -77,6 +77,8 @@ if plugin.DRY_RUN:
     plugin.Log("Dry run mode is enabled.")
 plugin.Trace(f"(SCAN_MODIFIED={SCAN_MODIFIED}) (SCAN_ON_ANY_EVENT={SCAN_ON_ANY_EVENT}) (RECURSIVE={RECURSIVE})")
 
+StartFileMonitorAsAPluginTaskName = "Run as a Plugin"
+StartFileMonitorAsAServiceTaskName = "Start Library Monitor Service"
 FileMonitorPluginIsOnTaskQue =  plugin.CALLED_AS_STASH_PLUGIN
 StopLibraryMonitorWaitingInTaskQueue = False
 JobIdInTheQue = 0
@@ -94,7 +96,7 @@ def isJobWaitingToRun():
                 StopLibraryMonitorWaitingInTaskQueue = True
             JobIdInTheQue = jobDetails['id']
             jobIsWaiting = True
-        elif jobDetails['status'] == "RUNNING" and jobDetails['description'].find("Start Library Monitor") > -1:
+        elif jobDetails['status'] == "RUNNING" and jobDetails['description'].find(StartFileMonitorAsAPluginTaskName) > -1:
             FileMonitorPluginIsOnTaskQue = True  
     JobIdInTheQue = 0
     return jobIsWaiting
@@ -312,7 +314,7 @@ def start_library_monitor():
                 shm_a.unlink()  # Call unlink only once to release the shared memory
                 raise KeyboardInterrupt
             elif JobIsRunning or PutPluginBackOnTaskQueAndExit:
-                plugin.STASH_INTERFACE.run_plugin_task(plugin_id=plugin.PLUGIN_ID, task_name="Start Library Monitor")
+                plugin.STASH_INTERFACE.run_plugin_task(plugin_id=plugin.PLUGIN_ID, task_name=StartFileMonitorAsAPluginTaskName)
                 plugin.Trace("Exiting plugin so that other task can run.")
                 return
     except KeyboardInterrupt:
@@ -377,7 +379,7 @@ if parse_args.stop or parse_args.restart or plugin.PLUGIN_TASK_NAME == "stop_lib
     stop_library_monitor()
     if parse_args.restart:
         time.sleep(5)
-        plugin.STASH_INTERFACE.run_plugin_task(plugin_id=plugin.PLUGIN_ID, task_name="Start Library Monitor")
+        plugin.STASH_INTERFACE.run_plugin_task(plugin_id=plugin.PLUGIN_ID, task_name=StartFileMonitorAsAPluginTaskName)
         plugin.Trace(f"Restart FileMonitor EXIT")
     else:
         plugin.Trace(f"Stop FileMonitor EXIT")
