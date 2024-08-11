@@ -215,9 +215,10 @@ class StashPluginHelper:
         if (printTo & self.LOG_TO_STDERR) and (logLevel != logging.DEBUG or self.DEBUG_TRACING or logAlways):
             print(f"StdErr: {LN_Str} {levelStr}{logMsg}", file=sys.stderr)
     
-    def Trace(self, logMsg = "", printTo = 0, logAlways = False):
+    def Trace(self, logMsg = "", printTo = 0, logAlways = False, lineNo = -1):
         if printTo == 0: printTo = self.LOG_TO_FILE
-        lineNo = inspect.currentframe().f_back.f_lineno
+        if lineNo == -1:
+            lineNo = lineNo = inspect.currentframe().f_back.f_lineno
         logLev = logging.INFO if logAlways else logging.DEBUG
         if self.DEBUG_TRACING or logAlways:
             if logMsg == "":
@@ -236,7 +237,19 @@ class StashPluginHelper:
             self.traceOncePreviousHits.append(FuncAndLineNo) 
             if logMsg == "":
                 logMsg = f"Line number {lineNo}..."
-            self.Log(logMsg, printTo, logLev, lineNo, self.LEV_TRACE, logAlways)    
+            self.Log(logMsg, printTo, logLev, lineNo)    
+
+    # Log INFO on first call, then do Trace on remaining calls.
+    def LogOnce(self, logMsg = "", printTo = 0, logAlways = False, traceOnRemainingCalls = True):
+        if printTo == 0: printTo = self.LOG_TO_FILE
+        lineNo = inspect.currentframe().f_back.f_lineno
+        FuncAndLineNo = f"{inspect.currentframe().f_back.f_code.co_name}:{lineNo}"
+        if FuncAndLineNo in self.traceOncePreviousHits:
+            if traceOnRemainingCalls:
+                self.Trace(logMsg, printTo, logAlways, lineNo) 
+        else:
+            self.traceOncePreviousHits.append(FuncAndLineNo)
+            self.Log(logMsg, printTo, logging.INFO, lineNo)   
     
     def Warn(self, logMsg, printTo = 0):
         if printTo == 0: printTo = self.log_to_wrn_set

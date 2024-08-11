@@ -256,7 +256,7 @@ def start_library_monitor():
     # Iterate through stashPaths
     for path in stashPaths:
         observer.schedule(event_handler, path, recursive=RECURSIVE)
-        plugin.Trace(f"Observing {path}")
+        plugin.Log(f"Observing {path}")
     observer.schedule(event_handler, SPECIAL_FILE_DIR, recursive=RECURSIVE)
     plugin.Trace(f"Observing FileMonitor path {SPECIAL_FILE_DIR}")
     observer.start()
@@ -281,7 +281,7 @@ def start_library_monitor():
                         break
                     if plugin.pluginSettings['turnOnScheduler']:
                         checkSchedulePending()
-                    plugin.Trace("Wait start")
+                    plugin.LogOnce("Wait start")
                     signal.wait(timeout=SIGNAL_TIMEOUT)
                     plugin.Trace("Wait end")
                 shouldUpdate = False
