@@ -8,8 +8,8 @@ config = {
     "onAnyEvent": False,
     # Enable to monitor changes in file system for modification flag. This option is NOT needed for Windows, because on Windows changes are triggered via CREATE, DELETE, and MOVE flags. Other OS may differ.
     "scanModified": False,
-    # Timeout in seconds. This is how often it will check if another job (Task) is in the queue.
-    "timeOut": 60, # Not needed when running in command line mode.
+    # Timeout in seconds. This is how often it will check the scheduler and (in-plugin mode) if another job (Task) is in the queue
+    "timeOut": 60,
     # Enable to exit FileMonitor by creating special file in plugin folder\working
     "createSpecFileToExit": True,
     # Enable to delete special file imediately after it's created in stop process
@@ -40,7 +40,7 @@ config = {
                 # 3 = 3rd specified weekday of the month.
                 # 4 = 4th specified weekday of the month.
         # Example monthly method.
-        {"task" : "Backup",     "weekday" : "saturday",   "time" : "02:30", "monthly" : 2}, # Backup -> [Backup] 2nd saturday of the month at 2:30AM
+        {"task" : "Backup",     "weekday" : "sunday",   "time" : "01:00", "monthly" : 2}, # Backup -> [Backup] 2nd sunday of the month at 1AM (01:00)
         
         # The following is a place holder for a plugin.
         {"task" : "PluginButtonName_Here", "pluginId" : "PluginId_Here", "hours" : 0}, # The zero frequency value makes this task disabled.
@@ -48,7 +48,8 @@ config = {
     ],
     
     # Maximum backups to keep. When scheduler is enabled, and the Backup runs, delete older backups after reaching maximum backups.
-    "BackupsMax" : 6, # Not yet implemented!!!
+    "BackupsMax" : 12, # Only works if BackupDatabasePath is properly populated.
+    "BackupDatabasePath" : "C:\\Users\\admin3\\.stash\\DbBackup", # ToDo: Implement code to automate fetching this value
     
     # When enabled, if CREATE flag is triggered, DupFileManager task is called if the plugin is installed.
     "onCreateCallDupFileManager": False, # Not yet implemented!!!!

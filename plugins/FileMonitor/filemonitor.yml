@@ -1,6 +1,6 @@
 name: FileMonitor
 description: Monitors the Stash library folders, and updates Stash if any changes occurs in the Stash library paths.
-version: 0.7.5
+version: 0.7.7
 url: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor
 settings:
   recursiveDisabled:

@@ -106,6 +106,16 @@ def isJobWaitingToRun():
 if plugin.CALLED_AS_STASH_PLUGIN:
     plugin.Trace(f"isJobWaitingToRun() = {isJobWaitingToRun()})")
 
+def trimDbFiles(dbPath, maxFiles):
+    if not os.path.exists(dbPath) or len(dbPath) < 5: # For safety and security, short path not supported.
+        return
+    dbFiles = sorted(os.listdir(dbPath))
+    n = len(dbFiles)
+    for i in range(0, n-maxFiles):
+        dbFilePath = f"{dbPath}{os.sep}{dbFiles[i]}"
+        plugin.Log(f"Removing file {dbFilePath}")
+        os.remove(dbFilePath)
+        
 # Reoccurring scheduler code
 # ToDo: Change the following functions into a class called reoccurringScheduler
 def runTask(task):
@@ -123,7 +133,11 @@ def runTask(task):
     elif task['task'] == "Generate":
         plugin.STASH_INTERFACE.metadata_generate()
     elif task['task'] == "Backup":
-        plugin.STASH_INTERFACE.call_GQL("mutation { backupDatabase(input: {download: false})}")
+        plugin.LogOnce("Note: Backup task does not get listed in the Task Queue, but user can verify that it started by looking in the Stash log file as an INFO level log line.")
+        plugin.STASH_INTERFACE.backup_database()
+        if plugin.pluginConfig['BackupsMax'] > 0 and plugin.pluginConfig['BackupDatabasePath'] != "" and os.path.exists(plugin.pluginConfig['BackupDatabasePath']):
+            plugin.Log("Checking quantity of DB backups.")
+            trimDbFiles(plugin.pluginConfig['BackupDatabasePath'], plugin.pluginConfig['BackupsMax'])
     elif task['task'] == "Scan":
         plugin.STASH_INTERFACE.metadata_scan(paths=stashPaths)
     elif task['task'] == "Auto Tag":
@@ -281,9 +295,14 @@ def start_library_monitor():
                         break
                     if plugin.pluginSettings['turnOnScheduler']:
                         checkSchedulePending()
-                    plugin.LogOnce("Wait start")
+                    plugin.LogOnce("Waiting for a file change-trigger.")
                     signal.wait(timeout=SIGNAL_TIMEOUT)
-                    plugin.Trace("Wait end")
+                    if plugin.pluginSettings['turnOnScheduler'] and not shouldUpdate:
+                        plugin.Trace("Checking the scheduler.")
+                    elif shouldUpdate:
+                        plugin.Trace("File change trigger occurred.")
+                    else:
+                        plugin.Trace("Wait timeourt occurred.")
                 shouldUpdate = False
                 TmpTargetPaths = []
                 for TargetPath in TargetPaths:
