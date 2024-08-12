@@ -42,15 +42,16 @@ config = {
         # Example monthly method.
         {"task" : "Backup",     "weekday" : "sunday",   "time" : "01:00", "monthly" : 2}, # Backup -> [Backup] 2nd sunday of the month at 1AM (01:00)
         
-        # The following is a place holder for a plugin.
+        # Example task for calling another Stash plugin, which needs plugin name and plugin ID.
         {"task" : "PluginButtonName_Here", "pluginId" : "PluginId_Here", "hours" : 0}, # The zero frequency value makes this task disabled.
         # Add additional plugin task here.
+        
+        # Example task to call a python script
+        {"task" : "python", "script" : "<plugin_path>test_script_hello_world.py", "args" : "--MyArguments Hello", "minutes" : 0},
+        
+        # Example task to execute a command
+        {"task" : "execute", "command" : "C:\\MyPath\\HelloWorld.bat", "args" : "", "hours" : 0},
     ],
-    
-    # Maximum backups to keep. When scheduler is enabled, and the Backup runs, delete older backups after reaching maximum backups.
-    "BackupsMax" : 12, # Only works if BackupDatabasePath is properly populated.
-    # The BACKUP database path. ToDo: Implement code to automate fetching this value
-    "BackupDatabasePath" : "C:\\Users\\admin3\\.stash\\DbBackup", # Example populated path
     
     # When enabled, if CREATE flag is triggered, DupFileManager task is called if the plugin is installed.
     "onCreateCallDupFileManager": False, # Not yet implemented!!!!

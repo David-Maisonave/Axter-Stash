@@ -1,12 +1,7 @@
 import stashapi.log as stashLog # stashapi.log by default for error and critical logging
 from stashapi.stashapp import StashInterface
 from logging.handlers import RotatingFileHandler
-import inspect
-import sys
-import os
-import pathlib
-import logging
-import json
+import inspect, sys, os, pathlib, logging, json
 import __main__
 
 # StashPluginHelper (By David Maisonave aka Axter)
@@ -61,7 +56,7 @@ class StashPluginHelper:
     STDIN_READ = None
     FRAGMENT_SERVER = None
     logger = None
-    traceOncePreviousHits = []
+    logLinePreviousHits = []
     
     # Prefix message value
     LEV_TRACE = "TRACE: "
@@ -218,7 +213,7 @@ class StashPluginHelper:
     def Trace(self, logMsg = "", printTo = 0, logAlways = False, lineNo = -1):
         if printTo == 0: printTo = self.LOG_TO_FILE
         if lineNo == -1:
-            lineNo = lineNo = inspect.currentframe().f_back.f_lineno
+            lineNo = inspect.currentframe().f_back.f_lineno
         logLev = logging.INFO if logAlways else logging.DEBUG
         if self.DEBUG_TRACING or logAlways:
             if logMsg == "":
@@ -227,28 +222,24 @@ class StashPluginHelper:
     
     # Log once per session. Only logs the first time called from a particular line number in the code.
     def TraceOnce(self, logMsg = "", printTo = 0, logAlways = False):
-        if printTo == 0: printTo = self.LOG_TO_FILE
         lineNo = inspect.currentframe().f_back.f_lineno
-        logLev = logging.INFO if logAlways else logging.DEBUG
         if self.DEBUG_TRACING or logAlways:
             FuncAndLineNo = f"{inspect.currentframe().f_back.f_code.co_name}:{lineNo}"
-            if FuncAndLineNo in self.traceOncePreviousHits:
+            if FuncAndLineNo in self.logLinePreviousHits:
                 return
-            self.traceOncePreviousHits.append(FuncAndLineNo) 
-            if logMsg == "":
-                logMsg = f"Line number {lineNo}..."
-            self.Log(logMsg, printTo, logLev, lineNo)    
+            self.logLinePreviousHits.append(FuncAndLineNo)
+            self.Trace(logMsg, printTo, logAlways, lineNo)
 
     # Log INFO on first call, then do Trace on remaining calls.
     def LogOnce(self, logMsg = "", printTo = 0, logAlways = False, traceOnRemainingCalls = True):
         if printTo == 0: printTo = self.LOG_TO_FILE
         lineNo = inspect.currentframe().f_back.f_lineno
         FuncAndLineNo = f"{inspect.currentframe().f_back.f_code.co_name}:{lineNo}"
-        if FuncAndLineNo in self.traceOncePreviousHits:
+        if FuncAndLineNo in self.logLinePreviousHits:
             if traceOnRemainingCalls:
                 self.Trace(logMsg, printTo, logAlways, lineNo) 
         else:
-            self.traceOncePreviousHits.append(FuncAndLineNo)
+            self.logLinePreviousHits.append(FuncAndLineNo)
             self.Log(logMsg, printTo, logging.INFO, lineNo)   
     
     def Warn(self, logMsg, printTo = 0):
@@ -267,6 +258,26 @@ class StashPluginHelper:
             lineNo = inspect.currentframe().f_back.f_lineno
         self.Log(f"StashPluginHelper Status: (CALLED_AS_STASH_PLUGIN={self.CALLED_AS_STASH_PLUGIN}), (RUNNING_IN_COMMAND_LINE_MODE={self.RUNNING_IN_COMMAND_LINE_MODE}), (DEBUG_TRACING={self.DEBUG_TRACING}), (DRY_RUN={self.DRY_RUN}), (PLUGIN_ID={self.PLUGIN_ID}), (PLUGIN_TASK_NAME={self.PLUGIN_TASK_NAME}), (STASH_URL={self.STASH_URL}), (MAIN_SCRIPT_NAME={self.MAIN_SCRIPT_NAME})",
             printTo, logLevel, lineNo)
+    
+    def ExecuteProcess(self, args):
+        import platform, subprocess
+        is_windows = any(platform.win32_ver())
+        pid = None
+        self.Trace(f"is_windows={is_windows} args={args}")
+        if is_windows:
+            self.Trace("Executing process using Windows DETACHED_PROCESS")
+            DETACHED_PROCESS = 0x00000008
+            pid = subprocess.Popen(args,creationflags=DETACHED_PROCESS, shell=True).pid
+        else:
+            self.Trace("Executing process using normal Popen")
+            pid = subprocess.Popen(args).pid
+        self.Trace(f"pid={pid}")
+        return pid
+    
+    def ExecutePythonScript(self, args):
+        PythonExe = f"{sys.executable}"
+        argsWithPython = [f"{PythonExe}"] + args
+        return self.ExecuteProcess(argsWithPython)
     
     # Extends class StashInterface with functions which are not yet in the class
     class ExtendStashInterface(StashInterface):

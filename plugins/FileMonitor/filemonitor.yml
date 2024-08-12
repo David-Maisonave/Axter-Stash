@@ -1,6 +1,6 @@
 name: FileMonitor
 description: Monitors the Stash library folders, and updates Stash if any changes occurs in the Stash library paths.
-version: 0.7.7
+version: 0.7.8
 url: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor
 settings:
   recursiveDisabled:
@@ -11,13 +11,13 @@ settings:
     displayName: Scheduler
     description: Enable to turn on the scheduler. See filemonitor_config.py for more details.
     type: BOOLEAN
+  zmaximumBackups:
+    displayName: Max DB Backups
+    description: When value greater than 1, will trim the number of database backup files to set value. Requires [Scheduler] enabled and backupDirectoryPath populated with path length longer than 4.
+    type: NUMBER
   zzdebugTracing:
     displayName: Debug Tracing
-    description: (Default=false) [***For Advanced Users***] Enable debug tracing. When enabled, additional tracing logging is added to Stash\plugins\FileMonitor\filemonitor.log
-    type: BOOLEAN
-  zzdryRun:
-    displayName: Dry Run
-    description: Enable to run script in [Dry Run] mode. In this mode, Stash does NOT call meta_scan, and only logs the action it would have taken.
+    description: Enable debug tracing. When enabled, additional tracing logging is added to Stash\plugins\FileMonitor\filemonitor.log
     type: BOOLEAN
 exec:
   - python
@@ -25,14 +25,14 @@ exec:
 interface: raw
 tasks:
   - name: Start Library Monitor Service
-    description: Run as a SERVICE to monitors paths in Stash library for media file changes, and updates Stash. Recommended start method.
+    description: Run [Library Monitor] as a SERVICE to update Stash with any media file changes.
     defaultArgs:
       mode: start_library_monitor_service
   - name: Stop Library Monitor
     description: Stops library monitoring within 2 minute.
     defaultArgs:
       mode: stop_library_monitor
-  - name: Run as a Plugin
+  - name: Monitor as a Plugin
     description: Run [Library Monitor] as a plugin (*not recommended method*)
     defaultArgs:
       mode: start_library_monitor

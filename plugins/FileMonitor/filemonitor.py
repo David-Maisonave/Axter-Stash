@@ -31,8 +31,8 @@ if parse_args.quit:
 settings = {
     "recursiveDisabled": False,
     "turnOnScheduler": False,
-    "zzdebugTracing": False,
-    "zzdryRun": False,
+    "zmaximumBackups": 0,
+    "zzdebugTracing": False
 }
 plugin = StashPluginHelper(
         stash_url=parse_args.stash_url,
@@ -79,7 +79,7 @@ if plugin.DRY_RUN:
     plugin.Log("Dry run mode is enabled.")
 plugin.Trace(f"(SCAN_MODIFIED={SCAN_MODIFIED}) (SCAN_ON_ANY_EVENT={SCAN_ON_ANY_EVENT}) (RECURSIVE={RECURSIVE})")
 
-StartFileMonitorAsAPluginTaskName = "Run as a Plugin"
+StartFileMonitorAsAPluginTaskName = "Monitor as a Plugin"
 StartFileMonitorAsAServiceTaskName = "Start Library Monitor Service"
 FileMonitorPluginIsOnTaskQue =  plugin.CALLED_AS_STASH_PLUGIN
 StopLibraryMonitorWaitingInTaskQueue = False
@@ -105,88 +105,105 @@ def isJobWaitingToRun():
 
 if plugin.CALLED_AS_STASH_PLUGIN:
     plugin.Trace(f"isJobWaitingToRun() = {isJobWaitingToRun()})")
-
-def trimDbFiles(dbPath, maxFiles):
-    if not os.path.exists(dbPath) or len(dbPath) < 5: # For safety and security, short path not supported.
-        return
-    dbFiles = sorted(os.listdir(dbPath))
-    n = len(dbFiles)
-    for i in range(0, n-maxFiles):
-        dbFilePath = f"{dbPath}{os.sep}{dbFiles[i]}"
-        plugin.Log(f"Removing file {dbFilePath}")
-        os.remove(dbFilePath)
         
-# Reoccurring scheduler code
-# ToDo: Change the following functions into a class called reoccurringScheduler
-def runTask(task):
-    import datetime
-    plugin.Trace(f"Running task {task}")
-    if 'monthly' in task:
-        dayOfTheMonth = datetime.datetime.today().day
-        FirstAllowedDate = ((task['monthly'] - 1) * 7) + 1
-        LastAllowedDate = task['monthly'] * 7
-        if dayOfTheMonth < FirstAllowedDate or dayOfTheMonth > LastAllowedDate:
-            plugin.Log(f"Skipping task {task['task']} because today is not the right {task['weekday']} of the month. Target range is between {FirstAllowedDate} and {LastAllowedDate}.")
+class StashScheduler: # Stash Scheduler
+    def __init__(self):
+        import schedule # pip install schedule  # https://github.com/dbader/schedule
+        dayOfTheWeek = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+        for task in plugin.pluginConfig['task_reoccurring_scheduler']:
+            if 'hours' in task and task['hours'] > 0:
+                plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' at {task['hours']} hours interval")
+                schedule.every(task['hours']).hours.do(self.runTask, task)
+            elif 'minutes' in task and task['minutes'] > 0:
+                plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' at {task['minutes']} minutes interval")
+                schedule.every(task['minutes']).minutes.do(self.runTask, task)
+            elif 'days' in task and task['days'] > 0: # Left here for backward compatibility, but should use weekday logic instead.
+                plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' at {task['days']} days interval")
+                schedule.every(task['days']).days.do(self.runTask, task)
+            elif 'weekday' in task and task['weekday'].lower() in dayOfTheWeek and 'time' in task:
+                if 'monthly' in task:
+                    plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' monthly on number {task['monthly']} {task['weekday']} at {task['time']}")
+                else:
+                    plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' (weekly) every {task['weekday']} at {task['time']}")
+                if task['weekday'].lower() == "monday":
+                    schedule.every().monday.at(task['time']).do(self.runTask, task)
+                elif task['weekday'].lower() == "tuesday":
+                    schedule.every().tuesday.at(task['time']).do(self.runTask, task)
+                elif task['weekday'].lower() == "wednesday":
+                    schedule.every().wednesday.at(task['time']).do(self.runTask, task)
+                elif task['weekday'].lower() == "thursday":
+                    schedule.every().thursday.at(task['time']).do(self.runTask, task)
+                elif task['weekday'].lower() == "friday":
+                    schedule.every().friday.at(task['time']).do(self.runTask, task)
+                elif task['weekday'].lower() == "saturday":
+                    schedule.every().saturday.at(task['time']).do(self.runTask, task)
+                elif task['weekday'].lower() == "sunday":
+                    schedule.every().sunday.at(task['time']).do(self.runTask, task)
+        self.checkSchedulePending()
+    
+    def runTask(self, task):
+        import datetime
+        plugin.Trace(f"Running task {task}")
+        if 'monthly' in task:
+            dayOfTheMonth = datetime.datetime.today().day
+            FirstAllowedDate = ((task['monthly'] - 1) * 7) + 1
+            LastAllowedDate = task['monthly'] * 7
+            if dayOfTheMonth < FirstAllowedDate or dayOfTheMonth > LastAllowedDate:
+                plugin.Log(f"Skipping task {task['task']} because today is not the right {task['weekday']} of the month. Target range is between {FirstAllowedDate} and {LastAllowedDate}.")
+                return
+        if task['task'] == "Clean":
+            plugin.STASH_INTERFACE.metadata_clean(paths=stashPaths, dry_run=plugin.DRY_RUN)
+        elif task['task'] == "Generate":
+            plugin.STASH_INTERFACE.metadata_generate()
+        elif task['task'] == "Backup":
+            plugin.LogOnce("Note: Backup task does not get listed in the Task Queue, but user can verify that it started by looking in the Stash log file as an INFO level log line.")
+            plugin.STASH_INTERFACE.backup_database()
+            if plugin.pluginSettings['zmaximumBackups'] > 1 and 'backupDirectoryPath' in plugin.STASH_CONFIGURATION:
+                if len(plugin.STASH_CONFIGURATION['backupDirectoryPath']) > 4 and os.path.exists(plugin.STASH_CONFIGURATION['backupDirectoryPath']):
+                    plugin.LogOnce(f"Checking quantity of DB backups if path {plugin.STASH_CONFIGURATION['backupDirectoryPath']} exceeds {plugin.pluginSettings['zmaximumBackups']} backup files.")
+                    self.trimDbFiles(plugin.STASH_CONFIGURATION['backupDirectoryPath'], plugin.pluginSettings['zmaximumBackups'])
+        elif task['task'] == "Scan":
+            plugin.STASH_INTERFACE.metadata_scan(paths=stashPaths)
+        elif task['task'] == "Auto Tag":
+            plugin.STASH_INTERFACE.metadata_autotag(paths=stashPaths, dry_run=plugin.DRY_RUN)
+        elif task['task'] == "Optimise Database":
+            plugin.STASH_INTERFACE.optimise_database()
+        elif task['task'] == "python":
+            script = task['script'].replace("<plugin_path>", f"{pathlib.Path(__file__).resolve().parent}{os.sep}")
+            plugin.Log(f"Executing python script {script}.")
+            args = [script]
+            if len(task['args']) > 0:
+                args = args + [task['args']]
+            plugin.ExecutePythonScript(args)
+        elif task['task'] == "execute":
+            cmd = task['command'].replace("<plugin_path>", f"{pathlib.Path(__file__).resolve().parent}{os.sep}")
+            plugin.Log(f"Executing command {cmd}.")
+            args = [cmd]
+            if len(task['args']) > 0:
+                args = args + [task['args']]
+            plugin.ExecuteProcess(args)
+        else:
+            # ToDo: Add code to check if plugin is installed.
+            plugin.Trace(f"Running plugin task pluginID={task['pluginId']}, task name = {task['task']}")
+            plugin.STASH_INTERFACE.run_plugin_task(plugin_id=task['pluginId'], task_name=task['task'])
+    
+    def trimDbFiles(self, dbPath, maxFiles):
+        if not os.path.exists(dbPath):
+            plugin.LogOnce(f"Exiting trimDbFiles, because path {dbPath} does not exists.")
             return
-    if task['task'] == "Clean":
-        plugin.STASH_INTERFACE.metadata_clean(paths=stashPaths, dry_run=plugin.DRY_RUN)
-    elif task['task'] == "Generate":
-        plugin.STASH_INTERFACE.metadata_generate()
-    elif task['task'] == "Backup":
-        plugin.LogOnce("Note: Backup task does not get listed in the Task Queue, but user can verify that it started by looking in the Stash log file as an INFO level log line.")
-        plugin.STASH_INTERFACE.backup_database()
-        if plugin.pluginConfig['BackupsMax'] > 0 and plugin.pluginConfig['BackupDatabasePath'] != "" and os.path.exists(plugin.pluginConfig['BackupDatabasePath']):
-            plugin.Log("Checking quantity of DB backups.")
-            trimDbFiles(plugin.pluginConfig['BackupDatabasePath'], plugin.pluginConfig['BackupsMax'])
-    elif task['task'] == "Scan":
-        plugin.STASH_INTERFACE.metadata_scan(paths=stashPaths)
-    elif task['task'] == "Auto Tag":
-        plugin.STASH_INTERFACE.metadata_autotag(paths=stashPaths, dry_run=plugin.DRY_RUN)
-    elif task['task'] == "Optimise Database":
-        plugin.STASH_INTERFACE.optimise_database()
-    else:
-        # ToDo: Add code to check if plugin is installed.
-        plugin.Trace(f"Running plugin task pluginID={task['pluginId']}, task name = {task['task']}")
-        plugin.STASH_INTERFACE.run_plugin_task(plugin_id=task['pluginId'], task_name=task['task'])
-def reoccurringScheduler():
-    import schedule # pip install schedule  # https://github.com/dbader/schedule
-    # ToDo: Extend schedule class so it works persistently (remember schedule between restarts)
-    #       Or replace schedule with apscheduler https://github.com/agronholm/apscheduler
-    dayOfTheWeek = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-    for task in plugin.pluginConfig['task_reoccurring_scheduler']:
-        if 'hours' in task and task['hours'] > 0:
-            plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' at {task['hours']} hours interval")
-            schedule.every(task['hours']).hours.do(runTask, task)
-        elif 'minutes' in task and task['minutes'] > 0:
-            plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' at {task['minutes']} minutes interval")
-            schedule.every(task['minutes']).minutes.do(runTask, task)
-        elif 'days' in task and task['days'] > 0:
-            plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' at {task['days']} days interval")
-            schedule.every(task['days']).days.do(runTask, task)
-        elif 'weekday' in task and task['weekday'].lower() in dayOfTheWeek and 'time' in task:
-            if 'monthly' in task:
-                plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' monthly on number {task['monthly']} {task['weekday']} at {task['time']}")
-            else:
-                plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' (weekly) every {task['weekday']} at {task['time']}")
-            if task['weekday'].lower() == "monday":
-                schedule.every().monday.at(task['time']).do(runTask, task)
-            elif task['weekday'].lower() == "tuesday":
-                schedule.every().tuesday.at(task['time']).do(runTask, task)
-            elif task['weekday'].lower() == "wednesday":
-                schedule.every().wednesday.at(task['time']).do(runTask, task)
-            elif task['weekday'].lower() == "thursday":
-                schedule.every().thursday.at(task['time']).do(runTask, task)
-            elif task['weekday'].lower() == "friday":
-                schedule.every().friday.at(task['time']).do(runTask, task)
-            elif task['weekday'].lower() == "saturday":
-                schedule.every().saturday.at(task['time']).do(runTask, task)
-            elif task['weekday'].lower() == "sunday":
-                schedule.every().sunday.at(task['time']).do(runTask, task)
-def checkSchedulePending():
-    import schedule # pip install schedule  # https://github.com/dbader/schedule
-    schedule.run_pending()
-if plugin.pluginSettings['turnOnScheduler']:
-    reoccurringScheduler()
+        if len(dbPath) < 5: # For safety and security, short path not supported.
+            plugin.LogOnce(f"Exiting trimDbFiles, because path {dbPath} is to short. Len={len(dbPath)}. Path string must be at least 5 characters in length.")
+            return
+        dbFiles = sorted(os.listdir(dbPath))
+        n = len(dbFiles)
+        for i in range(0, n-maxFiles):
+            dbFilePath = f"{dbPath}{os.sep}{dbFiles[i]}"
+            plugin.Warn(f"Deleting file {dbFilePath}")
+            os.remove(dbFilePath)
+    
+    def checkSchedulePending(self):
+        import schedule # pip install schedule  # https://github.com/dbader/schedule
+        schedule.run_pending()
 
 def start_library_monitor():
     global shouldUpdate
@@ -203,7 +220,7 @@ def start_library_monitor():
     shm_buffer[0] = CONTINUE_RUNNING_SIG
     plugin.Trace(f"Shared memory map opended, and flag set to {shm_buffer[0]}")
     RunCleanMetadata = False
-
+    stashScheduler = StashScheduler() if plugin.pluginSettings['turnOnScheduler'] else None   
     event_handler = watchdog.events.FileSystemEventHandler()
     def on_created(event):
         global shouldUpdate
@@ -294,7 +311,7 @@ def start_library_monitor():
                         plugin.Log(f"Breaking out of loop. (shm_buffer[0]={shm_buffer[0]})")
                         break
                     if plugin.pluginSettings['turnOnScheduler']:
-                        checkSchedulePending()
+                        stashScheduler.checkSchedulePending()
                     plugin.LogOnce("Waiting for a file change-trigger.")
                     signal.wait(timeout=SIGNAL_TIMEOUT)
                     if plugin.pluginSettings['turnOnScheduler'] and not shouldUpdate:
@@ -376,8 +393,6 @@ def stop_library_monitor():
     shm_a.unlink()  # Call unlink only once to release the shared memory
 
 def start_library_monitor_service():
-    import subprocess
-    import platform
     # First check if FileMonitor is already running
     try:
         shm_a = shared_memory.SharedMemory(name=SHAREDMEMORY_NAME, create=False, size=4)
@@ -387,20 +402,9 @@ def start_library_monitor_service():
         return
     except:
         pass
-        plugin.Trace("FileMonitor is not running, so safe to start it as a service.")
-    is_windows = any(platform.win32_ver())
-    PythonExe = f"{sys.executable}"
-    # PythonExe = PythonExe.replace("python.exe", "pythonw.exe")
-    args = [f"{PythonExe}", f"{pathlib.Path(__file__).resolve().parent}{os.sep}filemonitor.py", '--url', f"{plugin.STASH_URL}"]
-    plugin.Trace(f"args={args}")
-    if is_windows:
-        plugin.Trace("Executing process using Windows DETACHED_PROCESS")
-        DETACHED_PROCESS = 0x00000008
-        pid = subprocess.Popen(args,creationflags=DETACHED_PROCESS, shell=True).pid
-    else:
-        plugin.Trace("Executing process using normal Popen")
-        pid = subprocess.Popen(args).pid
-    plugin.Trace(f"pid={pid}")
+        plugin.Trace("FileMonitor is not running, so it's safe to start it as a service.")
+    args = [f"{pathlib.Path(__file__).resolve().parent}{os.sep}filemonitor.py", '--url', f"{plugin.STASH_URL}"]
+    plugin.ExecutePythonScript(args)
     
 if parse_args.stop or parse_args.restart or plugin.PLUGIN_TASK_NAME == "stop_library_monitor":
     stop_library_monitor()
