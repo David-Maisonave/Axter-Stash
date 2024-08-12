@@ -9,7 +9,7 @@ From the GUI, FileMonitor can be started as a service or as a plugin. The recomm
   - ![FileMonitorService](https://github.com/user-attachments/assets/5c72845e-6c1c-4e06-8e43-5949fe0b91a3)
   - **Important Note**: At first, this will show up as a plugin in the Task Queue momentarily. It will then disappear from the Task Queue and run in the background as a service.
 - To stop FileMonitor click on [Stop Library Monitor] button.
-- The **[Run as a Plugin]** option is mainaly available for backwards compatibility and for test purposes.
+- The **[Monitor as a Plugin]** option is mainaly available for backwards compatibility and for test purposes.
   
 
 ## Using FileMonitor as a script
