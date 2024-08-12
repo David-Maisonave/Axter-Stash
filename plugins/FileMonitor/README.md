@@ -6,7 +6,7 @@ FileMonitor is a [Stash](https://github.com/stashapp/stash) plugin with the foll
 ## Starting FileMonitor from the UI
 From the GUI, FileMonitor can be started as a service or as a plugin. The recommended method is to start it as a service. When started as a service, it will jump on the Task Queue momentarily, and then disappear as it starts running in the background.
 - To start monitoring file changes, go to **Stash->Settings->Task->[Plugin Tasks]->FileMonitor**, and click on the [Start Library Monitor Service] button.
-  -![FileMonitorService](https://github.com/user-attachments/assets/7d90f3fb-1bd9-421e-9f33-8bdcb6d9bdb3)
+  - ![FileMonitorService](https://github.com/user-attachments/assets/b12aeca9-37a8-447f-90da-26e9440735ad)
   - **Important Note**: At first, this will show up as a plugin in the Task Queue momentarily. It will then disappear from the Task Queue and run in the background as a service.
 - To stop FileMonitor click on [Stop Library Monitor] button.
 - The **[Monitor as a Plugin]** option is mainaly available for backwards compatibility and for test purposes.
