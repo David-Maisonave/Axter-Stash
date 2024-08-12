@@ -23,7 +23,7 @@ From the GUI, FileMonitor can be started as a service or as a plugin. The recomm
   - python filemonitor.py **--restart**
   - The restart command restarts FileMonitor as a Task in Stash.
 
-# Reoccurring Task Scheduler
+# Task Scheduler
 To enable the scheduler go to **Stash->Settings->Plugins->Plugins->FileMonitor** and enable the **Scheduler** option.
 ![ReoccurringTaskScheduler](https://github.com/user-attachments/assets/5a7bf6a4-3bd6-4692-a6c3-e9f8f4664f14)
 
