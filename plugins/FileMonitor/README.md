@@ -27,7 +27,15 @@ From the GUI, FileMonitor can be started as a service or as a plugin. The recomm
 To enable the scheduler go to **Stash->Settings->Plugins->Plugins->FileMonitor** and enable the **Scheduler** option.
 ![ReoccurringTaskScheduler](https://github.com/user-attachments/assets/5a7bf6a4-3bd6-4692-a6c3-e9f8f4664f14)
 
-**Warning:** There are a number of items which are already preconfigured in the scheduler, and when the scheduler is enabled all these task are enabled. Before enabling the scheduler, preview the task_scheduler in the **filemonitor_config.py** file which is listed below.
+- **Warning:** The below task are already preconfigured in the scheduler, and when the scheduler is enabled all these task are enabled.
+  - Auto Tag -> [Auto Tag] (Daily)
+  - Maintenance -> [Clean] (every 2 days)
+  - Maintenance -> [Clean Generated Files] (every 2 days)
+  - Maintenance -> [Optimise Database] (Daily)
+  - Generated Content-> [Generate] (Every Sunday at 7AM)
+  - Library -> [Scan] (Weekly) (Every Sunday at 3AM)
+  - Backup -> [Backup] 2nd sunday of the month at 1AM
+- The example task are disabled by default because they have a zero frequency value.
 
 To configure the schedule or to add new task, edit the **task_scheduler** section in the **filemonitor_config.py** file.
 ```` python
@@ -54,7 +62,7 @@ To configure the schedule or to add new task, edit the **task_scheduler** sectio
 	{"task" : "Backup",     "weekday" : "sunday",   "time" : "01:00", "monthly" : 2}, # Backup -> [Backup] 2nd sunday of the month at 1AM (01:00)
 	
 	# Note:
-	#       The below examples are done using hours and minutes because the task is easily disabled (deactivated) by a zero value entry.
+	#       The below example tasks are done using hours and minutes because the task is easily disabled (deactivated) by a zero value entry.
 	#       Any of these task types can be converted to a weekly/monthly sysntax.
 	
 	# Example task for calling another Stash plugin, which needs plugin name and plugin ID.
@@ -64,7 +72,7 @@ To configure the schedule or to add new task, edit the **task_scheduler** sectio
 	# Example task to call call_GQL API with custom input
 	{"task" : "GQL", "input" : "mutation OptimiseDatabase { optimiseDatabase }", "minutes" : 0},
 	
-	# Example task to call a python script
+	# Example task to call a python script. When this task is executed, the keyword <plugin_path> is replaced by filemonitor.py current directory.
 	{"task" : "python", "script" : "<plugin_path>test_script_hello_world.py", "args" : "--MyArguments Hello", "minutes" : 0},
 	
 	# Example task to execute a command
