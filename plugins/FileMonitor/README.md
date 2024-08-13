@@ -27,9 +27,9 @@ From the GUI, FileMonitor can be started as a service or as a plugin. The recomm
 To enable the scheduler go to **Stash->Settings->Plugins->Plugins->FileMonitor** and enable the **Scheduler** option.
 ![ReoccurringTaskScheduler](https://github.com/user-attachments/assets/5a7bf6a4-3bd6-4692-a6c3-e9f8f4664f14)
 
-To configure the schedule or to add new task, edit the **task_reoccurring_scheduler** section in the **filemonitor_config.py** file.
+To configure the schedule or to add new task, edit the **task_scheduler** section in the **filemonitor_config.py** file.
 ```` python
-"task_reoccurring_scheduler": [
+"task_scheduler": [
 	{"task" : "Clean",      "hours" : 48},  # Maintenance -> [Clean] (every 2 days)
 	{"task" : "Auto Tag",   "hours" : 24},  # Auto Tag -> [Auto Tag] (Daily)
 	{"task" : "Optimise Database",   "hours" : 24},  # Maintenance -> [Optimise Database] (Daily)

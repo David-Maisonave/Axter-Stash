@@ -110,7 +110,7 @@ class StashScheduler: # Stash Scheduler
     def __init__(self):
         import schedule # pip install schedule  # https://github.com/dbader/schedule
         dayOfTheWeek = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-        for task in plugin.pluginConfig['task_reoccurring_scheduler']:
+        for task in plugin.pluginConfig['task_scheduler']:
             if 'hours' in task and task['hours'] > 0:
                 plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' at {task['hours']} hours interval")
                 schedule.every(task['hours']).hours.do(self.runTask, task)
@@ -120,6 +120,9 @@ class StashScheduler: # Stash Scheduler
             elif 'days' in task and task['days'] > 0: # Left here for backward compatibility, but should use weekday logic instead.
                 plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' at {task['days']} days interval")
                 schedule.every(task['days']).days.do(self.runTask, task)
+            elif 'seconds' in task and task['seconds'] > 0: # This is mainly here for test purposes only
+                plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' at {task['seconds']} seconds interval")
+                schedule.every(task['seconds']).seconds.do(self.runTask, task)
             elif 'weekday' in task and task['weekday'].lower() in dayOfTheWeek and 'time' in task:
                 if 'monthly' in task:
                     plugin.Log(f"Adding to reoccurring scheduler task '{task['task']}' monthly on number {task['monthly']} {task['weekday']} at {task['time']}")
@@ -170,6 +173,8 @@ class StashScheduler: # Stash Scheduler
             plugin.STASH_INTERFACE.metadata_autotag(paths=stashPaths)
         elif task['task'] == "Optimise Database":
             plugin.STASH_INTERFACE.optimise_database()
+        elif task['task'] == "GQL":
+            plugin.STASH_INTERFACE.call_GQL(task['input'])
         elif task['task'] == "python":
             script = task['script'].replace("<plugin_path>", f"{pathlib.Path(__file__).resolve().parent}{os.sep}")
             plugin.Log(f"Executing python script {script}.")

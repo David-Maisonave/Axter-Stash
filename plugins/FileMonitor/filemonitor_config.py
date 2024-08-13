@@ -17,11 +17,14 @@ config = {
     # Enable to run metadata clean task after file deletion.
     "runCleanAfterDelete": False,
     
-    # The reoccurring scheduler task list.
+    # The task scheduler list.
     # Task can be scheduled to run monthly, weekly, hourly, and by minutes. For best results use the scheduler with FileMonitor running as a service.
     # The frequency field can be in minutes or hours. A zero frequency value disables the task.
+    #       Note:   Both seconds and days are also supported for the frequency field. 
+    #               However, seconds is mainly used for test purposes.
+    #               And days usage is discourage, because it only works if FileMonitor is running for X many days none-stop.
     # For weekly and monthly task, use the syntax as done in the **Generate** and **Backup** task below.
-    "task_reoccurring_scheduler": [
+    "task_scheduler": [
         {"task" : "Auto Tag",                   "hours" : 24},  # Auto Tag -> [Auto Tag] (Daily)
         {"task" : "Clean",                      "hours" : 48},  # Maintenance -> [Clean] (every 2 days)
         {"task" : "Clean Generated Files",      "hours" : 48},  # Maintenance -> [Clean Generated Files] (every 2 days)
@@ -43,9 +46,16 @@ config = {
         # Example monthly method.
         {"task" : "Backup",     "weekday" : "sunday",   "time" : "01:00", "monthly" : 2}, # Backup -> [Backup] 2nd sunday of the month at 1AM (01:00)
         
+        # Note:
+        #       The below examples are done using hours and minutes because the task is easily disabled (deactivated) by a zero value entry.
+        #       Any of these task types can be converted to a weekly/monthly sysntax.
+        
         # Example task for calling another Stash plugin, which needs plugin name and plugin ID.
         {"task" : "PluginButtonName_Here", "pluginId" : "PluginId_Here", "hours" : 0}, # The zero frequency value makes this task disabled.
         # Add additional plugin task here.
+        
+        # Example task to call call_GQL API with custom input
+        {"task" : "GQL", "input" : "mutation OptimiseDatabase { optimiseDatabase }", "minutes" : 0},
         
         # Example task to call a python script
         {"task" : "python", "script" : "<plugin_path>test_script_hello_world.py", "args" : "--MyArguments Hello", "minutes" : 0},
