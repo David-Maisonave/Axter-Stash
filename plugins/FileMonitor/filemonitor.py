@@ -1,7 +1,7 @@
 # Description: This is a Stash plugin which updates Stash if any changes occurs in the Stash library paths.
 # By David Maisonave (aka Axter) Jul-2024 (https://www.axter.com/)
 # Get the latest developers version from following link: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor
-# Note: To call this script outside of Stash, pass --url and the Stash URL.
+# Note: To call this script outside of Stash, pass argument --url and the Stash URL.
 #       Example:    python filemonitor.py --url http://localhost:9999
 import os, sys, time, pathlib, argparse
 from StashPluginHelper import StashPluginHelper
@@ -51,13 +51,13 @@ signal = Condition(mutex)
 shouldUpdate = False
 TargetPaths = []
 
-SHAREDMEMORY_NAME = "DavidMaisonaveAxter_FileMonitor"
+SHAREDMEMORY_NAME = "DavidMaisonaveAxter_FileMonitor" # Unique name for shared memory
 RECURSIVE = plugin.pluginSettings["recursiveDisabled"] == False
 SCAN_MODIFIED = plugin.pluginConfig["scanModified"]
 RUN_CLEAN_AFTER_DELETE = plugin.pluginConfig["runCleanAfterDelete"]
 RUN_GENERATE_CONTENT = plugin.pluginConfig['runGenerateContent']
 SCAN_ON_ANY_EVENT = plugin.pluginConfig['onAnyEvent']
-SIGNAL_TIMEOUT = plugin.pluginConfig['timeOut']
+SIGNAL_TIMEOUT = plugin.pluginConfig['timeOut'] if plugin.pluginConfig['timeOut'] > 0 else 1
 
 CREATE_SPECIAL_FILE_TO_EXIT = plugin.pluginConfig['createSpecFileToExit']
 DELETE_SPECIAL_FILE_ON_STOP = plugin.pluginConfig['deleteSpecFileInStop']
@@ -205,12 +205,16 @@ class StashScheduler: # Stash Scheduler
         if len(dbPath) < 5: # For safety and security, short path not supported.
             plugin.LogOnce(f"Exiting trimDbFiles, because path {dbPath} is to short. Len={len(dbPath)}. Path string must be at least 5 characters in length.")
             return
+        stashPrefixSqlDbFileName = "stash-go.sqlite."
         dbFiles = sorted(os.listdir(dbPath))
         n = len(dbFiles)
         for i in range(0, n-maxFiles):
             dbFilePath = f"{dbPath}{os.sep}{dbFiles[i]}"
-            plugin.Warn(f"Deleting file {dbFilePath}")
-            os.remove(dbFilePath)
+            if dbFiles[i].startswith(stashPrefixSqlDbFileName):
+                plugin.Warn(f"Deleting DB file {dbFilePath}")
+                os.remove(dbFilePath)
+            else:
+                plugin.LogOnce(f"Skipping deleting file {dbFiles[i]} because the file doesn't start with {stashPrefixSqlDbFileName}.")
     
     def checkSchedulePending(self):
         import schedule # pip install schedule  # https://github.com/dbader/schedule
