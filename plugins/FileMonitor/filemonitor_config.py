@@ -57,7 +57,7 @@ config = {
         # Example task to call call_GQL API with custom input
         {"task" : "GQL", "input" : "mutation OptimiseDatabase { optimiseDatabase }", "minutes" : 0},
         
-        # Example task to call a python script
+        # Example task to call a python script. When this task is executed, the keyword <plugin_path> is replaced by filemonitor.py current directory.
         {"task" : "python", "script" : "<plugin_path>test_script_hello_world.py", "args" : "--MyArguments Hello", "minutes" : 0},
         
         # Example task to execute a command
