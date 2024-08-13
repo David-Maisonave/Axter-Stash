@@ -22,7 +22,7 @@ config = {
     # The frequency field can be in minutes or hours. A zero frequency value disables the task.
     #       Note:   Both seconds and days are also supported for the frequency field. 
     #               However, seconds is mainly used for test purposes.
-    #               And days usage is discourage, because it only works if FileMonitor is running for X many days none-stop.
+    #               And days usage is discourage, because it only works if FileMonitor is running for X many days non-stop.
     # For weekly and monthly task, use the syntax as done in the **Generate** and **Backup** task below.
     "task_scheduler": [
         {"task" : "Auto Tag",                   "hours" : 24},  # Auto Tag -> [Auto Tag] (Daily)
