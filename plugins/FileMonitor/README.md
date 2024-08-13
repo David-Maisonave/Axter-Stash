@@ -9,7 +9,7 @@ From the GUI, FileMonitor can be started as a service or as a plugin. The recomm
   - ![FileMonitorService](https://github.com/user-attachments/assets/b12aeca9-37a8-447f-90da-26e9440735ad)
   - **Important Note**: At first, this will show up as a plugin in the Task Queue momentarily. It will then disappear from the Task Queue and run in the background as a service.
 - To stop FileMonitor click on [Stop Library Monitor] button.
-- The **[Monitor as a Plugin]** option is mainaly available for backwards compatibility and for test purposes.
+- The **[Monitor as a Plugin]** option is mainly available for backwards compatibility and for test purposes.
   
 
 ## Using FileMonitor as a script
@@ -63,7 +63,7 @@ To configure the schedule or to add new task, edit the **task_scheduler** sectio
 	
 	# Note:
 	#       The below example tasks are done using hours and minutes because the task is easily disabled (deactivated) by a zero value entry.
-	#       Any of these task types can be converted to a weekly/monthly sysntax.
+	#       Any of these task types can be converted to a weekly/monthly syntax.
 	
 	# Example task for calling another Stash plugin, which needs plugin name and plugin ID.
 	{"task" : "PluginButtonName_Here", "pluginId" : "PluginId_Here", "hours" : 0}, # The zero frequency value makes this task disabled.
@@ -93,8 +93,8 @@ To configure the schedule or to add new task, edit the **task_scheduler** sectio
     - The frequency field does support **days** and **seconds**.
       - **seconds** is mainly used for test purposes.
       - The use of **days** is discourage, because it only works if FileMonitor is running for X many days non-stop.
-        - For example, if days is used with 30 days, FileMonitor would have to be running non-stop for 30 days before the task is activated. If it's restarted at any time durring the 30 days, the count down restarts.
-        - It's recommended to use weekday based syntax over using days, because many restarts can occur durring the week or month, and the task will still get started as long as FileMonitor is running durring the scheduled activation time.
+        - For example, if days is used with 30 days, FileMonitor would have to be running non-stop for 30 days before the task is activated. If it's restarted at any time during the 30 days, the count down restarts.
+        - It's recommended to use weekday based syntax over using days, because many restarts can occur during the week or month, and the task will still get started as long as FileMonitor is running during the scheduled activation time.
   - **weekday Based**
     - Use the weekday based syntax for weekly and monthly schedules.
     - Both weekly and monthly schedules must have a **weekday** field and a **time** field, which specifies the day of the week and the time to start the task.

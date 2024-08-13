@@ -1,7 +1,7 @@
-import stashapi.log as stashLog # stashapi.log by default for error and critical logging
 from stashapi.stashapp import StashInterface
 from logging.handlers import RotatingFileHandler
 import inspect, sys, os, pathlib, logging, json
+from stashapi.stash_types import PhashDistance
 import __main__
 
 # StashPluginHelper (By David Maisonave aka Axter)
@@ -11,7 +11,6 @@ import __main__
         # Logging includes source code line number
         # Sets a maximum plugin log file size
     # Stash Interface Features:
-        # Sets STASH_INTERFACE with StashInterface
         # Gets STASH_URL value from command line argument and/or from STDIN_READ
         # Sets FRAGMENT_SERVER based on command line arguments or STDIN_READ
         # Sets PLUGIN_ID based on the main script file name (in lower case)
@@ -22,14 +21,14 @@ import __main__
         # Gets DEBUG_TRACING value from command line argument and/or from UI and/or from config file
         # Sets RUNNING_IN_COMMAND_LINE_MODE to True if detects multiple arguments
         # Sets CALLED_AS_STASH_PLUGIN to True if it's able to read from STDIN_READ
-class StashPluginHelper:
+class StashPluginHelper(StashInterface):
     # Primary Members for external reference
     PLUGIN_TASK_NAME = None
     PLUGIN_ID = None
     PLUGIN_CONFIGURATION = None
     pluginSettings = None
     pluginConfig = None
-    STASH_INTERFACE = None
+    STASH_INTERFACE_INIT = False
     STASH_URL = None
     STASH_CONFIGURATION = None
     JSON_INPUT = None
@@ -37,6 +36,7 @@ class StashPluginHelper:
     DRY_RUN = False
     CALLED_AS_STASH_PLUGIN = False
     RUNNING_IN_COMMAND_LINE_MODE = False
+    FRAGMENT_SERVER = None
     
     # printTo argument
     LOG_TO_FILE = 1
@@ -54,8 +54,7 @@ class StashPluginHelper:
     LOG_FILE_DIR = None
     LOG_FILE_NAME = None
     STDIN_READ = None
-    FRAGMENT_SERVER = None
-    logger = None
+    pluginLog = None
     logLinePreviousHits = []
     
     # Prefix message value
@@ -91,7 +90,8 @@ class StashPluginHelper:
                     fragmentServer = None,
                     stash_url = None,               # Stash URL (endpoint URL) Example: http://localhost:9999
                     DebugTraceFieldName = "zzdebugTracing",
-                    DryRunFieldName = "zzdryRun"):              
+                    DryRunFieldName = "zzdryRun",
+                    setStashLoggerAsPluginLogger = False):              
         if logToWrnSet: self.log_to_wrn_set = logToWrnSet
         if logToErrSet: self.log_to_err_set = logToErrSet
         if logToNormSet: self.log_to_norm = logToNormSet
@@ -138,7 +138,8 @@ class StashPluginHelper:
                     self.FRAGMENT_SERVER['Scheme'] = endpointUrlArr[0]
                     self.FRAGMENT_SERVER['Host'] = endpointUrlArr[1][2:]
                     self.FRAGMENT_SERVER['Port'] = endpointUrlArr[2]
-            self.STASH_INTERFACE = self.ExtendStashInterface(self.FRAGMENT_SERVER)
+            super().__init__(self.FRAGMENT_SERVER)
+            self.STASH_INTERFACE_INIT = True
         else:
             try:
                 self.STDIN_READ = sys.stdin.read()
@@ -151,11 +152,12 @@ class StashPluginHelper:
                 self.PLUGIN_TASK_NAME = self.JSON_INPUT["args"]["mode"]
             self.FRAGMENT_SERVER = self.JSON_INPUT["server_connection"]
             self.STASH_URL = f"{self.FRAGMENT_SERVER['Scheme']}://{self.FRAGMENT_SERVER['Host']}:{self.FRAGMENT_SERVER['Port']}"
-            self.STASH_INTERFACE = self.ExtendStashInterface(self.FRAGMENT_SERVER)
+            super().__init__(self.FRAGMENT_SERVER)
+            self.STASH_INTERFACE_INIT = True
             
-        if self.STASH_INTERFACE:
-            self.PLUGIN_CONFIGURATION = self.STASH_INTERFACE.get_configuration()["plugins"]
-            self.STASH_CONFIGURATION = self.STASH_INTERFACE.get_configuration()["general"]
+        if self.STASH_INTERFACE_INIT:
+            self.PLUGIN_CONFIGURATION = self.get_configuration()["plugins"]
+            self.STASH_CONFIGURATION = self.get_configuration()["general"]
             if settings:
                 self.pluginSettings = settings
                 if self.PLUGIN_ID in self.PLUGIN_CONFIGURATION:
@@ -167,7 +169,9 @@ class StashPluginHelper:
         if self.DEBUG_TRACING: self.LOG_LEVEL = logging.DEBUG
         
         logging.basicConfig(level=self.LOG_LEVEL, format=logFormat, datefmt=dateFmt, handlers=[RFH])
-        self.logger = logging.getLogger(pathlib.Path(self.MAIN_SCRIPT_NAME).stem)
+        self.pluginLog = logging.getLogger(pathlib.Path(self.MAIN_SCRIPT_NAME).stem)
+        if setStashLoggerAsPluginLogger:
+            self.log = self.pluginLog
     
     def Log(self, logMsg, printTo = 0, logLevel = logging.INFO, lineNo = -1, levelStr = "", logAlways = False):
         if printTo == 0: 
@@ -187,24 +191,24 @@ class StashPluginHelper:
         # print(f"{LN_Str}, {logAlways}, {self.LOG_LEVEL}, {logging.DEBUG}, {levelStr}, {logMsg}")
         if logLevel == logging.DEBUG and (logAlways == False or self.LOG_LEVEL == logging.DEBUG):
             if levelStr == "": levelStr = self.LEV_DBG
-            if printTo & self.LOG_TO_FILE: self.logger.debug(f"{LN_Str} {levelStr}{logMsg}")
-            if printTo & self.LOG_TO_STASH: stashLog.debug(f"{LN_Str} {levelStr}{logMsg}")
+            if printTo & self.LOG_TO_FILE: self.pluginLog.debug(f"{LN_Str} {levelStr}{logMsg}")
+            if printTo & self.LOG_TO_STASH: self.log.debug(f"{LN_Str} {levelStr}{logMsg}")
         elif logLevel == logging.INFO or logLevel == logging.DEBUG:
             if levelStr == "": levelStr = self.LEV_INF if logLevel == logging.INFO else self.LEV_DBG
-            if printTo & self.LOG_TO_FILE: self.logger.info(f"{LN_Str} {levelStr}{logMsg}")
-            if printTo & self.LOG_TO_STASH: stashLog.info(f"{LN_Str} {levelStr}{logMsg}")
+            if printTo & self.LOG_TO_FILE: self.pluginLog.info(f"{LN_Str} {levelStr}{logMsg}")
+            if printTo & self.LOG_TO_STASH: self.log.info(f"{LN_Str} {levelStr}{logMsg}")
         elif logLevel == logging.WARN:
             if levelStr == "": levelStr = self.LEV_WRN
-            if printTo & self.LOG_TO_FILE: self.logger.warning(f"{LN_Str} {levelStr}{logMsg}")
-            if printTo & self.LOG_TO_STASH: stashLog.warning(f"{LN_Str} {levelStr}{logMsg}")
+            if printTo & self.LOG_TO_FILE: self.pluginLog.warning(f"{LN_Str} {levelStr}{logMsg}")
+            if printTo & self.LOG_TO_STASH: self.log.warning(f"{LN_Str} {levelStr}{logMsg}")
         elif logLevel == logging.ERROR:
             if levelStr == "": levelStr = self.LEV_ERR
-            if printTo & self.LOG_TO_FILE: self.logger.error(f"{LN_Str} {levelStr}{logMsg}")
-            if printTo & self.LOG_TO_STASH: stashLog.error(f"{LN_Str} {levelStr}{logMsg}")
+            if printTo & self.LOG_TO_FILE: self.pluginLog.error(f"{LN_Str} {levelStr}{logMsg}")
+            if printTo & self.LOG_TO_STASH: self.log.error(f"{LN_Str} {levelStr}{logMsg}")
         elif logLevel == logging.CRITICAL:
             if levelStr == "": levelStr = self.LEV_CRITICAL
-            if printTo & self.LOG_TO_FILE: self.logger.critical(f"{LN_Str} {levelStr}{logMsg}")
-            if printTo & self.LOG_TO_STASH: stashLog.error(f"{LN_Str} {levelStr}{logMsg}")
+            if printTo & self.LOG_TO_FILE: self.pluginLog.critical(f"{LN_Str} {levelStr}{logMsg}")
+            if printTo & self.LOG_TO_STASH: self.log.error(f"{LN_Str} {levelStr}{logMsg}")
         if (printTo & self.LOG_TO_CONSOLE) and (logLevel != logging.DEBUG or self.DEBUG_TRACING or logAlways):
             print(f"{LN_Str} {levelStr}{logMsg}")
         if (printTo & self.LOG_TO_STDERR) and (logLevel != logging.DEBUG or self.DEBUG_TRACING or logAlways):
@@ -280,42 +284,64 @@ class StashPluginHelper:
         return self.ExecuteProcess(argsWithPython)
     
     # Extends class StashInterface with functions which are not yet in the class
-    class ExtendStashInterface(StashInterface):
-        def metadata_autotag(self, paths:list=[], performers:list=[], studios:list=[], tags:list=[]):
-            query = """
-            mutation MetadataAutoTag($input:AutoTagMetadataInput!) {
-                metadataAutoTag(input: $input)
-            }
-            """
-            metadata_autotag_input = {
-                "paths":paths,
-                "performers": performers,
-                "studios":studios,
-                "tags":tags,
-            }
-            result = self.call_GQL(query, {"input": metadata_autotag_input})
-            return result
-        
-        def backup_database(self):
-            return self.call_GQL("mutation { backupDatabase(input: {download: false})}")
+    def metadata_autotag(self, paths:list=[], performers:list=[], studios:list=[], tags:list=[]):
+        query = """
+        mutation MetadataAutoTag($input:AutoTagMetadataInput!) {
+            metadataAutoTag(input: $input)
+        }
+        """
+        metadata_autotag_input = {
+            "paths":paths,
+            "performers": performers,
+            "studios":studios,
+            "tags":tags,
+        }
+        result = self.call_GQL(query, {"input": metadata_autotag_input})
+        return result
+    
+    def backup_database(self):
+        return self.call_GQL("mutation { backupDatabase(input: {download: false})}")
 
-        def optimise_database(self):
-            return self.call_GQL("mutation OptimiseDatabase { optimiseDatabase }")
-        
-        def metadata_clean_generated(self, blobFiles=True, dryRun=False, imageThumbnails=True, markers=True, screenshots=True, sprites=True, transcodes=True):
-            query = """
-            mutation MetadataCleanGenerated($input: CleanGeneratedInput!) {
-              metadataCleanGenerated(input: $input)
-            }
-            """
-            clean_metadata_input = {
-               "blobFiles": blobFiles,
-                "dryRun": dryRun,
-                "imageThumbnails": imageThumbnails,
-                "markers": markers,
-                "screenshots": screenshots,
-                "sprites": sprites,
-                "transcodes": transcodes,
-            }
-            result = self.call_GQL(query, {"input": clean_metadata_input})
-            return result
+    def optimise_database(self):
+        return self.call_GQL("mutation OptimiseDatabase { optimiseDatabase }")
+    
+    def metadata_clean_generated(self, blobFiles=True, dryRun=False, imageThumbnails=True, markers=True, screenshots=True, sprites=True, transcodes=True):
+        query = """
+        mutation MetadataCleanGenerated($input: CleanGeneratedInput!) {
+          metadataCleanGenerated(input: $input)
+        }
+        """
+        clean_metadata_input = {
+           "blobFiles": blobFiles,
+            "dryRun": dryRun,
+            "imageThumbnails": imageThumbnails,
+            "markers": markers,
+            "screenshots": screenshots,
+            "sprites": sprites,
+            "transcodes": transcodes,
+        }
+        result = self.call_GQL(query, {"input": clean_metadata_input})
+        return result
+    # def find_duplicate_scenes(self, distance: PhashDistance=PhashDistance.EXACT, fragment=None, duration_diff=0):
+        # query = """
+            # query FindDuplicateScenes($distance: Int) {
+                # findDuplicateScenes(distance: $distance, duration_diff: $duration_diff) {
+                    # ...SceneSlim
+                # }
+            # }
+        # """
+        # if fragment:
+            # query = re.sub(r'\.\.\.SceneSlim', fragment, query)
+        # else:
+            # query = """
+                # query FindDuplicateScenes($distance: Int) {
+                    # findDuplicateScenes(distance: $distance, duration_diff: $duration_diff) {
+                    # }
+                # }
+            # """        
+        # variables = { 
+            # "distance": distance,
+            # "duration_diff": duration_diff
+        # }
+        # result = self.call_GQL(query, variables)
+        # return result['findDuplicateScenes']
