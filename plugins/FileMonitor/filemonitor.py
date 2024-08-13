@@ -203,7 +203,7 @@ class StashScheduler: # Stash Scheduler
             plugin.LogOnce(f"Exiting trimDbFiles, because path {dbPath} does not exists.")
             return
         if len(dbPath) < 5: # For safety and security, short path not supported.
-            plugin.LogOnce(f"Exiting trimDbFiles, because path {dbPath} is to short. Len={len(dbPath)}. Path string must be at least 5 characters in length.")
+            plugin.Warn(f"Exiting trimDbFiles, because path {dbPath} is to short. Len={len(dbPath)}. Path string must be at least 5 characters in length.")
             return
         stashPrefixSqlDbFileName = "stash-go.sqlite."
         dbFiles = sorted(os.listdir(dbPath))
@@ -214,7 +214,7 @@ class StashScheduler: # Stash Scheduler
                 plugin.Warn(f"Deleting DB file {dbFilePath}")
                 os.remove(dbFilePath)
             else:
-                plugin.LogOnce(f"Skipping deleting file {dbFiles[i]} because the file doesn't start with {stashPrefixSqlDbFileName}.")
+                plugin.LogOnce(f"Skipping deleting file '{dbFiles[i]}', because the file doesn't start with string '{stashPrefixSqlDbFileName}'.")
     
     def checkSchedulePending(self):
         import schedule # pip install schedule  # https://github.com/dbader/schedule
