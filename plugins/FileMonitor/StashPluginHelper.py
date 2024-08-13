@@ -281,24 +281,41 @@ class StashPluginHelper:
     
     # Extends class StashInterface with functions which are not yet in the class
     class ExtendStashInterface(StashInterface):
-        def metadata_autotag(self, paths:list=[], dry_run=False):
-            if not paths:
-                return
-
+        def metadata_autotag(self, paths:list=[], performers:list=[], studios:list=[], tags:list=[]):
             query = """
             mutation MetadataAutoTag($input:AutoTagMetadataInput!) {
                 metadataAutoTag(input: $input)
             }
             """
-
             metadata_autotag_input = {
-                "paths": paths
+                "paths":paths,
+                "performers": performers,
+                "studios":studios,
+                "tags":tags,
             }
             result = self.call_GQL(query, {"input": metadata_autotag_input})
             return result
-
+        
         def backup_database(self):
             return self.call_GQL("mutation { backupDatabase(input: {download: false})}")
 
         def optimise_database(self):
             return self.call_GQL("mutation OptimiseDatabase { optimiseDatabase }")
+        
+        def metadata_clean_generated(self, blobFiles=True, dryRun=False, imageThumbnails=True, markers=True, screenshots=True, sprites=True, transcodes=True):
+            query = """
+            mutation MetadataCleanGenerated($input: CleanGeneratedInput!) {
+              metadataCleanGenerated(input: $input)
+            }
+            """
+            clean_metadata_input = {
+               "blobFiles": blobFiles,
+                "dryRun": dryRun,
+                "imageThumbnails": imageThumbnails,
+                "markers": markers,
+                "screenshots": screenshots,
+                "sprites": sprites,
+                "transcodes": transcodes,
+            }
+            result = self.call_GQL(query, {"input": clean_metadata_input})
+            return result

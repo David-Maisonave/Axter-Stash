@@ -153,6 +153,8 @@ class StashScheduler: # Stash Scheduler
                 return
         if task['task'] == "Clean":
             plugin.STASH_INTERFACE.metadata_clean(paths=stashPaths, dry_run=plugin.DRY_RUN)
+        elif task['task'] == "Clean Generated Files":
+            plugin.STASH_INTERFACE.metadata_clean_generated()
         elif task['task'] == "Generate":
             plugin.STASH_INTERFACE.metadata_generate()
         elif task['task'] == "Backup":
@@ -165,7 +167,7 @@ class StashScheduler: # Stash Scheduler
         elif task['task'] == "Scan":
             plugin.STASH_INTERFACE.metadata_scan(paths=stashPaths)
         elif task['task'] == "Auto Tag":
-            plugin.STASH_INTERFACE.metadata_autotag(paths=stashPaths, dry_run=plugin.DRY_RUN)
+            plugin.STASH_INTERFACE.metadata_autotag(paths=stashPaths)
         elif task['task'] == "Optimise Database":
             plugin.STASH_INTERFACE.optimise_database()
         elif task['task'] == "python":
@@ -185,7 +187,11 @@ class StashScheduler: # Stash Scheduler
         else:
             # ToDo: Add code to check if plugin is installed.
             plugin.Trace(f"Running plugin task pluginID={task['pluginId']}, task name = {task['task']}")
-            plugin.STASH_INTERFACE.run_plugin_task(plugin_id=task['pluginId'], task_name=task['task'])
+            try:
+                plugin.STASH_INTERFACE.run_plugin_task(plugin_id=task['pluginId'], task_name=task['task'])
+            except Exception as e:
+                plugin.LogOnce(f"Failed to call plugin {task['task']} with plugin-ID {task['pluginId']}. Error: {e}")
+                pass
     
     def trimDbFiles(self, dbPath, maxFiles):
         if not os.path.exists(dbPath):
