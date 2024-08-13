@@ -27,15 +27,18 @@ From the GUI, FileMonitor can be started as a service or as a plugin. The recomm
 To enable the scheduler go to **Stash->Settings->Plugins->Plugins->FileMonitor** and enable the **Scheduler** option.
 ![ReoccurringTaskScheduler](https://github.com/user-attachments/assets/5a7bf6a4-3bd6-4692-a6c3-e9f8f4664f14)
 
+**Warning:** There are a number of items which are already preconfigured in the scheduler, and when the scheduler is enabled all these task are enabled. Before enabling the scheduler, preview the task_scheduler in the **filemonitor_config.py** file which is listed below.
+
 To configure the schedule or to add new task, edit the **task_scheduler** section in the **filemonitor_config.py** file.
 ```` python
 "task_scheduler": [
-	{"task" : "Clean",      "hours" : 48},  # Maintenance -> [Clean] (every 2 days)
-	{"task" : "Auto Tag",   "hours" : 24},  # Auto Tag -> [Auto Tag] (Daily)
-	{"task" : "Optimise Database",   "hours" : 24},  # Maintenance -> [Optimise Database] (Daily)
+	{"task" : "Auto Tag",                   "hours" : 24},  # Auto Tag -> [Auto Tag] (Daily)
+	{"task" : "Clean",                      "hours" : 48},  # Maintenance -> [Clean] (every 2 days)
+	{"task" : "Clean Generated Files",      "hours" : 48},  # Maintenance -> [Clean Generated Files] (every 2 days)
+	{"task" : "Optimise Database",          "hours" : 24},  # Maintenance -> [Optimise Database] (Daily)
 	
 	# The following is the syntax used for plugins. A plugin task requires the plugin name for the [task] field, and the plugin-ID for the [pluginId] field.
-	{"task" : "Create Tags", "pluginId" : "pathParser", "hours" : 0}, # This task requires plugin [Path Parser]. To enable this task change the zero to a positive number.
+	{"task" : "Create Tags", "pluginId" : "pathParser", "hours" : 24}, # This task requires plugin [Path Parser]. To enable this task change the zero to a positive number.
 	
 	# Note: For a weekly task use the weekday method which is more reliable. The hour section in time MUST be a two digit number, and use military time format. Example: 1PM = "13:00"
 	{"task" : "Generate",   "weekday" : "sunday",   "time" : "07:00"}, # Generated Content-> [Generate] (Every Sunday at 7AM)
@@ -48,11 +51,24 @@ To configure the schedule or to add new task, edit the **task_scheduler** sectio
 			# 3 = 3rd specified weekday of the month.
 			# 4 = 4th specified weekday of the month.
 	# Example monthly method.
-	{"task" : "Backup",     "weekday" : "saturday",   "time" : "01:00", "monthly" : 2}, # Backup -> [Backup] 2nd saturday of the month at 1AM
+	{"task" : "Backup",     "weekday" : "sunday",   "time" : "01:00", "monthly" : 2}, # Backup -> [Backup] 2nd sunday of the month at 1AM (01:00)
 	
-	# The following is a place holder for a plugin.
+	# Note:
+	#       The below examples are done using hours and minutes because the task is easily disabled (deactivated) by a zero value entry.
+	#       Any of these task types can be converted to a weekly/monthly sysntax.
+	
+	# Example task for calling another Stash plugin, which needs plugin name and plugin ID.
 	{"task" : "PluginButtonName_Here", "pluginId" : "PluginId_Here", "hours" : 0}, # The zero frequency value makes this task disabled.
 	# Add additional plugin task here.
+	
+	# Example task to call call_GQL API with custom input
+	{"task" : "GQL", "input" : "mutation OptimiseDatabase { optimiseDatabase }", "minutes" : 0},
+	
+	# Example task to call a python script
+	{"task" : "python", "script" : "<plugin_path>test_script_hello_world.py", "args" : "--MyArguments Hello", "minutes" : 0},
+	
+	# Example task to execute a command
+	{"task" : "execute", "command" : "C:\\MyPath\\HelloWorld.bat", "args" : "", "hours" : 0},
 ],
 ````
 - To add plugins to the task list, both the Plugin-ID and the plugin name is required. The plugin ID is usually the file name of the script without the extension.
