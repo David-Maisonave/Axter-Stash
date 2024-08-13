@@ -52,7 +52,6 @@ config = {
         
         # Example task for calling another Stash plugin, which needs plugin name and plugin ID.
         {"task" : "PluginButtonName_Here", "pluginId" : "PluginId_Here", "hours" : 0}, # The zero frequency value makes this task disabled.
-        # Add additional plugin task here.
         
         # Example task to call call_GQL API with custom input
         {"task" : "GQL", "input" : "mutation OptimiseDatabase { optimiseDatabase }", "minutes" : 0},
