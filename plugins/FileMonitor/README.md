@@ -90,7 +90,7 @@ To configure the schedule or to add new task, edit the **task_scheduler** sectio
         - `{"task" : "Auto Tag",   "hours" : 24},`
       - Starts a (**plugin**) task every 30 minutes.
         - `{"task" : "Create Tags", "pluginId" : "pathParser", "minutes" : 30},`
-    - The frequency field does support days and seconds.
+    - The frequency field does support **days** and **seconds**.
       - seconds is mainly used for test purposes.
       - The use of days is discourage, because it only works if FileMonitor is running for X many days non-stop.
         - For example, if days is used with 30 days, FileMonitor would have to be running non-stop for 30 days before the task is activated. If it's restarted at any time durring the 30 days, the count down restarts.
