@@ -47,7 +47,7 @@ config = {
         {"task" : "Backup",     "weekday" : "sunday",   "time" : "01:00", "monthly" : 2}, # Backup -> [Backup] 2nd sunday of the month at 1AM (01:00)
         
         # Note:
-        #       The below examples are done using hours and minutes because the task is easily disabled (deactivated) by a zero value entry.
+        #       The below example tasks are done using hours and minutes because the task is easily disabled (deactivated) by a zero value entry.
         #       Any of these task types can be converted to a weekly/monthly sysntax.
         
         # Example task for calling another Stash plugin, which needs plugin name and plugin ID.
