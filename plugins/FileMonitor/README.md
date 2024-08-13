@@ -1,7 +1,7 @@
 # FileMonitor: Ver 0.8.0 (By David Maisonave)
 FileMonitor is a [Stash](https://github.com/stashapp/stash) plugin with the following two main features:
 - Updates Stash when any file changes occurs in the Stash library.
-- **Task Scheduler**: Runs scheduled task based on the scheduler configuration in filemonitor_config.py.
+- **Task Scheduler**: Runs scheduled task based on the scheduler configuration in **filemonitor_config.py**.
 
 ## Starting FileMonitor from the UI
 From the GUI, FileMonitor can be started as a service or as a plugin. The recommended method is to start it as a service. When started as a service, it will jump on the Task Queue momentarily, and then disappear as it starts running in the background.
