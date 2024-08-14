@@ -1,6 +1,7 @@
 # Axter-Stash
 
 Home of the following [Stash](https://github.com/stashapp/stash) plugins ([FileMonitor](https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor), [RenameFile](https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/RenameFile))
+This depository also contains [StashPluginHelper](https://github.com/David-Maisonave/Axter-Stash/tree/main/StashPluginHelper) which can be useful for other plugin developers.
 
 # FileMonitor:
 [FileMonitor](https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor) is a Stash plugin with the following two main features:
@@ -12,3 +13,6 @@ Home of the following [Stash](https://github.com/stashapp/stash) plugins ([FileM
 - **Rename Scene File Name** (On-The-Fly)
 - **Append tag names** to file name
 - **Append Performer names** to file name
+
+# StashPluginHelper:
+**StashPluginHelper** extends the StashInterface class for plugins.
