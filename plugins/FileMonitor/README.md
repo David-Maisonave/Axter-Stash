@@ -149,6 +149,8 @@ That's it!!!
 
 ## Options
 - Main options are accessible in the GUI via Settings->Plugins->Plugins->[FileMonitor].
+  - When the UI option [Max DB Backups] is set to a value greater than 1, and when the scheduler is enabled, the quantity of database backup files are trim down to the set [**Max DB Backups**] value after the scheduler executes the Backup task.
+  - The other options are self explanatory from the UI.
 - Additional options available in filemonitor_config.py.
 
 
