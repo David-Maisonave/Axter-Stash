@@ -92,7 +92,27 @@ To configure the schedule or to add new task, edit the **task_scheduler** sectio
 ````
 - To add plugins to the task list, both the Plugin-ID and the plugin name is required. The plugin ID is usually the file name of the script without the extension.
 - Task can be scheduled to run monthly, weekly, hourly, and by minutes.
-- The scheduler list uses two types of syntax. One is **frequency** based, and the other is **weekday** based.
+- The scheduler list uses two types of syntax. One is **weekday** based, and the other is **frequency** based.
+  - **weekday Based**
+    - Use the weekday based syntax for daily, weekly, and monthly schedules.
+    - All the weekday based methods must have a **weekday** field and a **time** field, which specifies the day(s) of the week and the time to start the task.
+    - **Daily**:
+      - A daily task populates the weekday field with all the days of the week.
+      - **Daily Example**:
+        - Starts a task daily at 6AM.
+          - `{"task" : "Optimise Database",   "weekday" : "monday,tuesday,wednesday,thursday,friday,saturday,sunday",   "time" : "06:00"},`
+    - **Weekly**:
+      - **Weekly Example**:
+        - Starts a task weekly every monday and 9AM.
+          - `{"task" : "Generate",   "weekday" : "monday",   "time" : "09:00"},`
+    - **Monthly**:
+      - The monthly syntax is similar to the weekly format, but it also includes a **"monthly"** field which must be set to 1, 2, 3, or 4.
+      - **Monthly Examples**:
+        - Starts a task once a month on the 3rd sunday of the month and at 1AM.
+          - `{"task" : "Backup",     "weekday" : "sunday",   "time" : "01:00", "monthly" : 3},`
+        - Starts a task at 2PM once a month on the 1st saturday of the month.
+          - `{"task" : "Clean",     "weekday" : "saturday",   "time" : "14:00", "monthly" : 1},`
+
   - **Frequency Based**
     - The frequency field can be in **minutes** or **hours**.
     - The frequency value must be a number greater than zero. A frequency value of zero will disable the task on the schedule.
@@ -106,20 +126,6 @@ To configure the schedule or to add new task, edit the **task_scheduler** sectio
       - The use of **days** is discourage, because it only works if FileMonitor is running for X many days non-stop.
         - For example, if days is used with 30 days, FileMonitor would have to be running non-stop for 30 days before the task is activated. If it's restarted at any time during the 30 days, the count down restarts.
         - It's recommended to use weekday based syntax over using days, because many restarts can occur during the week or month, and the task will still get started as long as FileMonitor is running during the scheduled activation time.
-  - **weekday Based**
-    - Use the weekday based syntax for weekly and monthly schedules.
-    - Both weekly and monthly schedules must have a **weekday** field and a **time** field, which specifies the day of the week and the time to start the task.
-    - **Weekly**:
-      - **Weekly Example**:
-        - Starts a task weekly every monday and 9AM.
-          - `{"task" : "Generate",   "weekday" : "monday",   "time" : "09:00"},`
-    - **Monthly**:
-      - The monthly syntax is similar to the weekly format, but it also includes a **"monthly"** field which must be set to 1, 2, 3, or 4.
-      - **Monthly Examples**:
-        - Starts a task once a month on the 3rd sunday of the month and at 1AM.
-          - `{"task" : "Backup",     "weekday" : "sunday",   "time" : "01:00", "monthly" : 3},`
-        - Starts a task at 2PM once a month on the 1st saturday of the month.
-          - `{"task" : "Optimise Database",     "weekday" : "saturday",   "time" : "14:00", "monthly" : 1},`
 
 - The scheduler feature requires `pip install schedule`
   - If the user leaves the scheduler disabled, **schedule** does NOT have to be installed.
