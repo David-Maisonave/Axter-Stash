@@ -1,5 +1,5 @@
 # StashPluginHelper: Ver 0.1.0 (By David Maisonave)
-**StashPluginHelper** is a class that performs common implementation used in most plugins.
+**StashPluginHelper** extends the StashInterface class for plugins.
 
 ## Features
 - Log Features:
@@ -7,7 +7,6 @@
   - Logging includes source code line number.
   - Sets a maximum plugin log file size.
 - Stash Interface Features:
-  - Sets STASH_INTERFACE with StashInterface
   - Gets STASH_URL value from command line argument and/or from STDIN_READ
   - Sets FRAGMENT_SERVER based on command line arguments or STDIN_READ
   - Sets PLUGIN_ID based on the main script file name (in lower case)
