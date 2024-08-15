@@ -96,10 +96,6 @@ To configure the schedule or to add new task, edit the **task_scheduler** sectio
 	
 	# Example#B3: Task to execute a command with optional args field, and using keyword <plugin_path>, which gets replaced with filemonitor.py current directory.
 	{"task" : "execute", "command" : "<plugin_path>HelloWorld.cmd", "args" : "--name David", "minutes" : 0},
-	
-	# Commented out **test** tasks.
-	# {"task" : "Clean",     "seconds" : 30},
-	# {"task" : "Scan",      "paths" : [r"B:\_\SpecialSet", r"B:\_\Casting\Latina"],   "seconds" : 30}
 ],
 ````
 - To add plugins to the task list, both the Plugin-ID and the plugin name is required. The plugin ID is usually the file name of the script without the extension.
