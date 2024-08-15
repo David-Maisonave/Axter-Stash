@@ -3,14 +3,6 @@ description: Manages duplicate files.
 version: 0.1.0
 url: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/DupFileManager
 settings:
-  ignoreReparsepoints:
-    displayName: Ignore Reparse Points
-    description: Enable to ignore reparse-points when deleting duplicates.
-    type: BOOLEAN
-  ignoreSymbolicLinks:
-    displayName: Ignore Symbolic Links
-    description: Enable to ignore symbolic links when deleting duplicates.
-    type: BOOLEAN
   mergeDupFilename:
     displayName: Before deletion, merge potential source in the duplicate file names for tag names, performers, and studios.
     description: Enable to 
@@ -19,6 +11,10 @@ settings:
     displayName: Trash Can
     description: Enable to move files to trash can instead of permanently delete file.
     type: BOOLEAN
+  whitelist:
+    displayName: White List
+    description: A comma seperated list of preferential paths to determine which duplicate should be the primary. Listed in order of preference.
+    type: STRING
   zzdebugTracing:
     displayName: Debug Tracing
     description: (Default=false) [***For Advanced Users***] Enable debug tracing. When enabled, additional tracing logging is added to Stash\plugins\DupFileManager\DupFileManager.log
