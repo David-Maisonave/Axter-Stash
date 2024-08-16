@@ -61,33 +61,41 @@ To configure the schedule or to add new task, edit the **task_scheduler** sectio
 	# The following task is scheduled monthly
 	{"task" : "Backup",     "weekday" : "sunday",   "time" : "01:00", "monthly" : 2}, # Backup -> [Backup] 2nd sunday of the month at 1AM (01:00)
 	
+	# The following task is the syntax used for a plugins. A plugin task requires the plugin name for the [task] field, and the plugin-ID for the [pluginId] field.
+	# This task requires plugin [Path Parser], and it's disabled by default.
+	{"task" : "Create Tags", "pluginId" : "pathParser",  "weekday" : "monday,tuesday,wednesday,thursday,friday,saturday,sunday",  "time" : "DISABLED"}, # To enable this task change time "DISABLED" to a valid time.
+	
+	# Example#A1: Task to call call_GQL API with custom input
+	{"task" : "GQL", "input" : "mutation OptimiseDatabase { optimiseDatabase }", "weekday" : "sunday",   "time" : "DISABLED"}, # To enable, change "DISABLED" to valid time
+	
+	# Example#A2: Task to call a python script. When this task is executed, the keyword <plugin_path> is replaced by filemonitor.py current directory.
+	#           The args field is NOT required.
+	{"task" : "python", "script" : "<plugin_path>test_script_hello_world.py", "args" : "--MyArguments Hello", "weekday" : "monday",   "time" : "DISABLED"}, # change "DISABLED" to valid time
+	
+	# Example#A3: The following task types can optionally take a [paths] field. If the paths field does not exists, the paths in the Stash library is used.
+	{"task" : "Scan",       "paths" : ["E:\\MyVideos\\downloads", "V:\\MyOtherVideos"],   "weekday" : "sunday",   "time" : "DISABLED"}, # Library -> [Scan]
+	{"task" : "Auto Tag",   "paths" : [r"E:\MyVideos\downloads", r"V:\MyOtherVideos"],   "weekday" : "monday,tuesday,wednesday,thursday,friday,saturday,sunday",  "time" : "DISABLED"},  # Auto Tag -> [Auto Tag]
+	{"task" : "Clean",      "paths" : [r"E:\MyVideos\downloads", r"V:\MyOtherVideos"],   "weekday" : "sunday",   "time" : "DISABLED"}, # Generated Content-> [Generate]
+	
+	# Example#A4: Task which calls Migrations -> [Rename generated files]
+	{"task" : "RenameGeneratedFiles",       "weekday" : "tuesday,thursday",   "time" : "DISABLED"}, # (bi-weekly) example
+	
 	# The above weekday method is the more reliable method to schedule task, because it doesn't rely on FileMonitor running continuously (non-stop).
 	
 	# The below examples use frequency field method which can work with minutes and hours. A zero frequency value disables the task.
 	#       Note:   Both seconds and days are also supported for the frequency field. 
 	#               However, seconds is mainly used for test purposes.
 	#               And days usage is discourage, because it only works if FileMonitor is running for X many days non-stop.
-	# Note:
-	#       The below example tasks are done using hours and minutes because the task is easily disabled (deactivated) by a zero value entry.
-	#       Any of these task types can be converted to a daily, weekly, or monthly syntax.
+	# The below example tasks are done using hours and minutes, however any of these task types can be converted to a daily, weekly, or monthly syntax.
 				   
-	# The following is the syntax used for plugins. A plugin task requires the plugin name for the [task] field, and the plugin-ID for the [pluginId] field.
-	{"task" : "Create Tags", "pluginId" : "pathParser", "hours" : 0}, # This task requires plugin [Path Parser]. To enable this task change the zero to a positive number.
-	
-	# Example task for calling another Stash plugin, which needs plugin name and plugin ID.
+	# Example#B1: Task for calling another Stash plugin, which needs plugin name and plugin ID.
 	{"task" : "PluginButtonName_Here", "pluginId" : "PluginId_Here", "hours" : 0}, # The zero frequency value makes this task disabled.
 	
-	# Example task to call call_GQL API with custom input
-	{"task" : "GQL", "input" : "mutation OptimiseDatabase { optimiseDatabase }", "minutes" : 0},
+	# Example#B2: Task to execute a command
+	{"task" : "execute", "command" : "C:\\MyPath\\HelloWorld.bat", "hours" : 0},
 	
-	# Example task to call a python script. When this task is executed, the keyword <plugin_path> is replaced by filemonitor.py current directory.
-	{"task" : "python", "script" : "<plugin_path>test_script_hello_world.py", "args" : "--MyArguments Hello", "minutes" : 0},
-	
-	# Example task to execute a command
-	{"task" : "execute", "command" : "C:\\MyPath\\HelloWorld.bat", "args" : "", "hours" : 0},
-	
-	# Commented out test task.
-	# {"task" : "Backup",     "seconds" : 30},
+	# Example#B3: Task to execute a command with optional args field, and using keyword <plugin_path>, which gets replaced with filemonitor.py current directory.
+	{"task" : "execute", "command" : "<plugin_path>HelloWorld.cmd", "args" : "--name David", "minutes" : 0},
 ],
 ````
 - To add plugins to the task list, both the Plugin-ID and the plugin name is required. The plugin ID is usually the file name of the script without the extension.
