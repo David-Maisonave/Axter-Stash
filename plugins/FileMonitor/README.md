@@ -102,6 +102,7 @@ To configure the schedule or to add new task, edit the **task_scheduler** sectio
 ],
 ````
 - To add plugins to the task list, both the Plugin-ID and the plugin name is required. The plugin ID is usually the file name of the script without the extension.
+  - For plugin task, optionally **validateDir** field can be included that defines the plugin sub directory, which is checked to see if it exist before running the task.
 - Task can be scheduled to run monthly, weekly, hourly, and by minutes.
 - The scheduler list uses two types of syntax. One is **weekday** based, and the other is **frequency** based.
   - **weekday Based**
