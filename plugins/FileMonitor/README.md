@@ -35,7 +35,7 @@ To enable the scheduler go to **Stash->Settings->Plugins->Plugins->FileMonitor**
   - Generated Content-> [Generate] (Every Sunday at 7AM)
   - Library -> [Scan] (Weekly) (Every Sunday at 3AM)
   - Backup -> [Backup] 2nd sunday of the month at 1AM
-- The example task are disabled by default because they have a zero frequency value.
+- The example tasks are disabled by default because they either have a zero frequency value or the time field is set to **DISABLED**.
 
 To configure the schedule or to add new task, edit the **task_scheduler** section in the **filemonitor_config.py** file.
 ```` python
