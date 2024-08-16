@@ -43,12 +43,16 @@ config = {
         {"task" : "python", "script" : "<plugin_path>test_script_hello_world.py", "args" : "--MyArguments Hello", "weekday" : "monday",   "time" : "DISABLED"}, # change "DISABLED" to valid time
         
         # Example#A3: The following task types can optionally take a [paths] field. If the paths field does not exists, the paths in the Stash library is used.
-        {"task" : "Scan",       "paths" : ["E:\\MyVideos\\downloads", "V:\\MyOtherVideos"],   "weekday" : "sunday",   "time" : "DISABLED"}, # Library -> [Scan]
+        {"task" : "Scan",       "paths" : [r"E:\MyVideos\downloads", r"V:\MyOtherVideos"],   "weekday" : "sunday",   "time" : "DISABLED"}, # Library -> [Scan]
         {"task" : "Auto Tag",   "paths" : [r"E:\MyVideos\downloads", r"V:\MyOtherVideos"],   "weekday" : "monday,tuesday,wednesday,thursday,friday,saturday,sunday",  "time" : "DISABLED"},  # Auto Tag -> [Auto Tag]
-        {"task" : "Clean",      "paths" : [r"E:\MyVideos\downloads", r"V:\MyOtherVideos"],   "weekday" : "sunday",   "time" : "DISABLED"}, # Generated Content-> [Generate]
+        {"task" : "Clean",      "paths" : ["E:\\MyVideos\\downloads", "V:\\MyOtherVideos"],   "weekday" : "sunday",   "time" : "DISABLED"}, # Generated Content-> [Generate]
         
         # Example#A4: Task which calls Migrations -> [Rename generated files]
         {"task" : "RenameGeneratedFiles",       "weekday" : "tuesday,thursday",   "time" : "DISABLED"}, # (bi-weekly) example
+        
+        # Example#A5: The Backup task using optional field maxBackup, which overrides the UI [Max DB Backups] value
+        {"task" : "Backup", "maxBackup" : 12,   "weekday" : "sunday",   "time" : "DISABLED"}, # Trim the DB backup files down to 12 backup files.
+        {"task" : "Backup", "maxBackup" : 0,    "weekday" : "sunday",   "time" : "DISABLED"}, # When used with a zero value, it will make sure no file trimming will occur no matter the value of the UI [Max DB Backups]
         
         # The above weekday method is the more reliable method to schedule task, because it doesn't rely on FileMonitor running continuously (non-stop).
         
@@ -67,9 +71,33 @@ config = {
         # Example#B3: Task to execute a command with optional args field, and using keyword <plugin_path>, which gets replaced with filemonitor.py current directory.
         {"task" : "execute", "command" : "<plugin_path>HelloWorld.cmd", "args" : "--name David", "minutes" : 0},
         
-        # Commented out **test** tasks.
-        # {"task" : "Clean",     "seconds" : 30},
-        # {"task" : "Scan",      "paths" : [r"B:\_\SpecialSet", r"B:\_\Casting\Latina"],   "seconds" : 30}
+        # Comment out **test** tasks.
+        # To run test, enable all task, and start FileMonitor as a service.
+        # When executed, these task should be seen in the Task Queue unless otherwise stated in comments.
+        # These tasks are usually executed before updating major releases on https://github.com/David-Maisonave/Axter-Stash/blob/main/plugins/FileMonitor
+        # These tasks are ALWAYS executed before updating to https://github.com/stashapp/CommunityScripts
+        # MUST ToDo: Always comment out below test task before checking in this code!!!
+        # {"task" : "TestBadTaskNameError",               "minutes" : 1}, # Test invalid task name
+        # {"task" : "execute",                            "minutes" : 1}, # Test invalid task (missing command)
+        # {"task" : "python",                             "minutes" : 1}, # Test invalid task (missing scripts)
+        # {"task" : "PluginWithOutID",                    "minutes" : 1}, # Test invalid task (missing pluginId)
+        # {"task" : "execute", "command" : "",            "minutes" : 1}, # Test invalid task (missing command)
+        # {"task" : "python", "script" : "",              "minutes" : 1}, # Test invalid task (missing scripts)
+        # {"task" : "PluginWithOutID", "pluginId" : "",   "minutes" : 1}, # Test invalid task (missing pluginId)
+        # {"task" : "Generate",                                                                           "weekday" : "friday",   "time" : "00:00"},
+        # {"task" : "Clean",                                                                              "weekday" : "friday",   "time" : "00:00"},
+        # {"task" : "Auto Tag",                                                                           "weekday" : "friday",   "time" : "00:00"},
+        # {"task" : "Optimise Database",                                                                  "weekday" : "friday",   "time" : "00:00"},
+        # {"task" : "Create Tags", "pluginId" : "pathParser",                                             "weekday" : "friday",   "time" : "00:00"}, # In task queue as -> Running plugin task: Create Tags
+        # {"task" : "Scan","paths": [r"B:\_\SpecialSet", r"C:\foo"],                                      "weekday" : "friday",   "time" : "00:00"},
+        # {"task" : "GQL", "input" : "mutation OptimiseDatabase { optimiseDatabase }",                    "weekday" : "friday",   "time" : "00:00"}, # In task queue as -> Optimising database...
+        # {"task" : "Clean Generated Files",                                                              "weekday" : "friday",   "time" : "00:00"},
+        # {"task" : "RenameGeneratedFiles",                                                               "weekday" : "friday",   "time" : "00:00"}, # In task queue as -> Migrating scene hashes...
+        # {"task" : "Backup", "maxBackups" : 0,                                                           "weekday" : "friday",   "time" : "00:00"}, # Does NOT show up in the Task Queue. Must check STASH log file to verify run.
+        # {"task" : "python", "script" : "<plugin_path>test_hello_world2.py",                             "weekday" : "friday",   "time" : "00:00"}, # Does NOT show up in the Task Queue. Check FileMonitor log file, and look for -> Task 'python' result=???
+        # {"task" : "python", "script" : "<plugin_path>test_hello_world.py", "detach" : False,            "weekday" : "friday",   "time" : "00:00"}, # Does NOT show up in the Task Queue. Check FileMonitor log file, and look for -> Task 'python' result=???
+        # {"task" : "execute", "command" : "<plugin_path>test_hello_world2.cmd",                          "weekday" : "friday",   "time" : "00:00"}, # Does NOT show up in the Task Queue. Check FileMonitor log file, and look for -> Task 'execute' result=???
+        # {"task" : "execute", "command" : "<plugin_path>test_hello_world.bat", "args" : "--name David",  "weekday" : "friday",   "time" : "00:00"}, # Does NOT show up in the Task Queue. Check FileMonitor log file, and look for -> Task 'execute' result=???
     ],
     
     # Timeout in seconds. This is how often FileMonitor will check the scheduler and (in-plugin mode) check if another job (Task) is in the queue.

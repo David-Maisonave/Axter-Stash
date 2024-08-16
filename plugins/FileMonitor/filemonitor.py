@@ -184,6 +184,7 @@ class StashScheduler: # Stash Scheduler
                 stash.Error(f"Task '{task['task']}' is missing fields.")
         self.checkSchedulePending()
     
+    # ToDo: Add asynchronous threading logic to running task.
     def runTask(self, task):
         import datetime
         stash.Trace(f"Running task {task}")
@@ -209,14 +210,17 @@ class StashScheduler: # Stash Scheduler
         elif task['task'] == "Backup":
             stash.LogOnce("Note: Backup task does not get listed in the Task Queue, but user can verify that it started by looking in the Stash log file as an INFO level log line.")
             result = stash.backup_database()
-            if stash.pluginSettings['zmaximumBackups'] < 2:
-                stash.TraceOnce(f"Skipping DB backup file trim because zmaximumBackups={stash.pluginSettings['zmaximumBackups']}. Value has to be greater than 1.")
+            maximumBackup = stash.pluginSettings['zmaximumBackups']
+            if "maxBackups" in task:
+                maximumBackup = task['maxBackups']
+            if maximumBackup < 2:
+                stash.TraceOnce(f"Skipping DB backup file trim because zmaximumBackups={maximumBackup}. Value has to be greater than 1.")
             elif 'backupDirectoryPath' in stash.STASH_CONFIGURATION:
                 if len(stash.STASH_CONFIGURATION['backupDirectoryPath']) < 5:
                     stash.TraceOnce(f"Skipping DB backup file trim because backupDirectoryPath length is to short. Len={len(stash.STASH_CONFIGURATION['backupDirectoryPath'])}. Only support length greater than 4 characters.")
                 elif os.path.exists(stash.STASH_CONFIGURATION['backupDirectoryPath']):
-                    stash.LogOnce(f"Checking quantity of DB backups if path {stash.STASH_CONFIGURATION['backupDirectoryPath']} exceeds {stash.pluginSettings['zmaximumBackups']} backup files.")
-                    self.trimDbFiles(stash.STASH_CONFIGURATION['backupDirectoryPath'], stash.pluginSettings['zmaximumBackups'])
+                    stash.LogOnce(f"Checking quantity of DB backups if path {stash.STASH_CONFIGURATION['backupDirectoryPath']} exceeds {maximumBackup} backup files.")
+                    self.trimDbFiles(stash.STASH_CONFIGURATION['backupDirectoryPath'], maximumBackup)
                 else:
                     stash.TraceOnce(f"Skipping DB backup file trim because backupDirectoryPath does NOT exist. backupDirectoryPath={stash.STASH_CONFIGURATION['backupDirectoryPath']}")
         elif task['task'] == "Scan":
@@ -225,33 +229,49 @@ class StashScheduler: # Stash Scheduler
             result = stash.metadata_autotag(paths=targetPaths)
         elif task['task'] == "Optimise Database":
             result = stash.optimise_database()
+        elif task['task'] == "RenameGeneratedFiles":
+            result = stash.rename_generated_files()
         elif task['task'] == "GQL":
             result = stash.call_GQL(task['input'])
         elif task['task'] == "python":
-            script = task['script'].replace("<plugin_path>", f"{pathlib.Path(__file__).resolve().parent}{os.sep}")
-            stash.Log(f"Executing python script {script}.")
-            args = [script]
-            if 'args' in task and len(task['args']) > 0:
-                args = args + [task['args']]
-            result = f"Python process PID = {stash.ExecutePythonScript(args)}"
+            if 'script' in task and task['script'] != "":
+                script = task['script'].replace("<plugin_path>", f"{pathlib.Path(__file__).resolve().parent}{os.sep}")
+                stash.Log(f"Executing python script {script}.")
+                args = [script]
+                if 'args' in task and len(task['args']) > 0:
+                    args = args + [task['args']]
+                detached = True
+                if 'detach' in task:
+                    detached = task['detach']
+                result = f"Python process PID = {stash.ExecutePythonScript(args, ExecDetach=detached)}"
+            else:
+                stash.Error(f"Can not run task '{task['task']}', because it's missing 'script' field.")
         elif task['task'] == "execute":
-            cmd = task['command'].replace("<plugin_path>", f"{pathlib.Path(__file__).resolve().parent}{os.sep}")
-            stash.Log(f"Executing command {cmd}.")
-            args = [cmd]
-            if 'args' in task and len(task['args']) > 0:
-                args = args + [task['args']]
-            result = f"Execute process PID = {stash.ExecuteProcess(args)}"
+            if 'command' in task and task['command'] != "":
+                cmd = task['command'].replace("<plugin_path>", f"{pathlib.Path(__file__).resolve().parent}{os.sep}")
+                args = [cmd]
+                if 'args' in task and len(task['args']) > 0:
+                    args = args + [task['args']]
+                stash.Log(f"Executing command arguments {args}.")
+                result = f"Execute process PID = {stash.ExecuteProcess(args)}"
+            else:
+                stash.Error(f"Can not run task '{task['task']}', because it's missing 'command' field.")
         else:
             # ToDo: Add code to check if plugin is installed.
-            stash.Trace(f"Running plugin task pluginID={task['pluginId']}, task name = {task['task']}")
             try:
-                stash.run_plugin_task(plugin_id=task['pluginId'], task_name=task['task'])
+                if 'pluginId' in task and task['pluginId'] != "":
+                    stash.Trace(f"Running plugin task pluginID={task['pluginId']}, task name = {task['task']}")
+                    stash.run_plugin_task(plugin_id=task['pluginId'], task_name=task['task'])
+                else:
+                    stash.Error(f"Can not run task '{task['task']}', because it's an invalid task.")
+                    stash.LogOnce(f"If task '{task['task']}' is supposed to be a built-in task, check for correct task name spelling.")
+                    stash.LogOnce(f"If task '{task['task']}' is supposed to be a plugin, make sure to include the pluginId field in the task. task={task}")
             except Exception as e:
                 stash.LogOnce(f"Failed to call plugin {task['task']} with plugin-ID {task['pluginId']}. Error: {e}")
                 pass
         
         if result:
-            stash.Trace(f"Stash task '{task['task']}' result={result}")
+            stash.Trace(f"Task '{task['task']}' result={result}")
     
     def trimDbFiles(self, dbPath, maxFiles):
         if not os.path.exists(dbPath):
@@ -301,10 +321,12 @@ def start_library_monitor():
         if len(fileExtTypes) > 0:
             suffix = pathlib.Path(chng_path_lwr).suffix.lstrip(".")
             if suffix not in fileExtTypes:
+                stash.TraceOnce(f"Ignoring file change because not a monitored type ({suffix}).")
                 return True
         if len(excludePathChanges) > 0:
             for path in excludePathChanges:
                 if chng_path_lwr.startswith(path.lower()):
+                    stash.TraceOnce(f"Ignoring file change because is excluded path ({chng_path_lwr}) per entery '{path}'.")
                     return True
         if addToTargetPaths:
             TargetPaths.append(chng_path)
@@ -511,9 +533,15 @@ if parse_args.stop or parse_args.restart or stash.PLUGIN_TASK_NAME == "stop_libr
 elif stash.PLUGIN_TASK_NAME == StartFileMonitorAsAServiceTaskID:
     start_library_monitor_service()
     stash.Trace(f"{StartFileMonitorAsAServiceTaskID} EXIT")
-elif stash.PLUGIN_TASK_NAME == StartFileMonitorAsAPluginTaskID or not stash.CALLED_AS_STASH_PLUGIN:
+elif stash.PLUGIN_TASK_NAME == StartFileMonitorAsAPluginTaskID:
     start_library_monitor()
     stash.Trace(f"{StartFileMonitorAsAPluginTaskID} EXIT")
+elif not stash.CALLED_AS_STASH_PLUGIN:
+    try:
+        start_library_monitor()
+        stash.Trace(f"Command line FileMonitor EXIT")
+    except Exception as e:
+        stash.Error(f"Exception while running FileMonitor from the command line. Error: {e}")
 else:
     stash.Log(f"Nothing to do!!! (stash.PLUGIN_TASK_NAME={stash.PLUGIN_TASK_NAME})")
 

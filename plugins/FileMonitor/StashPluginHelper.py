@@ -1,6 +1,7 @@
 from stashapi.stashapp import StashInterface
 from logging.handlers import RotatingFileHandler
 import inspect, sys, os, pathlib, logging, json
+import concurrent.futures
 from stashapi.stash_types import PhashDistance
 import __main__
 
@@ -58,6 +59,7 @@ class StashPluginHelper(StashInterface):
     STDIN_READ = None
     pluginLog = None
     logLinePreviousHits = []
+    thredPool = None
     
     # Prefix message value
     LEV_TRACE = "TRACE: "
@@ -95,6 +97,7 @@ class StashPluginHelper(StashInterface):
                     DebugTraceFieldName = "zzdebugTracing",
                     DryRunFieldName = "zzdryRun",
                     setStashLoggerAsPluginLogger = False):              
+        self.thredPool = concurrent.futures.ThreadPoolExecutor(max_workers=2)
         if logToWrnSet: self.log_to_wrn_set = logToWrnSet
         if logToErrSet: self.log_to_err_set = logToErrSet
         if logToNormSet: self.log_to_norm = logToNormSet
@@ -178,6 +181,9 @@ class StashPluginHelper(StashInterface):
         self.pluginLog = logging.getLogger(pathlib.Path(self.MAIN_SCRIPT_NAME).stem)
         if setStashLoggerAsPluginLogger:
             self.log = self.pluginLog
+    
+    def __del__(self):
+        self.thredPool.shutdown(wait=False)
     
     def Log(self, logMsg, printTo = 0, logLevel = logging.INFO, lineNo = -1, levelStr = "", logAlways = False):
         if printTo == 0: 
@@ -269,25 +275,28 @@ class StashPluginHelper(StashInterface):
         self.Log(f"StashPluginHelper Status: (CALLED_AS_STASH_PLUGIN={self.CALLED_AS_STASH_PLUGIN}), (RUNNING_IN_COMMAND_LINE_MODE={self.RUNNING_IN_COMMAND_LINE_MODE}), (DEBUG_TRACING={self.DEBUG_TRACING}), (DRY_RUN={self.DRY_RUN}), (PLUGIN_ID={self.PLUGIN_ID}), (PLUGIN_TASK_NAME={self.PLUGIN_TASK_NAME}), (STASH_URL={self.STASH_URL}), (MAIN_SCRIPT_NAME={self.MAIN_SCRIPT_NAME})",
             printTo, logLevel, lineNo)
     
-    def ExecuteProcess(self, args):
+    def ExecuteProcess(self, args, ExecDetach=False):
         import platform, subprocess
         is_windows = any(platform.win32_ver())
         pid = None
         self.Trace(f"is_windows={is_windows} args={args}")
         if is_windows:
-            self.Trace("Executing process using Windows DETACHED_PROCESS")
-            DETACHED_PROCESS = 0x00000008
-            pid = subprocess.Popen(args,creationflags=DETACHED_PROCESS, shell=True).pid
+            if ExecDetach:
+                self.Trace("Executing process using Windows DETACHED_PROCESS")
+                DETACHED_PROCESS = 0x00000008
+                pid = subprocess.Popen(args,creationflags=DETACHED_PROCESS, shell=True).pid
+            else:
+                pid = subprocess.Popen(args, shell=True).pid
         else:
             self.Trace("Executing process using normal Popen")
             pid = subprocess.Popen(args).pid
         self.Trace(f"pid={pid}")
         return pid
     
-    def ExecutePythonScript(self, args):
+    def ExecutePythonScript(self, args, ExecDetach=True):
         PythonExe = f"{sys.executable}"
         argsWithPython = [f"{PythonExe}"] + args
-        return self.ExecuteProcess(argsWithPython)
+        return self.ExecuteProcess(argsWithPython,ExecDetach=ExecDetach)
     
     # Extends class StashInterface with functions which are not yet in the class
     def metadata_autotag(self, paths:list=[], performers:list=[], studios:list=[], tags:list=[]):

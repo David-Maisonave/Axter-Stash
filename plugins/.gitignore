@@ -34,7 +34,7 @@ renamefile_settings.cpython-310.pyc
 /DeleteMe
 /ATestPlugin
 /FileMonitor/working
-test_script_hello_world.py
+test_hello_world*.*
 MyDummyFileFrom_test_script_hello_world.txt
 
 ## Ignore Visual Studio temporary files, build results, and
