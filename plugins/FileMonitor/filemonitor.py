@@ -293,9 +293,9 @@ class StashScheduler: # Stash Scheduler
     
     def checkSchedulePending(self):
         import schedule # pip install schedule  # https://github.com/dbader/schedule
-        stash.Trace("Checking if task pending.")
+        stash.TraceOnce("Checking if task pending.")
         schedule.run_pending()
-        stash.Trace("Pending check complete.")
+        stash.TraceOnce("Pending check complete.")
 
 TargetPaths = []   
 def start_library_monitor():
