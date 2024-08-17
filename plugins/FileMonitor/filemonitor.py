@@ -3,7 +3,7 @@
 # Get the latest developers version from following link: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor
 # Note: To call this script outside of Stash, pass argument --url and the Stash URL.
 #       Example:    python filemonitor.py --url http://localhost:9999
-import os, sys, time, pathlib, argparse
+import os, sys, time, pathlib, argparse, platform
 from StashPluginHelper import StashPluginHelper
 import watchdog  # pip install watchdog  # https://pythonhosted.org/watchdog/
 from watchdog.observers import Observer # This is also needed for event attributes
@@ -236,6 +236,43 @@ class StashScheduler: # Stash Scheduler
             result = stash.rename_generated_files()
         elif task['task'] == "GQL":
             result = stash.call_GQL(task['input'])
+        elif task['task'] == "Log":
+            Msg = "Scheduled Logging (INFO)."
+            if 'msg' in task and task['msg'] != "":
+                Msg = task['msg']
+            result = stash.Log(Msg)
+        elif task['task'] == "Trace":
+            Msg = "Scheduled Logging (DBG)."
+            if 'msg' in task and task['msg'] != "":
+                Msg = task['msg']
+            result = stash.Trace(Msg)
+        elif task['task'] == "LogOnce":
+            Msg = "Scheduled LogOnce."
+            if 'msg' in task and task['msg'] != "":
+                Msg = task['msg']
+            result = stash.LogOnce(Msg)
+        elif task['task'] == "TraceOnce":
+            Msg = "Scheduled TraceOnce."
+            if 'msg' in task and task['msg'] != "":
+                Msg = task['msg']
+            result = stash.TraceOnce(Msg)
+        elif task['task'] == "CheckStashIsRunning":
+            try:
+                result = stash.stash_version()
+            except:
+                pass
+                stash.Trace("Failed to get response from Stash.")
+                # ToDo: Need to verify if below are correct for Mac OS and Linux.
+                if platform.system() == "Darwin":
+                    args = [f"{pathlib.Path(stash.PLUGINS_PATH).resolve().parent}{os.sep}stash"]
+                elif platform.system() == "Linux":
+                    args = [f"{pathlib.Path(stash.PLUGINS_PATH).resolve().parent}{os.sep}stash-linux"]
+                else:
+                    args = [f"{pathlib.Path(stash.PLUGINS_PATH).resolve().parent}{os.sep}stash-win.exe"]
+                if 'command' in task and task['command'] != "":
+                    cmd = task['command'].replace("<stash_path>", f"{pathlib.Path(stash.PLUGINS_PATH).resolve().parent}{os.sep}")
+                    args = [cmd]
+                result = f"Execute process PID = {stash.ExecuteProcess(args)}"
         elif task['task'] == "python":
             if 'script' in task and task['script'] != "":
                 script = task['script'].replace("<plugin_path>", f"{pathlib.Path(__file__).resolve().parent}{os.sep}")

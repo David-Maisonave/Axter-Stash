@@ -12,16 +12,14 @@ config = {
     "task_scheduler": [
          # To create a daily task, include each day of the week for the weekday field.
         {"task" : "Auto Tag",           "weekday" : "monday,tuesday,wednesday,thursday,friday,saturday,sunday",  "time" : "06:00"},  # Auto Tag -> [Auto Tag] (Daily at 6AM)
-        {"task" : "Optimise Database",  "weekday" : "monday,tuesday,wednesday,thursday,friday,saturday,sunday",  "time" : "07:00"},  # Maintenance -> [Optimise Database] (Daily at 7AM)
-        {"task" : "Create Tags", "pluginId" : "pathParser",  "validateDir" : "pathParser",  "weekday" : "monday,tuesday,wednesday,thursday,friday,saturday,sunday",  "time" : "05:00"}, # [Plugin Tasks] - > [Path Parser] -> [Create Tags]  (Daily at 5AM) : This task requires plugin [Path Parser]
+        {"task" : "Optimise Database",  "weekday" : "monday,tuesday,wednesday,thursday,friday", "time" : "07:00"},  # Maintenance -> [Optimise Database] (Every weekday at 7AM)
+        {"task" : "Create Tags", "pluginId" : "pathParser",  "validateDir" : "pathParser",  
+            "weekday" : "monday,tuesday,wednesday,thursday,friday,saturday,sunday",             "time" : "05:00"}, # [Plugin Tasks] - > [Path Parser] -> [Create Tags]  (Daily at 5AM) : This task requires plugin [Path Parser]
         
-        # The following tasks are scheduled for 3 days out of the week.
-        {"task" : "Clean",                  "weekday" : "monday,wednesday,friday",  "time" : "08:00"},  # Maintenance -> [Clean] (3 days per week at 8AM)
-        {"task" : "Clean Generated Files",  "weekday" : "tuesday,thursday,saturday",  "time" : "08:00"},  # Maintenance -> [Clean Generated Files] (3 days per week at 8AM)
         
         # The following tasks are scheduled weekly
-        {"task" : "Generate",   "weekday" : "sunday",   "time" : "07:00"}, # Generated Content-> [Generate] (Every Sunday at 7AM)
-        {"task" : "Scan",       "weekday" : "sunday",   "time" : "03:00"}, # Library -> [Scan] (Weekly) (Every Sunday at 3AM)
+        {"task" : "Generate",   "weekday" : "saturday",   "time" : "07:00"}, # Generated Content-> [Generate] (Every saturday at 7AM)
+        {"task" : "Scan",       "weekday" : "saturday",   "time" : "03:00"}, # Library -> [Scan] (Weekly) (Every saturday at 3AM)
         
         # To perform a task monthly, specify the day of the month as in the weekly schedule format, and add a monthly field.
             # The monthly field value must be 1, 2, 3, or 4.
@@ -30,7 +28,9 @@ config = {
                 # 3 = 3rd specified weekday of the month.
                 # 4 = 4th specified weekday of the month.
         # The following task is scheduled monthly
-        {"task" : "Backup",     "weekday" : "sunday",   "time" : "01:00", "monthly" : 2}, # Backup -> [Backup] 2nd sunday of the month at 1AM (01:00)        
+        {"task" : "Backup",                 "weekday" : "sunday",  "time" : "01:00", "monthly" : 2}, # Backup -> [Backup] 2nd sunday of the month at 1AM (01:00)        
+        {"task" : "Clean",                  "weekday" : "sunday",  "time" : "01:00", "monthly" : 3},  # Maintenance -> [Clean]
+        {"task" : "Clean Generated Files",  "weekday" : "sunday",  "time" : "03:00", "monthly" : 3},  # Maintenance -> [Clean Generated Files]
         
         # Example#A1: Task to call call_GQL API with custom input
         {"task" : "GQL", "input" : "mutation OptimiseDatabase { optimiseDatabase }", "weekday" : "sunday",   "time" : "DISABLED"}, # To enable, change "DISABLED" to valid time
@@ -52,6 +52,11 @@ config = {
         {"task" : "Backup", "maxBackup" : 0,    "weekday" : "sunday",   "time" : "DISABLED"}, # When used with a zero value, it will make sure no file trimming will occur no matter the value of the UI [Max DB Backups]
         
         # The above weekday method is the more reliable method to schedule task, because it doesn't rely on FileMonitor running continuously (non-stop).
+        
+        # The [CheckStashIsRunning] task checks if Stash is running every 5 minutes. If it's not, it will start up stash.
+        {"task" : "CheckStashIsRunning",    "minutes" :5}, # This task only works if FileMonitor is started as a service or in command line mode.
+        # On Linux any other OS, add the command field and set value to appropriate binary path.
+        # {"task" : "CheckStashIsRunning",    "command" : "<stash_path>stash-win.exe",                    "minutes" :5},
         
         # The below examples use frequency field method which can work with minutes and hours. A zero frequency value disables the task.
         #       Note:   Both seconds and days are also supported for the frequency field. 
@@ -84,6 +89,11 @@ config = {
         # {"task" : "python", "script" : "",                      "minutes" : 1}, # Test invalid task (missing scripts)
         # {"task" : "PluginWithOutID", "pluginId" : "",           "minutes" : 1}, # Test invalid task (missing pluginId)
         # {"task" : "Foo","pluginId":"foo","validateDir":"foo",   "minutes" : 1}, # Test invalid task (missing plugin directory)
+        # {"task" : "Log",  "msg" : "Testing Scheduled Log",      "minutes" : 1}, # Test plugin log file
+        # {"task" : "Trace",                                      "minutes" : 1}, # Test plugin trace logging
+        # {"task" : "LogOnce",                                    "seconds" :15}, # Test LogOnce
+        # {"task" : "TraceOnce",                                  "seconds" :5}, # Test TraceOnce
+        # {"task" : "CheckStashIsRunning",    "command" : "<stash_path>stash-win.exe",                    "seconds" :10}, # Check if Stash is running.  If not running, start up Stash.
         # {"task" : "Generate",                                                                           "weekday" : "friday",   "time" : "12:03"},
         # {"task" : "Clean",                                                                              "weekday" : "friday",   "time" : "12:03"},
         # {"task" : "Auto Tag",                                                                           "weekday" : "friday",   "time" : "12:03"},
