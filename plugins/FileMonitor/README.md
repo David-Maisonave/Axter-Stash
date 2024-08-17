@@ -165,4 +165,11 @@ That's it!!!
   - The other options are self explanatory from the UI.
 - Additional options available in filemonitor_config.py. The options are well documented in the commented code.
 
+## Bugs and Feature Request
+Please use the following link to report FileMonitor bugs:
+[FileMonitor Bug Report](https://github.com/David-Maisonave/Axter-Stash/issues/new?assignees=&labels=Plugin_Bug&projects=&template=bug_report_plugin.yml&title=%F0%9F%AA%B2%5BFileMonitor%5D+Your_Short_title)
+
+Please use the following link to report FileMonitor Feature Request:[FileMonitor Feature Reques](https://github.com/David-Maisonave/Axter-Stash/issues/new?assignees=&labels=Enhancement&projects=&template=feature_request_plugin.yml&title=%F0%9F%92%A1%EF%B8%8F%5BEnhancement%5D%3A%5BFileMonitor%5D+Your_Short_title)
+
+Please do **NOT** use the feature request to include any problems associated with errors. Instead use the bug report for error issues.
 
