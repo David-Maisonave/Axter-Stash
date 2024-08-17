@@ -20,6 +20,7 @@ parser.add_argument('--trace', '-t', dest='trace', action='store_true', help='En
 parser.add_argument('--stop', '-s', dest='stop', action='store_true', help='Stop (kill) a running FileMonitor task.')
 parser.add_argument('--restart', '-r', dest='restart', action='store_true', help='Restart FileMonitor.')
 parser.add_argument('--silent', '--quit', '-q', dest='quit', action='store_true', help='Run in silent mode. No output to console or stderr. Use this when running from pythonw.exe')
+parser.add_argument('--apikey', '-a', dest='apikey', type=str, help='API Key')
 parse_args = parser.parse_args()
 
 logToErrSet = 0
@@ -40,7 +41,8 @@ stash = StashPluginHelper(
         settings=settings,
         config=config,
         logToErrSet=logToErrSet,
-        logToNormSet=logToNormSet
+        logToNormSet=logToNormSet,
+        apiKey=parse_args.apikey
         )
 stash.Status()
 stash.Log(f"\nStarting (__file__={__file__}) (stash.CALLED_AS_STASH_PLUGIN={stash.CALLED_AS_STASH_PLUGIN}) (stash.DEBUG_TRACING={stash.DEBUG_TRACING}) (stash.DRY_RUN={stash.DRY_RUN}) (stash.PLUGIN_TASK_NAME={stash.PLUGIN_TASK_NAME})************************************************")
@@ -72,7 +74,10 @@ fileExtTypes = stash.pluginConfig['fileExtTypes'].split(",") if stash.pluginConf
 includePathChanges = stash.pluginConfig['includePathChanges'] if len(stash.pluginConfig['includePathChanges']) > 0 else stash.STASH_PATHS
 excludePathChanges = stash.pluginConfig['excludePathChanges']
 
+
+stash.Trace(f"(apiKey={stash.API_KEY})")
 stash.Trace(f"(includePathChanges={includePathChanges})")
+
 
 if stash.DRY_RUN:
     stash.Log("Dry run mode is enabled.")
@@ -533,6 +538,8 @@ def start_library_monitor_service():
         pass
         stash.Trace("FileMonitor is not running, so it's safe to start it as a service.")
     args = [f"{pathlib.Path(__file__).resolve().parent}{os.sep}filemonitor.py", '--url', f"{stash.STASH_URL}"]
+    if stash.API_KEY:
+        args = args + ["-a", stash.API_KEY]
     stash.ExecutePythonScript(args)
     
 if parse_args.stop or parse_args.restart or stash.PLUGIN_TASK_NAME == "stop_library_monitor":
