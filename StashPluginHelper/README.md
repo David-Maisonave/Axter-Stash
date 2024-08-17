@@ -200,3 +200,12 @@ Logs in logging level logging.WARN.
 
 ## Requirements
 `pip install stashapp-tools --upgrade`
+
+## Bugs and Feature Request
+Please use the following link to report StashPluginHelper bugs:
+[StashPluginHelper Bug Report](https://github.com/David-Maisonave/Axter-Stash/issues/new?assignees=&labels=Bug&projects=&template=bug_report.yml&title=%F0%9F%90%9E%5BBug%5D%3A%5BStashPluginHelper%5D+Your_Short_title)
+
+Please use the following link to report StashPluginHelper Feature Request:[StashPluginHelper Feature Reques](https://github.com/David-Maisonave/Axter-Stash/issues/new?assignees=&labels=Enhancement&projects=&template=feature_request.yml&title=%F0%9F%92%A1%EF%B8%8F%5BEnhancement%5D%3A%5BStashPluginHelper%5D+Your_Short_title)
+
+Please do **NOT** use the feature request to include any problems associated with errors. Instead use the bug report for error issues.
+
