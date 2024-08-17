@@ -27,6 +27,13 @@ body:
     validations:
       required: true      
   - type: input
+    id: plugin_ver
+    attributes:
+      label: Plugin Version
+      placeholder: e.g. v0.8.2
+    validations:
+      required: true      
+  - type: input
     id: os
     attributes:
       label: What Operating System (OS)?
