@@ -41,19 +41,19 @@ body:
     validations:
       required: true      
   - type: input
-    id: device
-    attributes:
-      label: Phone or tablets
-      placeholder: e.g. iPhone6, Galaxy Tab A9+
-    validations:
-      required: false      
-  - type: input
     id: browser
     attributes:
       label: What browser and version?
       placeholder: e.g. Chrome Ver:127, Firefox Ver:129, Safari Ver:1.3.2, Any
     validations:
       required: true
+  - type: input
+    id: device
+    attributes:
+      label: Phone or tablets (if applicable)
+      placeholder: e.g. iPhone6, Galaxy Tab A9+
+    validations:
+      required: false      
   - type: textarea
     id: install
     attributes:
