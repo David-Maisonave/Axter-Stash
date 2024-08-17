@@ -122,13 +122,16 @@ class StashPluginHelper(StashInterface):
             self.FRAGMENT_SERVER = {'Scheme': 'http', 'Host': '0.0.0.0', 'Port': '9999', 'SessionCookie': {'Name': 'session', 'Value': '', 'Path': '', 'Domain': '', 'Expires': '0001-01-01T00:00:00Z', 'RawExpires': '', 'MaxAge': 0, 'Secure': False, 'HttpOnly': False, 'SameSite': 0, 'Raw': '', 'Unparsed': None}, 'Dir': os.path.dirname(pathlib.Path(self.MAIN_SCRIPT_NAME).resolve().parent), 'PluginDir': pathlib.Path(self.MAIN_SCRIPT_NAME).resolve().parent}
         
         if debugTracing: self.DEBUG_TRACING = debugTracing        
+        apiKey = ""
         if config:
             self.pluginConfig = config        
+            if 'apiKey' in self.pluginConfig and self.pluginConfig['apiKey'] != "":
+                self.FRAGMENT_SERVER['ApiKey'] = self.pluginConfig['apiKey']
             if DebugTraceFieldName in self.pluginConfig:
                 self.DEBUG_TRACING = self.pluginConfig[DebugTraceFieldName]
             if DryRunFieldName in self.pluginConfig:
                 self.DRY_RUN = self.pluginConfig[DryRunFieldName]
-                
+        
         if len(sys.argv) > 1:
             RUNNING_IN_COMMAND_LINE_MODE = True
             if not debugTracing or not stash_url:

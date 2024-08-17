@@ -100,6 +100,8 @@ config = {
         # {"task" : "execute", "command" : "<plugin_path>test_hello_world.bat", "args" : "--name David",  "weekday" : "friday",   "time" : "12:03"}, # Does NOT show up in the Task Queue. Check FileMonitor log file, and look for -> Task 'execute' result=???
     ],
     
+    # ApiKey only needed when Stash credentials are set.
+    "apiKey" : "", # Example: "eyJabccideJIUfg1NigRInD345I6dfpXVCfd.eyJ1abcDEfGheHRlHJiJklMonPQ32FsVewtsfSIsImlhdCI6MTcyMzg2NzkwOH0.5bkHU6sfs3532dsryu1ki3iFBwnd_4AHs325yHljsPw"
     # Timeout in seconds. This is how often FileMonitor will check the scheduler and (in-plugin mode) check if another job (Task) is in the queue.
     "timeOut": 60,
     # Enable to run metadata clean task after file deletion.
