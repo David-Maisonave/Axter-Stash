@@ -301,6 +301,9 @@ class StashPluginHelper(StashInterface):
         argsWithPython = [f"{PythonExe}"] + args
         return self.ExecuteProcess(argsWithPython,ExecDetach=ExecDetach)
     
+    def Submit(*args, **kwargs):
+        thredPool.submit(*args, **kwargs)
+    
     # Extends class StashInterface with functions which are not yet in the class
     def metadata_autotag(self, paths:list=[], performers:list=[], studios:list=[], tags:list=[]):
         query = """
