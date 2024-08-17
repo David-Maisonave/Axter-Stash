@@ -164,8 +164,6 @@ That's it!!!
   - When the UI option [Max DB Backups] is set to a value greater than 1, and when the scheduler is enabled, the quantity of database backup files are trim down to the set [**Max DB Backups**] value after the scheduler executes the Backup task.
   - The other options are self explanatory from the UI.
 - Additional options available in filemonitor_config.py. The options are well documented in the commented code.
-- For users who have set username and password on their Stash setup, an ApiKey has to be set in filemonitor_config.py. This option is available on version 0.8.4 and higher. It's only required when starting FileMonitor as a service.
-  - To setup ApiKey, first go to Stash->Settings->Security->[API Key] and click on [Generate API Key] if it's not already configured. Copy the API Key and put it in the **apiKey** field in **filemonitor_config.py**. Then restart the FileMonitor service.
 
 ## Bugs and Feature Request
 Please use the following link to report FileMonitor bugs:
