@@ -3,7 +3,7 @@
 # Get the latest developers version from following link: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor
 # Note: To call this script outside of Stash, pass argument --url and the Stash URL.
 #       Example:    python filemonitor.py --url http://localhost:9999
-import os, sys, time, pathlib, argparse, platform
+import os, sys, time, pathlib, argparse, platform, traceback
 from StashPluginHelper import StashPluginHelper
 import watchdog  # pip install watchdog  # https://pythonhosted.org/watchdog/
 from watchdog.observers import Observer # This is also needed for event attributes
@@ -32,7 +32,7 @@ if parse_args.quit:
 settings = {
     "recursiveDisabled": False,
     "turnOnScheduler": False,
-    "zmaximumBackups": 0,
+    "zmaximumBackups": 1,
     "zzdebugTracing": False
 }
 stash = StashPluginHelper(
@@ -214,8 +214,12 @@ class StashScheduler: # Stash Scheduler
             stash.LogOnce("Note: Backup task does not get listed in the Task Queue, but user can verify that it started by looking in the Stash log file as an INFO level log line.")
             result = stash.backup_database()
             maximumBackup = stash.pluginSettings['zmaximumBackups']
+            stash.Trace(f"maximumBackup={maximumBackup}")
             if "maxBackups" in task:
                 maximumBackup = task['maxBackups']
+            stash.Trace(f"maximumBackup={maximumBackup}")
+            if isinstance(maximumBackup,str):
+                maximumBackup = int(maximumBackup)
             if maximumBackup < 2:
                 stash.TraceOnce(f"Skipping DB backup file trim because zmaximumBackups={maximumBackup}. Value has to be greater than 1.")
             elif 'backupDirectoryPath' in stash.STASH_CONFIGURATION:
@@ -261,18 +265,35 @@ class StashScheduler: # Stash Scheduler
                 result = stash.stash_version()
             except:
                 pass
+                # Note: Can not call stash.Error if Stash is not running, because that might throw another exception.
                 stash.Trace("Failed to get response from Stash.")
-                # ToDo: Need to verify if below are correct for Mac OS and Linux.
-                if platform.system() == "Darwin":
-                    args = [f"{pathlib.Path(stash.PLUGINS_PATH).resolve().parent}{os.sep}stash"]
-                elif platform.system() == "Linux":
-                    args = [f"{pathlib.Path(stash.PLUGINS_PATH).resolve().parent}{os.sep}stash-linux"]
-                else:
+                if platform.system() == "Windows":
                     args = [f"{pathlib.Path(stash.PLUGINS_PATH).resolve().parent}{os.sep}stash-win.exe"]
+                elif platform.system() == "Darwin": # MacOS
+                    args = [f"{pathlib.Path(stash.PLUGINS_PATH).resolve().parent}{os.sep} stash-macos "]
+                elif platform.system().lower().startswith("linux"):
+                    # ToDo: Need to verify this method will work for (stash-linux-arm32v6, stash-linux-arm32v7, and stash-linux-arm64v8)
+                    if platform.system().lower().find("32v6") > -1:
+                        args = [f"{pathlib.Path(stash.PLUGINS_PATH).resolve().parent}{os.sep}stash-linux-arm32v6"]
+                    elif platform.system().lower().find("32v7") > -1:
+                        args = [f"{pathlib.Path(stash.PLUGINS_PATH).resolve().parent}{os.sep}stash-linux-arm32v7"]
+                    elif platform.system().lower().find("64v8 ") > -1:
+                        args = [f"{pathlib.Path(stash.PLUGINS_PATH).resolve().parent}{os.sep}stash-linux-arm64v8"]
+                    else:
+                        args = [f"{pathlib.Path(stash.PLUGINS_PATH).resolve().parent}{os.sep}stash-linux"]
+                elif platform.system().lower().startswith("freebsd"):
+                    args = [f"{pathlib.Path(stash.PLUGINS_PATH).resolve().parent}{os.sep}stash-freebsd"]
+                elif 'command' not in task or task['command'] == "":
+                    stash.Trace("Error: Can not start Stash, because failed to determine platform OS. As a workaround, add 'command' field to this task.")
+                    return
                 if 'command' in task and task['command'] != "":
                     cmd = task['command'].replace("<stash_path>", f"{pathlib.Path(stash.PLUGINS_PATH).resolve().parent}{os.sep}")
                     args = [cmd]
                 result = f"Execute process PID = {stash.ExecuteProcess(args)}"
+                time.sleep(10)
+                if "RunAfter" in task and len(task['RunAfter']) > 0:
+                    for runAfterTask in task['RunAfter']:
+                        self.runTask(runAfterTask)
         elif task['task'] == "python":
             if 'script' in task and task['script'] != "":
                 script = task['script'].replace("<plugin_path>", f"{pathlib.Path(__file__).resolve().parent}{os.sep}")
@@ -598,7 +619,9 @@ elif not stash.CALLED_AS_STASH_PLUGIN:
         start_library_monitor()
         stash.Trace(f"Command line FileMonitor EXIT")
     except Exception as e:
-        stash.Error(f"Exception while running FileMonitor from the command line. Error: {e}")
+        tb = traceback.format_exc()
+        stash.Error(f"Exception while running FileMonitor from the command line. Error: {e}\nTraceBack={tb}")
+        stash.log.exception('Got exception on main handler')
 else:
     stash.Log(f"Nothing to do!!! (stash.PLUGIN_TASK_NAME={stash.PLUGIN_TASK_NAME})")
 

@@ -32,6 +32,14 @@ config = {
         {"task" : "Clean",                  "weekday" : "sunday",  "time" : "01:00", "monthly" : 3},  # Maintenance -> [Clean]
         {"task" : "Clean Generated Files",  "weekday" : "sunday",  "time" : "03:00", "monthly" : 3},  # Maintenance -> [Clean Generated Files]
         
+        # The [CheckStashIsRunning] task checks if Stash is running. If it's not, it will start up stash. This task only works if FileMonitor is started as a service or in command line mode.
+        {"task" : "CheckStashIsRunning",    "minutes" :5}, # Checks every 5 minutes
+        
+        # Example#C1 Some OS may need the  "command" which specifies the binary path
+        {"task" : "CheckStashIsRunning",    "command" : "<stash_path>stash-linux-arm64v8",                          "minutes" :0},
+        # Example#C2 RunAfter field can be used to specify task to run after starting Stash
+        {"task" : "CheckStashIsRunning", "RunAfter" : [{"task" : "Scan"},{"task" : "Backup", "maxBackup" : 0},{"task" : "Clean"}],   "minutes" :0},
+        
         # Example#A1: Task to call call_GQL API with custom input
         {"task" : "GQL", "input" : "mutation OptimiseDatabase { optimiseDatabase }", "weekday" : "sunday",   "time" : "DISABLED"}, # To enable, change "DISABLED" to valid time
         
@@ -52,11 +60,6 @@ config = {
         {"task" : "Backup", "maxBackup" : 0,    "weekday" : "sunday",   "time" : "DISABLED"}, # When used with a zero value, it will make sure no file trimming will occur no matter the value of the UI [Max DB Backups]
         
         # The above weekday method is the more reliable method to schedule task, because it doesn't rely on FileMonitor running continuously (non-stop).
-        
-        # The [CheckStashIsRunning] task checks if Stash is running every 5 minutes. If it's not, it will start up stash.
-        {"task" : "CheckStashIsRunning",    "minutes" :5}, # This task only works if FileMonitor is started as a service or in command line mode.
-        # On Linux any other OS, add the command field and set value to appropriate binary path.
-        # {"task" : "CheckStashIsRunning",    "command" : "<stash_path>stash-win.exe",                    "minutes" :5},
         
         # The below examples use frequency field method which can work with minutes and hours. A zero frequency value disables the task.
         #       Note:   Both seconds and days are also supported for the frequency field. 
@@ -92,7 +95,8 @@ config = {
         # {"task" : "Log",  "msg" : "Testing Scheduled Log",      "minutes" : 1}, # Test plugin log file
         # {"task" : "Trace",                                      "minutes" : 1}, # Test plugin trace logging
         # {"task" : "LogOnce",                                    "seconds" :15}, # Test LogOnce
-        # {"task" : "TraceOnce",                                  "seconds" :5}, # Test TraceOnce
+        # {"task" : "TraceOnce",                                  "seconds" : 5}, # Test TraceOnce
+        # {"task" : "CheckStashIsRunning", "RunAfter" : [{"task" : "Scan"},{"task" : "Backup", "maxBackup" : 0},{"task" : "Clean"}],   "seconds" :15}, # Test RunAfter
         # {"task" : "CheckStashIsRunning",    "command" : "<stash_path>stash-win.exe",                    "seconds" :10}, # Check if Stash is running.  If not running, start up Stash.
         # {"task" : "Generate",                                                                           "weekday" : "friday",   "time" : "12:03"},
         # {"task" : "Clean",                                                                              "weekday" : "friday",   "time" : "12:03"},
