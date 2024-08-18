@@ -35,7 +35,7 @@ config = {
         # The [CheckStashIsRunning] task checks if Stash is running. If it's not, it will start up stash. This task only works if FileMonitor is started as a service or in command line mode.
         {"task" : "CheckStashIsRunning",    "minutes" :5}, # Checks every 5 minutes
         
-        # Example#C1 Some OS may need the  "command" which specifies the binary path
+        # Example#C1 Some OS may need the "command" field, which specifies the binary path
         {"task" : "CheckStashIsRunning",    "command" : "<stash_path>stash-linux-arm64v8",                          "minutes" :0},
         # Example#C2 RunAfter field can be used to specify task to run after starting Stash
         {"task" : "CheckStashIsRunning", "RunAfter" : [{"task" : "Scan"},{"task" : "Backup", "maxBackup" : 0},{"task" : "Clean"}],   "minutes" :0},
