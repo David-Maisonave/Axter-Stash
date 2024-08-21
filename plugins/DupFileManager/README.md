@@ -26,6 +26,7 @@ This Plugin is under construction!!!
 `pip install stashapp-tools`
 `pip install --upgrade stashapp-tools`
 `pip install pyYAML`
+`pip install Send2Trash`
 
 ### Installation
 - Follow **Requirements** instructions.

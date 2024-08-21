@@ -43,6 +43,9 @@ stash.Trace(f"(stashPaths={stash.STASH_PATHS})")
 
 listSeparator = stash.pluginConfig['listSeparator'] if stash.pluginConfig['listSeparator'] != "" else ','
 addPrimaryDupPathToDetails = stash.pluginConfig['addPrimaryDupPathToDetails'] 
+mergeDupFilename = stash.pluginSettings['mergeDupFilename']
+moveToTrashCan = stash.pluginSettings['moveToTrashCan'] 
+alternateTrashCanPath = stash.pluginConfig['dup_path'] 
 
 def realpath(path):
     """
@@ -136,7 +139,7 @@ def setTagId(tagId, tagName, sceneDetails, PrimeDuplicateScene = ""):
         elif sceneDetails['details'] == "":
             PrimeDuplicateScene = f"Primary Duplicate = {PrimeDuplicateScene}"
         else:
-            PrimeDuplicateScene = f"Primary Duplicate = {PrimeDuplicateScene}; {sceneDetails['details']}"
+            PrimeDuplicateScene = f"Primary Duplicate = {PrimeDuplicateScene};\n{sceneDetails['details']}"
     for tag in sceneDetails['tags']:
         if tag['name'] == tagName:
             if PrimeDuplicateScene != "" and addPrimaryDupPathToDetails:
@@ -193,9 +196,10 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
     QtyAlmostDup = 0
     QtyTagForDel = 0
     QtySkipForDel = 0
+    stash.Log("#########################################################################")
+    stash.Log("#########################################################################")
     stash.Log("Waiting for find_duplicate_scenes_diff to return results...")
     DupFileSets = stash.find_duplicate_scenes_diff(duration_diff=duration_diff)
-    stash.Log("#########################################################################")
     stash.Log("#########################################################################")
     for DupFileSet in DupFileSets:
         stash.Trace(f"DupFileSet={DupFileSet}")
@@ -207,7 +211,8 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
         for DupFile in DupFileSet:
             QtyDup+=1
             Scene = stash.find_scene(DupFile['id'])
-            stash.Trace(f"Scene = {Scene.encode('ascii','ignore')}")
+            sceneData = f"Scene = {Scene}"
+            stash.Trace(sceneData.encode('ascii','ignore'))
             DupFileDetailList = DupFileDetailList + [Scene]
             if DupFileToKeep != "":
                 if DupFileToKeep['files'][0]['duration'] == Scene['files'][0]['duration']:
@@ -243,9 +248,17 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
                     QtySkipForDel+=1
                 else:
                     if deleteDup:
-                        stash.Log(f"Deleting duplicate '{DupFile['files'][0]['path'].encode('ascii','ignore')}'")
-                        # ToDo: Add logic to check if moving file to deletion folder, or doing full delete.
+                        DupFileName = DupFile['files'][0]['path']
+                        DupFileNameOnly = pathlib.Path(DupFileName).stem
+                        stash.Log(f"Deleting duplicate '{DupFileName.encode('ascii','ignore')}'")
                         # ToDo: Add logic to check if tag merging is needed before performing deletion.
+                        if alternateTrashCanPath != "":
+                            shutil.move(DupFileName, f"{alternateTrashCanPath }{os.sep}{DupFileNameOnly}")
+                        elif moveToTrashCan:
+                            from send2trash import send2trash # Requirement: pip install Send2Trash
+                            send2trash(DupFileName)
+                        else:
+                            os.remove(DupFileName) 
                     elif tagDuplicates:
                         if QtyTagForDel == 0:
                             stash.Log(f"Tagging duplicate {DupFile['files'][0]['path'].encode('ascii','ignore')} for deletion with tag {duplicateMarkForDeletion}.")
