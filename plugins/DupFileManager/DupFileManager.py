@@ -133,7 +133,7 @@ def setTagId(tagId, tagName, sceneDetails, PrimeDuplicateScene = ""):
     if PrimeDuplicateScene != "" and addPrimaryDupPathToDetails:
         if sceneDetails['details'].startswith(f"Primary Duplicate = {PrimeDuplicateScene}"):
             PrimeDuplicateScene = ""
-        elif sceneDetails['details'] == ""
+        elif sceneDetails['details'] == "":
             PrimeDuplicateScene = f"Primary Duplicate = {PrimeDuplicateScene}"
         else:
             PrimeDuplicateScene = f"Primary Duplicate = {PrimeDuplicateScene}; {sceneDetails['details']}"
@@ -254,7 +254,7 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
                         setTagId(dupTagId, duplicateMarkForDeletion, DupFile, DupFileToKeep['files'][0]['path'])
                     QtyTagForDel+=1
         stash.Log(SepLine)
-        if QtyDup > 200:
+        if QtyDup > 20:
             break
     
     stash.Log(f"QtyDupSet={QtyDupSet}, QtyDup={QtyDup}, QtyTagForDel={QtyTagForDel}, QtySkipForDel={QtySkipForDel}, QtyExactDup={QtyExactDup}, QtyAlmostDup={QtyAlmostDup}")
