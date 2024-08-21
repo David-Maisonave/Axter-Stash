@@ -41,7 +41,7 @@ task_examples = {
         # Example#B4: Task to execute a command with optional args field, and using keyword <plugin_path>, which gets replaced with filemonitor.py current directory.
         {"task" : "execute", "command" : "<plugin_path>HelloWorld.cmd", "args" : "--name David", "minutes" : 0},
         
-        # Example#C1 Some OS may need the "command" field, which specifies the binary path
+        # Example#C1 Some OS may need the "command" field, which specifies the binary path.
         {"task" : "CheckStashIsRunning",    "command" : "<stash_path>stash-linux-arm64v8",                          "minutes" :0},
         # Example#C2 RunAfter field can be used to specify task to run after starting Stash
         {"task" : "CheckStashIsRunning", "RunAfter" : [{"task" : "Scan"},{"task" : "Backup", "maxBackup" : 0},{"task" : "Clean"}],   "minutes" :0},        

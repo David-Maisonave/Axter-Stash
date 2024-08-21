@@ -2,9 +2,11 @@
 # By David Maisonave (aka Axter) Jul-2024 (https://www.axter.com/)
 # Get the latest developers version from following link: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/DupFileManager
 config = {
-    # Define black list to determine which duplicates should be deleted first.
-    "blacklist_paths": [],     #Example: "blacklist_paths": ['C:\\SomeMediaPath\\subpath', "E:\\YetAnotherPath\\subpath', "E:\\YetAnotherPath\\secondSubPath']
-    
+    # Character used to seperate items on the whitelist, blacklist, and graylist
+    "listSeparator" : ",",
+    # If enabled, adds the primary duplicate path to the scene detail.
+    "addPrimaryDupPathToDetails" : True,
+   
     # If enabled, ignore reparsepoints. For Windows NT drives only.
     "ignoreReparsepoints" : True,
     # If enabled, ignore symbolic links.
