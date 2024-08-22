@@ -21,31 +21,44 @@ parser.add_argument('--add_dup_tag', '-a', dest='dup_tag', action='store_true', 
 parse_args = parser.parse_args()
 
 settings = {
-    "mergeDupFilename": True,
-    "moveToTrashCan": False,
-    "dupFileTag": "DuplicateMarkForDeletion",
     "dupWhiteListTag": "",
-    "zxgraylist": "",
+    "dupFileTag": "DuplicateMarkForDeletion",
+    "mergeDupFilename": False,
+    "permanentlyDelete": False,
+    "whitelistDelDupInSameFolder": False,
     "zwhitelist": "",
-    "zzblacklist": "",
+    "zxgraylist": "",
+    "zyblacklist": "",
+    "zymaxDupToProcess": 0,
     "zzdebugTracing": False,
 }
 stash = StashPluginHelper(
         stash_url=parse_args.stash_url,
         debugTracing=parse_args.trace,
         settings=settings,
-        config=config
+        config=config,
+        maxbytes=10*1024*1024,
         )
 stash.Status()
 stash.Log(f"\nStarting (__file__={__file__}) (stash.CALLED_AS_STASH_PLUGIN={stash.CALLED_AS_STASH_PLUGIN}) (stash.DEBUG_TRACING={stash.DEBUG_TRACING}) (stash.PLUGIN_TASK_NAME={stash.PLUGIN_TASK_NAME})************************************************")
 
 stash.Trace(f"(stashPaths={stash.STASH_PATHS})")
 
-listSeparator = stash.pluginConfig['listSeparator'] if stash.pluginConfig['listSeparator'] != "" else ','
-addPrimaryDupPathToDetails = stash.pluginConfig['addPrimaryDupPathToDetails'] 
-mergeDupFilename = stash.pluginSettings['mergeDupFilename']
-moveToTrashCan = stash.pluginSettings['moveToTrashCan'] 
-alternateTrashCanPath = stash.pluginConfig['dup_path'] 
+listSeparator               = stash.pluginConfig['listSeparator'] if stash.pluginConfig['listSeparator'] != "" else ','
+addPrimaryDupPathToDetails  = stash.pluginConfig['addPrimaryDupPathToDetails'] 
+mergeDupFilename            = stash.pluginSettings['mergeDupFilename']
+moveToTrashCan              = False if stash.pluginSettings['permanentlyDelete'] else True
+alternateTrashCanPath       = stash.pluginConfig['dup_path']
+whitelistDelDupInSameFolder = stash.pluginSettings['whitelistDelDupInSameFolder']
+maxDupToProcess             = stash.pluginSettings['zymaxDupToProcess']
+duplicateMarkForDeletion = stash.pluginSettings['dupFileTag']
+if duplicateMarkForDeletion == "":
+    duplicateMarkForDeletion = 'DuplicateMarkForDeletion'
+duplicateWhitelistTag = stash.pluginSettings['dupWhiteListTag']
+
+excludeMergeTags = [duplicateMarkForDeletion]
+if duplicateWhitelistTag != "":
+    excludeMergeTags = excludeMergeTags + [duplicateWhitelistTag]
 
 def realpath(path):
     """
@@ -134,12 +147,13 @@ def createTagId(tagName, tagName_descp, deleteIfExist = False):
 
 def setTagId(tagId, tagName, sceneDetails, PrimeDuplicateScene = ""):
     if PrimeDuplicateScene != "" and addPrimaryDupPathToDetails:
-        if sceneDetails['details'].startswith(f"Primary Duplicate = {PrimeDuplicateScene}"):
+        BaseDupStr = f"BaseDup={PrimeDuplicateScene}"
+        if sceneDetails['details'].startswith(BaseDupStr) or sceneDetails['details'].startswith(f"Primary Duplicate = {PrimeDuplicateScene}"):
             PrimeDuplicateScene = ""
         elif sceneDetails['details'] == "":
-            PrimeDuplicateScene = f"Primary Duplicate = {PrimeDuplicateScene}"
+            PrimeDuplicateScene = BaseDupStr
         else:
-            PrimeDuplicateScene = f"Primary Duplicate = {PrimeDuplicateScene};\n{sceneDetails['details']}"
+            PrimeDuplicateScene = f"{BaseDupStr};\n{sceneDetails['details']}"
     for tag in sceneDetails['tags']:
         if tag['name'] == tagName:
             if PrimeDuplicateScene != "" and addPrimaryDupPathToDetails:
@@ -158,17 +172,98 @@ def isInList(listToCk, pathToCk):
             return True
     return False
 
+def hasSameDir(path1, path2):
+    if pathlib.Path(path1).resolve().parent == pathlib.Path(path2).resolve().parent:
+        return True
+    return False
+
+def prnt(data):
+    return ascii(data) # return data.encode('ascii','ignore')
+
+def mergeData(SrcData, DestData):
+    # Merge tags
+    dataAdded = ""
+    for tag in SrcData['tags']:
+        if tag not in DestData['tags'] and tag['name'] not in excludeMergeTags:
+            stash.update_scene({'id' : DestData['id'], 'tag_ids' : tag['id']})
+            dataAdded += f"{tag['name']} "
+    if dataAdded != "":
+        stash.Trace(f"Added tags ({dataAdded}) to file {prnt(DestData['files'][0]['path'])}")
+    # Merge URLs
+    dataAdded = ""
+    listToAdd = DestData['urls']
+    for url in SrcData['urls']:
+        if url not in DestData['urls'] and not url.startswith(stash.STASH_URL):
+            listToAdd += [url]
+            dataAdded += f"{url} "
+    if dataAdded != "":
+        stash.update_scene({'id' : DestData['id'], 'urls' : listToAdd})
+        stash.Trace(f"Added urls ({dataAdded}) to file {prnt(DestData['files'][0]['path'])}")
+    # Merge performers
+    dataAdded = ""
+    listToAdd = []
+    for performer in SrcData['performers']:
+        if performer not in DestData['performers']:
+            listToAdd += [performer['id']]
+            dataAdded += f"{performer['id']} "
+    if dataAdded != "":
+        for performer in DestData['performers']:
+            listToAdd += [performer['id']]
+        stash.update_scene({'id' : DestData['id'], 'performer_ids' : listToAdd})
+        stash.Trace(f"Added performers ({dataAdded}) to file {prnt(DestData['files'][0]['path'])}")
+    # Merge studio
+    if DestData['studio'] == None and SrcData['studio'] != None:
+        stash.update_scene({'id' : DestData['id'], 'studio_id' : SrcData['studio']['id']})
+    # Merge galleries
+    dataAdded = ""
+    listToAdd = []
+    for gallery in SrcData['galleries']:
+        if gallery not in DestData['galleries']:
+            listToAdd += [gallery['id']]
+            dataAdded += f"{gallery['id']} "
+    if dataAdded != "":
+        for gallery in DestData['galleries']:
+            listToAdd += [gallery['id']]
+        stash.update_scene({'id' : DestData['id'], 'gallery_ids' : listToAdd})
+        stash.Trace(f"Added galleries ({dataAdded}) to file {prnt(DestData['files'][0]['path'])}")
+    # Merge title
+    if DestData['title'] == "" and SrcData['title'] != "":
+        stash.update_scene({'id' : DestData['id'], 'title' : SrcData['title']})
+    # Merge director
+    if DestData['director'] == "" and SrcData['director'] != "":
+        stash.update_scene({'id' : DestData['id'], 'director' : SrcData['director']})
+    # Merge date
+    if DestData['date'] == None and SrcData['date'] != None:
+        stash.update_scene({'id' : DestData['id'], 'date' : SrcData['date']})
+    # Merge details
+    if DestData['details'] == "" and SrcData['details'] != "":
+        stash.update_scene({'id' : DestData['id'], 'details' : SrcData['details']})
+    # Merge movies
+    dataAdded = ""
+    listToAdd = []
+    for movie in SrcData['movies']:
+        if movie not in DestData['movies']:
+            listToAdd += [{"movie_id" : movie['movie']['id'], "scene_index" : movie['scene_index']}]
+            dataAdded += f"{movie['movie']['id']} "
+    if dataAdded != "":
+        for movie in DestData['movies']:
+            listToAdd += [{"movie_id" : movie['movie']['id'], "scene_index" : movie['scene_index']}]
+        stash.update_scene({'id' : DestData['id'], 'movies' : listToAdd})
+        stash.Trace(f"Added movies ({dataAdded}) to file {prnt(DestData['files'][0]['path'])}")
+    # Merge rating100
+    if DestData['rating100'] == None and SrcData['rating100'] != None:
+        stash.update_scene({'id' : DestData['id'], 'rating100' : SrcData['rating100']})
+    # Merge code (Studio Code)
+    if DestData['code'] == "" and SrcData['code'] != "":
+        stash.update_scene({'id' : DestData['id'], 'code' : SrcData['code']})
+
 def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
     duration_diff = 10.00
-    duplicateMarkForDeletion = stash.pluginSettings['dupFileTag']
     duplicateMarkForDeletion_descp = 'Tag added to duplicate scenes so-as to tag them for deletion.'
-    if duplicateMarkForDeletion == "":
-        duplicateMarkForDeletion = 'DuplicateMarkForDeletion'
     stash.Log(f"duplicateMarkForDeletion = {duplicateMarkForDeletion}")    
     dupTagId = createTagId(duplicateMarkForDeletion, duplicateMarkForDeletion_descp)
     stash.Trace(f"dupTagId={dupTagId} name={duplicateMarkForDeletion}")
     
-    duplicateWhitelistTag = stash.pluginSettings['dupWhiteListTag']
     dupWhitelistTagId = None
     if duplicateWhitelistTag != "":
         stash.Log(f"duplicateWhitelistTag = {duplicateWhitelistTag}")    
@@ -185,7 +280,7 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
     whitelist = [item.lower() for item in whitelist]
     if whitelist == [""] : whitelist = []
     stash.Log(f"whitelist = {whitelist}")   
-    blacklist = stash.pluginSettings['zzblacklist'].split(listSeparator)
+    blacklist = stash.pluginSettings['zyblacklist'].split(listSeparator)
     blacklist = [item.lower() for item in blacklist]
     if blacklist == [""] : blacklist = []
     stash.Log(f"blacklist = {blacklist}")
@@ -212,7 +307,7 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
             QtyDup+=1
             Scene = stash.find_scene(DupFile['id'])
             sceneData = f"Scene = {Scene}"
-            stash.Trace(sceneData.encode('ascii','ignore'))
+            stash.Trace(prnt(sceneData))
             DupFileDetailList = DupFileDetailList + [Scene]
             if DupFileToKeep != "":
                 if DupFileToKeep['files'][0]['duration'] == Scene['files'][0]['duration']:
@@ -236,22 +331,23 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
                     DupFileToKeep = Scene
             else:
                 DupFileToKeep = Scene
-            # stash.Log(f"DupFileToKeep = {DupFileToKeep}")
-            stash.Trace(f"KeepID={DupFileToKeep['id']}, ID={DupFile['id']} duration=({Scene['files'][0]['duration']}), Size=({Scene['files'][0]['size']}), Res=({Scene['files'][0]['width']} x {Scene['files'][0]['height']}) Name={Scene['files'][0]['path'].encode('ascii','ignore')}")
+            # stash.Trace(f"DupFileToKeep = {DupFileToKeep}")
+            stash.Trace(f"KeepID={DupFileToKeep['id']}, ID={DupFile['id']} duration=({Scene['files'][0]['duration']}), Size=({Scene['files'][0]['size']}), Res=({Scene['files'][0]['width']} x {Scene['files'][0]['height']}) Name={prnt(Scene['files'][0]['path'])}, KeepPath={prnt(DupFileToKeep['files'][0]['path'])}")
         
         for DupFile in DupFileDetailList:
             if DupFile['id'] != DupFileToKeep['id']:
-                if isInList(whitelist, DupFile['files'][0]['path']):
-                    stash.Log(f"NOT tagging duplicate, because it's in whitelist. '{DupFile['files'][0]['path'].encode('ascii','ignore')}'")
+                if isInList(whitelist, DupFile['files'][0]['path']) and (not whitelistDelDupInSameFolder or not hasSameDir(DupFile['files'][0]['path'], DupFileToKeep['files'][0]['path'])):
+                    stash.Log(f"NOT tagging duplicate, because it's in whitelist. '{prnt(DupFile['files'][0]['path'])}'")
                     if dupWhitelistTagId and tagDuplicates:
                         setTagId(dupWhitelistTagId, duplicateWhitelistTag, DupFile, DupFileToKeep['files'][0]['path'])
                     QtySkipForDel+=1
                 else:
+                    if merge:
+                        mergeData(DupFile, DupFileToKeep)
                     if deleteDup:
                         DupFileName = DupFile['files'][0]['path']
                         DupFileNameOnly = pathlib.Path(DupFileName).stem
-                        stash.Log(f"Deleting duplicate '{DupFileName.encode('ascii','ignore')}'")
-                        # ToDo: Add logic to check if tag merging is needed before performing deletion.
+                        stash.Log(f"Deleting duplicate '{prnt(DupFileName)}'")
                         if alternateTrashCanPath != "":
                             shutil.move(DupFileName, f"{alternateTrashCanPath }{os.sep}{DupFileNameOnly}")
                         elif moveToTrashCan:
@@ -261,13 +357,13 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
                             os.remove(DupFileName) 
                     elif tagDuplicates:
                         if QtyTagForDel == 0:
-                            stash.Log(f"Tagging duplicate {DupFile['files'][0]['path'].encode('ascii','ignore')} for deletion with tag {duplicateMarkForDeletion}.")
+                            stash.Log(f"Tagging duplicate {prnt(DupFile['files'][0]['path'])} for deletion with tag {duplicateMarkForDeletion}.")
                         else:
-                            stash.Log(f"Tagging duplicate {DupFile['files'][0]['path'].encode('ascii','ignore')} for deletion.")
+                            stash.Log(f"Tagging duplicate {prnt(DupFile['files'][0]['path'])} for deletion.")
                         setTagId(dupTagId, duplicateMarkForDeletion, DupFile, DupFileToKeep['files'][0]['path'])
                     QtyTagForDel+=1
         stash.Log(SepLine)
-        if QtyDup > 20:
+        if maxDupToProcess > 0 and QtyDup > maxDupToProcess:
             break
     
     stash.Log(f"QtyDupSet={QtyDupSet}, QtyDup={QtyDup}, QtyTagForDel={QtyTagForDel}, QtySkipForDel={QtySkipForDel}, QtyExactDup={QtyExactDup}, QtyAlmostDup={QtyAlmostDup}")
@@ -289,10 +385,10 @@ elif stash.PLUGIN_TASK_NAME == "delete_duplicates":
     mangeDupFiles(deleteDup=True)
     stash.Trace(f"{stash.PLUGIN_TASK_NAME} EXIT")
 elif parse_args.dup_tag:
-    mangeDupFiles(tagDuplicates=True)
+    mangeDupFiles(tagDuplicates=True, merge=mergeDupFilename)
     stash.Trace(f"Tag duplicate EXIT")
 elif parse_args.remove:
-    mangeDupFiles(deleteDup=True)
+    mangeDupFiles(deleteDup=True, merge=mergeDupFilename)
     stash.Trace(f"Delete duplicate EXIT")
 
 else:

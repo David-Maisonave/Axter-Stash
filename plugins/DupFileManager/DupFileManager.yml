@@ -3,14 +3,6 @@ description: Manages duplicate files.
 version: 0.1.0
 url: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/DupFileManager
 settings:
-  mergeDupFilename:
-    displayName: Merge Duplicate Tags
-    description: Before deletion, merge potential source in the duplicate file names for tag names, performers, and studios. 
-    type: BOOLEAN
-  moveToTrashCan:
-    displayName: Trash Can
-    description: Enable to move files to trash can instead of permanently delete file.
-    type: BOOLEAN
   dupFileTag:
     displayName: Duplicate File Tag Name
     description: (Default = DuplicateMarkForDeletion) Tag used to tag duplicates with lower resolution, duration, and file name length.
@@ -19,6 +11,18 @@ settings:
     displayName: Duplicate Whitelist Tag Name
     description: If populated, a tag name used to tag duplicates in the whitelist. E.g. DuplicateWhitelistFile
     type: STRING
+  mergeDupFilename:
+    displayName: Merge Duplicate Tags
+    description: Before deletion, merge metadata from duplicate. E.g. Tag names, performers, studios, title, galleries, rating, details, etc... 
+    type: BOOLEAN
+  permanentlyDelete:
+    displayName: Permanent Delete
+    description: (Default=false) Enable to permanently delete files, instead of moving files to trash can.
+    type: BOOLEAN
+  whitelistDelDupInSameFolder:
+    displayName: Whitelist Delete In Same Folder
+    description: (Default=false) Allow whitelist deletion of duplicates within the same whitelist folder.
+    type: BOOLEAN
   zwhitelist:
     displayName: White List
     description: A comma seperated list of paths NOT to be deleted. E.g. C:\Favorite\,E:\MustKeep\
@@ -27,10 +31,14 @@ settings:
     displayName: Gray List
     description: List of preferential paths to determine which duplicate should be the primary. E.g. C:\2nd_Favorite\,H:\ShouldKeep\
     type: STRING
-  zzblacklist:
+  zyblacklist:
     displayName: Black List
     description: List of LEAST preferential paths to determine primary candidates for deletion. E.g. C:\Downloads\,F:\DeleteMeFirst\
     type: STRING
+  zymaxDupToProcess:
+    displayName: Max Dup Process
+    description: Maximum number of duplicates to process. If 0, infinity
+    type: NUMBER
   zzdebugTracing:
     displayName: Debug Tracing
     description: (Default=false) [***For Advanced Users***] Enable debug tracing. When enabled, additional tracing logging is added to Stash\plugins\DupFileManager\DupFileManager.log
