@@ -580,9 +580,12 @@ def start_library_monitor():
                     if not stash.DRY_RUN:
                         if lastScanJob['id'] > -1:
                             lastScanJob['lastStatus'] = stash.find_job(lastScanJob['id'])
-                            stash.Trace(f"Last Scan Job ({lastScanJob['id']}); result = {lastScanJob['lastStatus']}")
                             elapsedTime = time.time() - lastScanJob['timeAddedToTaskQueue']
-                            if ('status' in lastScanJob['lastStatus'] and lastScanJob['lastStatus']['status'] == "FINISHED") or elapsedTime > MAX_SECONDS_WAIT_SCANJOB_COMPLETE:
+                            if 'status' not in lastScanJob['lastStatus']:
+                                stash.Warn(f"Could not get a status from scan job {lastScanJob['id']}; result = {lastScanJob['lastStatus']}; Elapse-Time = {elapsedTime}")
+                            else:
+                                stash.Trace(f"Last Scan Job ({lastScanJob['id']}); Status = {lastScanJob['lastStatus']['status']}; result = {lastScanJob['lastStatus']}; Elapse-Time = {elapsedTime}")
+                            if 'status' not in lastScanJob['lastStatus'] or lastScanJob['lastStatus']['status'] == "FINISHED" or elapsedTime > MAX_SECONDS_WAIT_SCANJOB_COMPLETE:
                                 if elapsedTime > MAX_SECONDS_WAIT_SCANJOB_COMPLETE:
                                     stash.Warn(f"Timeout occurred waiting for scan job {lastScanJob['id']} to complete. Elapse-Time = {elapsedTime}; Max-Time={MAX_SECONDS_WAIT_SCANJOB_COMPLETE}; Scan-Path(s) = {lastScanJob['TargetPaths']}")
                                 lastScanJob['id'] = -1
