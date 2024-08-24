@@ -2,8 +2,6 @@
 # By David Maisonave (aka Axter) Jul-2024 (https://www.axter.com/)
 # Get the latest developers version from following link: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/DupFileManager
 config = {
-    # Character used to seperate items on the whitelist, blacklist, and graylist
-    "listSeparator" : ",",
     # If enabled, adds the primary duplicate path to the scene detail.
     "addPrimaryDupPathToDetails" : True,
     # Alternative path to move duplicate files.
@@ -16,6 +14,8 @@ config = {
     "significantTimeDiff" : .90, # 95% threshold
     # If enabled, moves destination file to recycle bin before swapping Hi-Res file.
     "toRecycleBeforeSwap" : True,
+    # Character used to seperate items on the whitelist, blacklist, and graylist
+    "listSeparator" : ",",
     
     # The following fields are ONLY used when running DupFileManager in script mode
     "endpoint_Scheme" : "http", # Define endpoint to use when contacting the Stash server
