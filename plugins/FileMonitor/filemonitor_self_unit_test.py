@@ -25,6 +25,7 @@ self_unit_test = {
         {"task" : "Auto Tag",                                                                           "weekday" : "friday",   "time" : "12:03"},
         {"task" : "Optimise Database",                                                                  "weekday" : "friday",   "time" : "12:03"},
         {"task" : "Create Tags", "pluginId" : "pathParser",  "validateDir" : "pathParser",              "weekday" : "friday",   "time" : "12:03"}, # In task queue as -> Running plugin task: Create Tags
+        {"task" : "Delete Duplicates", "pluginId" : "DupFileManager",  "validateDir" : "DupFileManager","weekday" : "friday",   "time" : "12:03"}, # [Plugin Tasks] -> DupFileManager -> [Delete Duplicates]
         {"task" : "Scan","paths": [r"B:\_\SpecialSet", r"C:\foo"],                                      "weekday" : "friday",   "time" : "12:03"},
         {"task" : "GQL", "input" : "mutation OptimiseDatabase { optimiseDatabase }",                    "weekday" : "friday",   "time" : "12:03"}, # In task queue as -> Optimising database...
         {"task" : "Clean Generated Files",                                                              "weekday" : "friday",   "time" : "12:03"},
