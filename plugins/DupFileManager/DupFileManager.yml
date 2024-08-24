@@ -23,6 +23,10 @@ settings:
     displayName: Whitelist Delete In Same Folder
     description: (Default=false) Allow whitelist deletion of duplicates within the same whitelist folder.
     type: BOOLEAN
+  zcleanAfterDel:
+    displayName: Run Clean After Delete
+    description: After running a 'Delete Duplicates' task, run Clean, Clean-Generated, and Optimize-Database.
+    type: BOOLEAN
   zwhitelist:
     displayName: White List
     description: A comma seperated list of paths NOT to be deleted. E.g. C:\Favorite\,E:\MustKeep\
@@ -56,11 +60,3 @@ tasks:
     description: Delete duplicate files
     defaultArgs:
       mode: delete_duplicates
-  - name: Merge Duplicate Filename
-    description: Merge duplicate filename sourcetag names, performers, and studios.
-    defaultArgs:
-      mode: merge_dup_filename_task
-  - name: Dry Run Delete Duplicates
-    description: Only perform a dry run (logging only) of duplicate file deletions. Dry Run setting is ignore when running this task.
-    defaultArgs:
-      mode: dryrun_delete_duplicates

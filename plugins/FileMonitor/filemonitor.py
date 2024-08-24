@@ -48,6 +48,7 @@ stash = StashPluginHelper(
         config=config,
         logToErrSet=logToErrSet,
         logToNormSet=logToNormSet,
+        maxbytes=10*1024*1024,
         apiKey=parse_args.apikey
         )
 stash.Status()

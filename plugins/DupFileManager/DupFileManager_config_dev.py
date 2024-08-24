@@ -5,10 +5,6 @@ config_dev = {
     # If enabled, ignore symbolic links.
     "ignoreSymbolicLinks" : True,
     
-    # If enabled, swap higher resolution duplicate files to preferred path.
-    "swapHighRes" : True,
-    # If enabled, swap longer length media files to preferred path. Longer will be determine by significantLongerTime value.
-    "swapLongLength" : True,
     # If enabled, swap longer file name to preferred path.
     "swapLongFileName" : False,
     
@@ -20,8 +16,6 @@ config_dev = {
     "keepLowerResolution" : False,
     # If enabled, keep duplicate media with high resolution over media with significant longer time.
     "keepHighResOverLen" : False, # Requires keepBothHighResAndLongerLen = False
-    # The threshold as to what percentage is consider a significant longer time. Default is 15% longer.
-    "significantLongerTime" : 15, # 15% longer time
     # If enabled, keep both duplicate files if the LOWER resolution file is significantly longer.
     "keepBothHighResAndLongerLen" : True,
     

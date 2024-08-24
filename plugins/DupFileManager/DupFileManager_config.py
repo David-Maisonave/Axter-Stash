@@ -6,8 +6,16 @@ config = {
     "listSeparator" : ",",
     # If enabled, adds the primary duplicate path to the scene detail.
     "addPrimaryDupPathToDetails" : True,
-    # Alternative path to move duplicate files. Path needs to be in the same drive as the duplicate file.
+    # Alternative path to move duplicate files.
     "dup_path": "", #Example: "C:\\TempDeleteFolder"
+    # If enabled, swap higher resolution duplicate files to preferred path.
+    "swapHighRes" : True,
+    # If enabled, swap longer length media files to preferred path. Longer will be determine by significantLongerTime value.
+    "swapLongLength" : True,
+    # The threshold as to what percentage is consider a significant shorter time.
+    "significantTimeDiff" : .90, # 95% threshold
+    # If enabled, moves destination file to recycle bin before swapping Hi-Res file.
+    "toRecycleBeforeSwap" : True,
     
     # The following fields are ONLY used when running DupFileManager in script mode
     "endpoint_Scheme" : "http", # Define endpoint to use when contacting the Stash server
