@@ -27,6 +27,9 @@ config = {
         {"task" : "Clean",                  "weekday" : "saturday",   "time" : "04:30"}, # Maintenance -> [Clean] (Every saturday at 4:30AM)
         {"task" : "Clean Generated Files",  "weekday" : "saturday",   "time" : "05:00"}, # Maintenance -> [Clean Generated Files] (Every saturday at 5AM)
         {"task" : "Optimise Database",      "weekday" : "saturday",   "time" : "05:30"}, # Maintenance -> [Optimise Database] (Every saturday at 5:30AM)
+        # The following task runs plugin DupFileManager if the plugin is installed.
+        {"task" : "Delete Duplicates", "pluginId" : "DupFileManager",  "validateDir" : "DupFileManager",  
+                                            "weekday" : "saturday",   "time" : "02:30"}, # [Plugin Tasks] -> DupFileManager -> [Delete Duplicates] (Every saturday at 2:30AM)
         
         # To perform a task monthly, specify the day of the month as in the weekly schedule format, and add a monthly field.
             # The monthly field value must be 1, 2, 3, or 4.
