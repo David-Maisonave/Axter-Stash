@@ -53,10 +53,10 @@ exec:
 interface: raw
 tasks:
   - name: Tag Duplicate Filename
-    description: Set tag DuplicateMarkForDeletion to the duplicate with lower resolution, duration, file name length, and/or black list path.
+    description: Set tag DuplicateMarkForDeletion to the duplicates with lower resolution, duration, file name length, and/or black list path.
     defaultArgs:
       mode: merge_dup_filename_task
   - name: Delete Duplicates
-    description: Delete duplicate files
+    description: Deletes duplicate files
     defaultArgs:
       mode: delete_duplicates
