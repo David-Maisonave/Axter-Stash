@@ -4,10 +4,10 @@ DupFileManager is a [Stash](https://github.com/stashapp/stash) plugin which mana
 - Can merge potential source in the duplicate file names for tag names, performers, and studios.
   - Normally when Stash searches the file name for tag names, performers, and studios, it only does so using the primary file.
 - Delete duplicate file task with the following options:
-  - Options in plugin UI (Settings->Plugins->Plugins->[DupFileManager])
-    - Before deletion, merge potential source in the duplicate file names for tag names, performers, and studios.
-    - Optionally permanently delete duplicates or moved them to **trash can** / alternate folder.
-  - Plugin UI options
+  - Tasks (Settings->Task->[Plugin Tasks]->DupFileManager)
+    - **Tag Duplicate Filename** - Set tag DuplicateMarkForDeletion to the duplicates with lower resolution, duration, file name length, and/or black list path.
+    - **Delete Duplicates** - Deletes duplicate files
+  - Plugin UI options (Settings->Plugins->Plugins->[DupFileManager])
     - Use a white-list of preferential directories to determine which duplicate will be the primary.
     - Use a gray-list of preferential directories to determine which duplicate should be the primary.
     - Use a black-list to determine which duplicates should be deleted first.
