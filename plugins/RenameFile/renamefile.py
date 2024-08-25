@@ -479,7 +479,10 @@ def rename_scene(scene_id, stash_directory):
         new_path_info = {'new_file_path': new_path}
         if debugTracing: logger.info(f"{dry_run_prefix}New filename: {new_path}")
 
-    if move_files and original_parent_directory.name != scene_details['studio']['name']:
+    studioName = ""
+    if 'studio' in scene_details and scene_details['studio'] != None and 'name' in scene_details['studio']:
+        studioName = scene_details['studio']['name']
+    if move_files and studioName != "" and original_parent_directory.name != studioName:
         new_path = original_parent_directory / scene_details['studio']['name'] / (new_filename + Path(original_file_path).suffix)
         new_path_info = {'new_file_path': new_path}
         move_or_rename_files(scene_details, new_filename, original_parent_directory)

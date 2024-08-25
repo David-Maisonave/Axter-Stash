@@ -172,6 +172,9 @@ class StashPluginHelper(StashInterface):
             super().__init__(self.FRAGMENT_SERVER)
             self.STASH_INTERFACE_INIT = True
             
+        if self.STASH_URL.startswith("http://0.0.0.0:"):
+            self.STASH_URL = self.STASH_URL.replace("http://0.0.0.0:", "http://localhost:")
+        
         if self.STASH_INTERFACE_INIT:
             self.PLUGIN_CONFIGURATION = self.get_configuration()["plugins"]
             self.STASH_CONFIGURATION = self.get_configuration()["general"]

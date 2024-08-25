@@ -14,8 +14,10 @@ from filemonitor_task_examples import task_examples
 from filemonitor_self_unit_test import self_unit_test
 
 config['task_scheduler'] = config['task_scheduler'] + task_examples['task_scheduler']
-if self_unit_test['selfUnitTest']:
-    config['task_scheduler'] = config['task_scheduler'] + self_unit_test['task_scheduler']
+if self_unit_test['selfUnitTest_repeat']:
+    config['task_scheduler'] = config['task_scheduler'] + self_unit_test['task_scheduler_repeat']
+if self_unit_test['selfUnitTest_set_time']:
+    config['task_scheduler'] = config['task_scheduler'] + self_unit_test['task_scheduler_set_time']
 
 CONTINUE_RUNNING_SIG = 99
 STOP_RUNNING_SIG = 32
@@ -38,6 +40,7 @@ if parse_args.quit:
 settings = {
     "recursiveDisabled": False,
     "turnOnScheduler": False,
+    "turnOnSchedulerDeleteDup": False,
     "zmaximumBackups": 1,
     "zzdebugTracing": False
 }
@@ -82,6 +85,7 @@ if CREATE_SPECIAL_FILE_TO_EXIT and os.path.isfile(SPECIAL_FILE_NAME):
 fileExtTypes = stash.pluginConfig['fileExtTypes'].split(",") if stash.pluginConfig['fileExtTypes'] != "" else []
 includePathChanges = stash.pluginConfig['includePathChanges'] if len(stash.pluginConfig['includePathChanges']) > 0 else stash.STASH_PATHS
 excludePathChanges = stash.pluginConfig['excludePathChanges']
+turnOnSchedulerDeleteDup = stash.pluginSettings['turnOnSchedulerDeleteDup']
 
 if stash.DRY_RUN:
     stash.Log("Dry run mode is enabled.")
@@ -303,6 +307,9 @@ class StashScheduler: # Stash Scheduler
                 if invalidDir:
                     stash.Error(f"Could not run task '{task['task']}' because sub directory '{task['validateDir']}' does not exist under path '{stash.PLUGINS_PATH}'")
                 else:
+                    if task['task'] == "Delete Duplicates" and not turnOnSchedulerDeleteDup:
+                        stash.Warn(f"Not running task {task['task']}, because [Delete Duplicate Scheduler] is NOT enabled. See Stash UI option Settings->Plugins->Plugins->FileMonitor->[Delete Duplicate Scheduler]")
+                        return None
                     stash.Trace(f"Running plugin task pluginID={task['pluginId']}, task name = {task['task']}. {validDirMsg}")
                     return stash.run_plugin_task(plugin_id=task['pluginId'], task_name=task['task'])
             else:

@@ -6,16 +6,18 @@ config = {
     "addPrimaryDupPathToDetails" : True,
     # Alternative path to move duplicate files.
     "dup_path": "", #Example: "C:\\TempDeleteFolder"
-    # If enabled, swap higher resolution duplicate files to preferred path.
-    "swapHighRes" : True,
-    # If enabled, swap longer length media files to preferred path. Longer will be determine by significantLongerTime value.
-    "swapLongLength" : True,
     # The threshold as to what percentage is consider a significant shorter time.
-    "significantTimeDiff" : .90, # 95% threshold
+    "significantTimeDiff" : .90, # 90% threshold
+    # Valued passed to stash API function FindDuplicateScenes.
+    "duration_diff" : 10, # (default=10) A value from 1 to 10.
     # If enabled, moves destination file to recycle bin before swapping Hi-Res file.
     "toRecycleBeforeSwap" : True,
     # Character used to seperate items on the whitelist, blacklist, and graylist
     "listSeparator" : ",",
+    # Tag used to tag duplicates with lower resolution, duration, and file name length.
+    "DupFileTag" : "DuplicateMarkForDeletion",
+    # Tag name used to tag duplicates in the whitelist. E.g. DuplicateWhitelistFile
+    "DupWhiteListTag" : "DuplicateWhitelistFile",
     
     # The following fields are ONLY used when running DupFileManager in script mode
     "endpoint_Scheme" : "http", # Define endpoint to use when contacting the Stash server
