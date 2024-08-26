@@ -57,10 +57,14 @@ exec:
 interface: raw
 tasks:
   - name: Tag Duplicates
-    description: Set tag DuplicateMarkForDeletion to the duplicates with lower resolution, duration, file name length, and/or black list path.
+    description: Set tag DuplicateMarkForDeletion to the duplicates with lower resolution, duration, file name length, or black list path.
     defaultArgs:
       mode: tag_duplicates_task
-  - name: Delete Duplicates
-    description: Deletes duplicate files
+  - name: Delete Tagged Duplicates
+    description: Only delete scenes having DuplicateMarkForDeletion tag.
     defaultArgs:
-      mode: delete_duplicates
+      mode: delete_tagged_duplicates_task
+  - name: Delete Duplicates
+    description: Delete duplicate scenes. Performs deletion without first tagging.
+    defaultArgs:
+      mode: delete_duplicates_task

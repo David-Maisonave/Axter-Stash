@@ -16,8 +16,9 @@ from DupFileManager_config import config # Import config from DupFileManager_con
 parser = argparse.ArgumentParser()
 parser.add_argument('--url', '-u', dest='stash_url', type=str, help='Add Stash URL')
 parser.add_argument('--trace', '-t', dest='trace', action='store_true', help='Enables debug trace mode.')
-parser.add_argument('--remove_dup', '-r', dest='remove', action='store_true', help='Remove (delete) duplicate files.')
 parser.add_argument('--add_dup_tag', '-a', dest='dup_tag', action='store_true', help='Set a tag to duplicate files.')
+parser.add_argument('--del_tag_dup', '-d', dest='del_tag', action='store_true', help='Only delete scenes having DuplicateMarkForDeletion tag.')
+parser.add_argument('--remove_dup', '-r', dest='remove', action='store_true', help='Remove (delete) duplicate files.')
 parse_args = parser.parse_args()
 
 settings = {
@@ -39,7 +40,7 @@ stash = StashPluginHelper(
         debugTracing=parse_args.trace,
         settings=settings,
         config=config,
-        maxbytes=50*1024*1024,
+        maxbytes=10*1024*1024,
         )
 stash.Status(logLevel=logging.DEBUG)
 stash.Trace(f"\nStarting (__file__={__file__}) (stash.CALLED_AS_STASH_PLUGIN={stash.CALLED_AS_STASH_PLUGIN}) (stash.DEBUG_TRACING={stash.DEBUG_TRACING}) (stash.PLUGIN_TASK_NAME={stash.PLUGIN_TASK_NAME})************************************************")
@@ -182,7 +183,6 @@ def createTagId(tagName, tagName_descp, deleteIfExist = False):
     return tagId['id']
 
 def setTagId(tagId, tagName, sceneDetails, DupFileToKeep):
-    stash.Trace()
     details = ""
     ORG_DATA_DICT = {'id' : sceneDetails['id']}
     dataDict = ORG_DATA_DICT.copy()
@@ -380,6 +380,44 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
         stash.metadata_clean_generated()
         stash.optimise_database()
 
+def deleteTagggedDuplicates():
+    tagId = stash.find_tags(q=duplicateMarkForDeletion)
+    if len(tagId) > 0 and 'id' in tagId[0]:
+        tagId = tagId[0]['id']
+    else:
+        stash.Warn(f"Could not find tag ID for tag '{duplicateMarkForDeletion}'.")
+        return
+    QtyDup = 0
+    QtyDeleted = 0
+    QtyFailedQuery = 0
+    stash.Trace("#########################################################################")
+    sceneIDs = stash.find_scenes(f={"tags": {"value":tagId, "modifier":"INCLUDES"}}, fragment='id')
+    stash.Trace(f"Found the following scenes with tag ({duplicateMarkForDeletion}): sceneIDs = {sceneIDs}")
+    for sceneID in sceneIDs:
+        # stash.Trace(f"Getting scene data for scene ID {sceneID['id']}.")
+        QtyDup += 1
+        scene = stash.find_scene(sceneID['id'])
+        if scene == None or len(scene) == 0:
+            stash.Warn(f"Could not get scene data for scene ID {sceneID['id']}.")
+            QtyFailedQuery += 1
+            continue
+        # stash.Log(f"scene={scene}")
+        DupFileName = scene['files'][0]['path']
+        DupFileNameOnly = pathlib.Path(DupFileName).stem
+        stash.Warn(f"Deleting duplicate '{DupFileName}'", toAscii=True, printTo=LOG_STASH_N_PLUGIN)
+        if alternateTrashCanPath != "":
+            destPath = f"{alternateTrashCanPath }{os.sep}{DupFileNameOnly}"
+            if os.path.isfile(destPath):
+                destPath = f"{alternateTrashCanPath }{os.sep}_{time.time()}_{DupFileNameOnly}"
+            shutil.move(DupFileName, destPath)
+        elif moveToTrashCan:
+            sendToTrash(DupFileName)
+        result = stash.destroy_scene(scene['id'], delete_file=True)
+        stash.Trace(f"destroy_scene result={result} for file {DupFileName}", toAscii=True)
+        QtyDeleted += 1
+    stash.Log(f"QtyDup={QtyDup}, QtyDeleted={QtyDeleted}, QtyFailedQuery={QtyFailedQuery}", printTo=LOG_STASH_N_PLUGIN)
+    return
+
 def testSetDupTagOnScene(sceneId):
     scene = stash.find_scene(sceneId)
     stash.Log(f"scene={scene}")
@@ -393,16 +431,21 @@ def testSetDupTagOnScene(sceneId):
 if stash.PLUGIN_TASK_NAME == "tag_duplicates_task":
     mangeDupFiles(tagDuplicates=True, merge=mergeDupFilename)
     stash.Trace(f"{stash.PLUGIN_TASK_NAME} EXIT")
-elif stash.PLUGIN_TASK_NAME == "delete_duplicates":
+elif stash.PLUGIN_TASK_NAME == "delete_tagged_duplicates_task":
+    deleteTagggedDuplicates()
+    stash.Trace(f"{stash.PLUGIN_TASK_NAME} EXIT")
+elif stash.PLUGIN_TASK_NAME == "delete_duplicates_task":
     mangeDupFiles(deleteDup=True, merge=mergeDupFilename)
     stash.Trace(f"{stash.PLUGIN_TASK_NAME} EXIT")
 elif parse_args.dup_tag:
     mangeDupFiles(tagDuplicates=True, merge=mergeDupFilename)
     stash.Trace(f"Tag duplicate EXIT")
+elif parse_args.del_tag:
+    deleteTagggedDuplicates()
+    stash.Trace(f"Delete Tagged duplicates EXIT")
 elif parse_args.remove:
     mangeDupFiles(deleteDup=True, merge=mergeDupFilename)
     stash.Trace(f"Delete duplicate EXIT")
-
 else:
     stash.Log(f"Nothing to do!!! (PLUGIN_ARGS_MODE={stash.PLUGIN_TASK_NAME})")
 

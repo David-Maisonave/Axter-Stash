@@ -212,23 +212,23 @@ class StashScheduler: # Stash Scheduler
         
         result = None
         if task['task'] == "Clean":
-            result = stash.metadata_clean(paths=targetPaths, dry_run=stash.DRY_RUN)
+            result = self.jobIdOutput(stash.metadata_clean(paths=targetPaths, dry_run=stash.DRY_RUN))
         elif task['task'] == "Clean Generated Files":
-            result = stash.metadata_clean_generated()
+            result = self.jobIdOutput(stash.metadata_clean_generated()))
         elif task['task'] == "Generate":
-            result = stash.metadata_generate()
+            result = self.jobIdOutput(stash.metadata_generate())
         elif task['task'] == "Backup":
-            result = self.runBackupTask(task)
+            result = self.jobIdOutput(self.runBackupTask(task))
         elif task['task'] == "Scan":
-            result = stash.metadata_scan(paths=targetPaths)
+            result = self.jobIdOutput(stash.metadata_scan(paths=targetPaths))
         elif task['task'] == "Auto Tag":
-            result = stash.metadata_autotag(paths=targetPaths)
+            result = self.jobIdOutput(stash.metadata_autotag(paths=targetPaths))
         elif task['task'] == "Optimise Database":
-            result = stash.optimise_database()
+            result = self.jobIdOutput(stash.optimise_database())
         elif task['task'] == "RenameGeneratedFiles":
-            result = stash.rename_generated_files()
+            result = self.jobIdOutput(stash.rename_generated_files())
         elif task['task'] == "GQL":
-            result = stash.call_GQL(task['input'])
+            result = self.jobIdOutput(stash.call_GQL(task['input']))
         elif task['task'] == "Log":
             Msg = "Scheduled Logging (INFO)."
             if 'msg' in task and task['msg'] != "":
@@ -256,10 +256,22 @@ class StashScheduler: # Stash Scheduler
         elif task['task'] == "execute":
             result = self.runExecuteProcessTask(task)
         else:
-            result = self.runPluginTask(task)
+            result = self.jobIdOutput(self.runPluginTask(task))
         
         if result:
             stash.Trace(f"Task '{task['task']}' result={result}")
+    
+    def jobIdOutput(self, result):
+        if result == None or result == "":
+            return result
+        jobId = None
+        if type(result) is int:
+            jobId = result
+        elif str(result).isnumeric():
+            jobId = int(result)
+        else:
+            return result
+        return f"Task started with Job-ID#({jobId})"
     
     def runExecuteProcessTask(self, task):
         if 'command' in task and task['command'] != "":
@@ -289,7 +301,6 @@ class StashScheduler: # Stash Scheduler
         return None
     
     def runPluginTask(self, task):
-        # ToDo: Add code to check if plugin is installed.
         try:
             if 'pluginId' in task and task['pluginId'] != "":
                 invalidDir = False
