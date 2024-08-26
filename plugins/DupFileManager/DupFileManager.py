@@ -43,9 +43,6 @@ stash = StashPluginHelper(
         )
 stash.Status(logLevel=logging.DEBUG)
 stash.Trace(f"\nStarting (__file__={__file__}) (stash.CALLED_AS_STASH_PLUGIN={stash.CALLED_AS_STASH_PLUGIN}) (stash.DEBUG_TRACING={stash.DEBUG_TRACING}) (stash.PLUGIN_TASK_NAME={stash.PLUGIN_TASK_NAME})************************************************")
-
-stash.Trace(f"(stashPaths={stash.STASH_PATHS}")
-stash.Trace(f"(STASH_URL={stash.STASH_URL}")
 # stash.encodeToUtf8 = True
 
 LOG_STASH_N_PLUGIN = stash.LOG_TO_STASH if stash.CALLED_AS_STASH_PLUGIN else stash.LOG_TO_CONSOLE + stash.LOG_TO_FILE
