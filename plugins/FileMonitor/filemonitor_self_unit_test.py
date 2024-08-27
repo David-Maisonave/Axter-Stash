@@ -8,11 +8,9 @@ self_unit_test = {
         {"task" : "TestBadTaskNameError",                       "minutes" : 1}, # Test invalid task name
         {"task" : "execute",                                    "minutes" : 1}, # Test invalid task (missing command)
         {"task" : "python",                                     "minutes" : 1}, # Test invalid task (missing scripts)
-        {"task" : "PluginWithOutID",                            "minutes" : 1}, # Test invalid task (missing pluginId)
         {"task" : "execute", "command" : "",                    "minutes" : 1}, # Test invalid task (missing command)
         {"task" : "python", "script" : "",                      "minutes" : 1}, # Test invalid task (missing scripts)
-        {"task" : "PluginWithOutID", "pluginId" : "",           "minutes" : 1}, # Test invalid task (missing pluginId)
-        {"task" : "Foo","pluginId":"foo","validateDir":"foo",   "minutes" : 1}, # Test invalid task (missing plugin directory)
+        {"task" : "Foo","taskName":"foo","validateDir":"foo",   "minutes" : 1}, # Test invalid task (missing plugin directory)
         {"task" : "Log",  "msg" : "Testing Scheduled Log",      "minutes" : 1}, # Test plugin log file
         {"task" : "Trace",                                      "minutes" : 1}, # Test plugin trace logging
         {"task" : "LogOnce",                                    "seconds" :15}, # Test LogOnce
@@ -23,24 +21,25 @@ self_unit_test = {
     ],
     "task_scheduler_set_time": [        
         # Test [Delete Duplicates] with [Delete Duplicate Scheduler] disabled, and then with it enabled.               
-        {"task" : "Delete Duplicates", "pluginId" : "DupFileManager",  "validateDir" : "DupFileManager","weekday" : "sunday",   "time" : "17:56"}, # [Plugin Tasks] -> DupFileManager -> [Delete Duplicates]
-        {"task" : "Generate",                                                                           "weekday" : "sunday",   "time" : "17:56"},
-        {"task" : "Clean",                                                                              "weekday" : "sunday",   "time" : "17:56"},
-        {"task" : "Auto Tag",                                                                           "weekday" : "sunday",   "time" : "17:56"},
-        {"task" : "Optimise Database",                                                                  "weekday" : "sunday",   "time" : "17:56"},
-        {"task" : "Create Tags", "pluginId" : "pathParser",  "validateDir" : "pathParser",              "weekday" : "sunday",   "time" : "17:56"}, # In task queue as -> Running plugin task: Create Tags
-        {"task" : "Tag Duplicates", "pluginId" : "DupFileManager",  "validateDir" : "DupFileManager",   "weekday" : "sunday",   "time" : "17:56"}, # [Plugin Tasks] -> DupFileManager -> [Tag Duplicates]
-        {"task" : "Scan","paths": [r"B:\_\SpecialSet", r"C:\foo"],                                      "weekday" : "sunday",   "time" : "17:56"},
-        {"task" : "GQL", "input" : "mutation OptimiseDatabase { optimiseDatabase }",                    "weekday" : "sunday",   "time" : "17:56"}, # In task queue as -> Optimising database...
-        {"task" : "Clean Generated Files",                                                              "weekday" : "sunday",   "time" : "17:56"},
-        {"task" : "RenameGeneratedFiles",                                                               "weekday" : "sunday",   "time" : "17:56"}, # In task queue as -> Migrating scene hashes...
-        {"task" : "Backup", "maxBackups" : 0,                                                           "weekday" : "sunday",   "time" : "17:56"}, # Does NOT show up in the Task Queue. Must check STASH log file to verify run.
-        {"task" : "python", "script" : "<plugin_path>test_hello_world2.py",                             "weekday" : "sunday",   "time" : "17:56"}, # Does NOT show up in the Task Queue. Check FileMonitor log file, and look for -> Task 'python' result=???
-        {"task" : "python", "script" : "<plugin_path>test_hello_world.py", "detach" : False,            "weekday" : "sunday",   "time" : "17:56"}, # Does NOT show up in the Task Queue. Check FileMonitor log file, and look for -> Task 'python' result=???
-        {"task" : "execute", "command" : "<plugin_path>test_hello_world2.cmd",                          "weekday" : "sunday",   "time" : "17:56"}, # Does NOT show up in the Task Queue. Check FileMonitor log file, and look for -> Task 'execute' result=???
-        {"task" : "execute", "command" : "<plugin_path>test_hello_world.bat", "args" : "--name David",  "weekday" : "sunday",   "time" : "17:56"}, # Does NOT show up in the Task Queue. Check FileMonitor log file, and look for -> Task 'execute' result=???
+        {"task" : "DupFileManager", "taskName" : "Delete Duplicates",  "validateDir" : "DupFileManager",    "weekday" : "every",   "time" : "09:05"}, # [Plugin Tasks] -> DupFileManager -> [Delete Duplicates]
+        {"task" : "Generate",                                                                               "weekday" : "every",   "time" : "09:05"},
+        {"task" : "Clean",                                                                                  "weekday" : "every",   "time" : "09:05"},
+        {"task" : "Auto Tag",                                                                               "weekday" : "every",   "time" : "09:05"},
+        {"task" : "Optimise Database",                                                                      "weekday" : "every",   "time" : "09:05"},
+        {"task" : "pathParser", "taskName" : "Create Tags",  "validateDir" : "pathParser",                  "weekday" : "every",   "time" : "09:05"}, # In task queue as -> Running plugin task: Create Tags
+        {"task" : "DupFileManager", "taskMode" : "tag_duplicates_task", "taskQue":False,                    "weekday" : "every",   "time" : "10:09"}, # Does NOT run in the task queue
+        {"task" : "DupFileManager", "taskName" : "Tag Duplicates",  "validateDir" : "DupFileManager",       "weekday" : "every",   "time" : "10:30"}, # [Plugin Tasks] -> DupFileManager -> [Tag Duplicates]
+        {"task" : "Scan","paths": [r"B:\_\SpecialSet", r"C:\foo"],                                          "weekday" : "every",   "time" : "09:05"},
+        {"task" : "GQL", "input" : "mutation OptimiseDatabase { optimiseDatabase }",                        "weekday" : "every",   "time" : "09:05"}, # In task queue as -> Optimising database...
+        {"task" : "Clean Generated Files",                                                                  "weekday" : "every",   "time" : "09:05"},
+        {"task" : "RenameGeneratedFiles",                                                                   "weekday" : "every",   "time" : "09:05"}, # In task queue as -> Migrating scene hashes...
+        {"task" : "Backup", "maxBackups" : 0,                                                               "weekday" : "every",   "time" : "09:05"}, # Does NOT show up in the Task Queue. Must check STASH log file to verify run.
+        {"task" : "python", "script" : "<plugin_path>test_hello_world2.py",                                 "weekday" : "every",   "time" : "09:05"}, # Does NOT show up in the Task Queue. Check FileMonitor log file, and look for -> Task 'python' result=???
+        {"task" : "python", "script" : "<plugin_path>test_hello_world.py", "detach" : False,                "weekday" : "every",   "time" : "09:05"}, # Does NOT show up in the Task Queue. Check FileMonitor log file, and look for -> Task 'python' result=???
+        {"task" : "execute", "command" : "<plugin_path>test_hello_world2.cmd",                              "weekday" : "every",   "time" : "09:05"}, # Does NOT show up in the Task Queue. Check FileMonitor log file, and look for -> Task 'execute' result=???
+        {"task" : "execute", "command" : "<plugin_path>test_hello_world.bat", "args" : "--name David",      "weekday" : "every",   "time" : "09:05"}, # Does NOT show up in the Task Queue. Check FileMonitor log file, and look for -> Task 'execute' result=???
     ],    
     # MUST ToDo: Always set selfUnitTest to False before checking in this code!!!
     "selfUnitTest_repeat"   : False , # Enable to turn on self unit test.
-    "selfUnitTest_set_time" : False  , # Enable to turn on self unit test.
+    "selfUnitTest_set_time" : True  , # Enable to turn on self unit test.
 }

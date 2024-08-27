@@ -54,7 +54,7 @@ stash = StashPluginHelper(
         maxbytes=10*1024*1024,
         apiKey=parse_args.apikey
         )
-stash.Status()
+stash.Status(logLevel=logging.DEBUG)
 stash.Log(f"\nStarting (__file__={__file__}) (stash.CALLED_AS_STASH_PLUGIN={stash.CALLED_AS_STASH_PLUGIN}) (stash.DEBUG_TRACING={stash.DEBUG_TRACING}) (stash.DRY_RUN={stash.DRY_RUN}) (stash.PLUGIN_TASK_NAME={stash.PLUGIN_TASK_NAME})************************************************")
 
 exitMsg = "Change success!!"
@@ -162,29 +162,31 @@ class StashScheduler: # Stash Scheduler
                     weekDays = task['weekday'].lower()
                     if 'monthly' in task:
                         stash.Log(f"Adding to scheduler task '{task['task']}' monthly on number {task['monthly']} {task['weekday']} at {task['time']}")
+                    elif task['weekday'] == "every":
+                        stash.Log(f"Adding to scheduler task '{task['task']}' (weekly) every day at {task['time']}")
                     else:
                         stash.Log(f"Adding to scheduler task '{task['task']}' (weekly) every {task['weekday']} at {task['time']}")
                     
                     hasValidDay = False
-                    if "monday" in weekDays:
+                    if "monday" in weekDays or "every" in weekDays:
                         schedule.every().monday.at(task['time']).do(self.runTask, task)
                         hasValidDay = True
-                    if "tuesday" in weekDays:
+                    if "tuesday" in weekDays or "every" in weekDays:
                         schedule.every().tuesday.at(task['time']).do(self.runTask, task)
                         hasValidDay = True
-                    if "wednesday" in weekDays:
+                    if "wednesday" in weekDays or "every" in weekDays:
                         schedule.every().wednesday.at(task['time']).do(self.runTask, task)
                         hasValidDay = True
-                    if "thursday" in weekDays:
+                    if "thursday" in weekDays or "every" in weekDays:
                         schedule.every().thursday.at(task['time']).do(self.runTask, task)
                         hasValidDay = True
-                    if "friday" in weekDays:
+                    if "friday" in weekDays or "every" in weekDays:
                         schedule.every().friday.at(task['time']).do(self.runTask, task)
                         hasValidDay = True
-                    if "saturday" in weekDays:
+                    if "saturday" in weekDays or "every" in weekDays or "weekend" in weekDays:
                         schedule.every().saturday.at(task['time']).do(self.runTask, task)
                         hasValidDay = True
-                    if "sunday" in weekDays:
+                    if "sunday" in weekDays or "every" in weekDays or "weekend" in weekDays:
                         schedule.every().sunday.at(task['time']).do(self.runTask, task)
                         hasValidDay = True
                     
@@ -214,7 +216,7 @@ class StashScheduler: # Stash Scheduler
         if task['task'] == "Clean":
             result = self.jobIdOutput(stash.metadata_clean(paths=targetPaths, dry_run=stash.DRY_RUN))
         elif task['task'] == "Clean Generated Files":
-            result = self.jobIdOutput(stash.metadata_clean_generated()))
+            result = self.jobIdOutput(stash.metadata_clean_generated())
         elif task['task'] == "Generate":
             result = self.jobIdOutput(stash.metadata_generate())
         elif task['task'] == "Backup":
@@ -302,31 +304,43 @@ class StashScheduler: # Stash Scheduler
     
     def runPluginTask(self, task):
         try:
-            if 'pluginId' in task and task['pluginId'] != "":
-                invalidDir = False
-                validDirMsg = ""
-                if 'validateDir' in task and task['validateDir'] != "":
-                    invalidDir = True
-                    communityPluginPath = f"{stash.PLUGINS_PATH}{os.sep}community{os.sep}{task['validateDir']}"
-                    basePluginPath = f"{stash.PLUGINS_PATH}{os.sep}{task['validateDir']}"
-                    if os.path.exists(communityPluginPath):
-                        invalidDir = False
-                        validDirMsg = f"Valid path in {communityPluginPath}"
-                    elif os.path.exists(basePluginPath):
-                        invalidDir = False
-                        validDirMsg = f"Valid path in {basePluginPath}"
-                if invalidDir:
-                    stash.Error(f"Could not run task '{task['task']}' because sub directory '{task['validateDir']}' does not exist under path '{stash.PLUGINS_PATH}'")
-                else:
-                    if task['task'] == "Delete Duplicates" and not turnOnSchedulerDeleteDup:
-                        stash.Warn(f"Not running task {task['task']}, because [Delete Duplicate Scheduler] is NOT enabled. See Stash UI option Settings->Plugins->Plugins->FileMonitor->[Delete Duplicate Scheduler]")
-                        return None
-                    stash.Trace(f"Running plugin task pluginID={task['pluginId']}, task name = {task['task']}. {validDirMsg}")
-                    return stash.run_plugin_task(plugin_id=task['pluginId'], task_name=task['task'])
+            invalidDir = False
+            validDirMsg = ""
+            if 'validateDir' in task and task['validateDir'] != "":
+                invalidDir = True
+                communityPluginPath = f"{stash.PLUGINS_PATH}{os.sep}community{os.sep}{task['validateDir']}"
+                basePluginPath = f"{stash.PLUGINS_PATH}{os.sep}{task['validateDir']}"
+                if os.path.exists(communityPluginPath):
+                    invalidDir = False
+                    validDirMsg = f"Valid path in {communityPluginPath}"
+                elif os.path.exists(basePluginPath):
+                    invalidDir = False
+                    validDirMsg = f"Valid path in {basePluginPath}"
+            if invalidDir:
+                stash.Error(f"Could not run task '{task['task']}' because sub directory '{task['validateDir']}' does not exist under path '{stash.PLUGINS_PATH}'")
+                return None
+            if not turnOnSchedulerDeleteDup and  (task['task'] == "Delete Duplicates" or  ('taskName' in task and task['taskName'] == "Delete Duplicates") or ('taskMode' in task and task['taskMode'] == "delete_duplicates_task")):
+                stash.Warn(f"Not running task {task['task']}, because [Delete Duplicate Scheduler] is NOT enabled. See Stash UI option Settings->Plugins->Plugins->FileMonitor->[Delete Duplicate Scheduler]")
+                return None           
+            # The pluginId field is only here for backward compatibility, and should not be used in future scheduler configurations
+            if 'pluginId' in task and task['pluginId'] != "": # Obsolete method
+                stash.Trace(f"Adding to Task Queue plugin task pluginID={task['pluginId']}, task name = {task['task']}. {validDirMsg}")
+                return stash.run_plugin_task(plugin_id=task['pluginId'], task_name=task['task'])
             else:
-                stash.Error(f"Can not run task '{task['task']}', because it's an invalid task.")
-                stash.LogOnce(f"If task '{task['task']}' is supposed to be a built-in task, check for correct task name spelling.")
-                stash.LogOnce(f"If task '{task['task']}' is supposed to be a plugin, make sure to include the pluginId field in the task. task={task}")
+                taskName = None
+                taskMode = None
+                if 'taskName' in task:
+                    taskName = task['taskName']
+                if 'taskMode' in task:
+                    taskMode = task['taskMode']
+                if ('taskQue' in task and task['taskQue'] == False) or taskName == None:
+                    stash.Log(f"Running plugin task pluginID={task['task']}, task mode = {taskMode}. {validDirMsg}")
+                    # Asynchronous threading logic to call run_plugin, because it's a blocking call.
+                    stash.run_plugin(plugin_id=task['task'], task_mode=taskMode, asyn=True)
+                    return None
+                else:
+                    stash.Trace(f"Adding to Task Queue plugin task pluginID={task['task']}, task name = {taskName}. {validDirMsg}")
+                    return stash.run_plugin_task(plugin_id=task['task'], task_name=taskName)
         except Exception as e:
             stash.LogOnce(f"Failed to call plugin {task['task']} with plugin-ID {task['pluginId']}. Error: {e}")
             pass
@@ -702,7 +716,7 @@ def start_library_monitor_service():
     if stash.API_KEY:
         args = args + ["-a", stash.API_KEY]
     stash.ExecutePythonScript(args)
-    
+
 if parse_args.stop or parse_args.restart or stash.PLUGIN_TASK_NAME == "stop_library_monitor":
     stop_library_monitor()
     if parse_args.restart:
@@ -720,7 +734,7 @@ elif stash.PLUGIN_TASK_NAME == StartFileMonitorAsAPluginTaskID:
 elif not stash.CALLED_AS_STASH_PLUGIN:
     try:
         start_library_monitor()
-        stash.Trace(f"Command line FileMonitor EXIT")
+        stash.Trace("Command line FileMonitor EXIT")
     except Exception as e:
         tb = traceback.format_exc()
         stash.Error(f"Exception while running FileMonitor from the command line. Error: {e}\nTraceBack={tb}")

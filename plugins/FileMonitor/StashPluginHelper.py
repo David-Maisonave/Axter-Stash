@@ -299,7 +299,7 @@ class StashPluginHelper(StashInterface):
         if printTo == 0: printTo = self.log_to_err_set
         lineNo = inspect.currentframe().f_back.f_lineno
         self.Log(logMsg, printTo, logging.ERROR, lineNo, toAscii=toAscii)
-
+    
     def Status(self, printTo = 0, logLevel = logging.INFO, lineNo = -1):
         if printTo == 0: printTo = self.log_to_norm
         if lineNo == -1:
@@ -351,7 +351,65 @@ class StashPluginHelper(StashInterface):
             DestData = self.find_scene(DestData)
         return self._mergeMetadata.merge(SrcData, DestData)
     
-    # Extends class StashInterface with functions which are not yet in the class
+    def Progress(self, currentIndex, maxCount):
+        progress = (currentIndex / maxCount) if currentIndex < maxCount else (maxCount / currentIndex)
+        self.log.progress(progress)
+    
+    def run_plugin(self, plugin_id, task_mode=None, args:dict={}, asyn=False):
+        """Runs a plugin operation.
+           The operation is run immediately and does not use the job queue.
+        Args:
+            plugin_id (ID):             plugin_id
+            task_name (str, optional):  Plugin task to perform
+            args (dict, optional):      Arguments to pass to plugin. Plugin access via JSON_INPUT['args']
+        Returns:
+            A map of the result.
+        """
+        query = """mutation RunPluginOperation($plugin_id: ID!, $args: Map!) {
+            runPluginOperation(plugin_id: $plugin_id, args: $args)
+            }"""        
+        if task_mode != None:
+            args.update({"mode" : task_mode})
+        variables = {
+            "plugin_id": plugin_id,
+            "args": args,
+        }
+        if asyn:
+            self.Submit(self.call_GQL, query, variables)
+            return f"Made asynchronous call for plugin {plugin_id}"
+        else:
+            return self.call_GQL(query, variables)
+       
+    def find_duplicate_scenes_diff(self, distance: PhashDistance=PhashDistance.EXACT, fragment='id', duration_diff: float=10.00 ):
+        query = """
+        	query FindDuplicateScenes($distance: Int, $duration_diff: Float) {
+        		findDuplicateScenes(distance: $distance, duration_diff: $duration_diff) {
+        			...SceneSlim
+        		}
+        	}
+        """
+        if fragment:
+        	query = re.sub(r'\.\.\.SceneSlim', fragment, query)
+        else:
+        	query += "fragment SceneSlim on Scene { id  }"
+        
+        variables = { "distance": distance, "duration_diff": duration_diff }
+        result = self.call_GQL(query, variables)
+        return result['findDuplicateScenes'] 
+    
+    # #################################################################################################
+    # The below functions extends class StashInterface with functions which are not yet in the class
+    def get_all_scenes(self):
+        query_all_scenes = """
+            query AllScenes {
+                allScenes {
+                    id
+                    updated_at
+                }
+            }
+        """
+        return self.call_GQL(query_all_scenes)
+    
     def metadata_autotag(self, paths:list=[], performers:list=[], studios:list=[], tags:list=[]):
         query = """
         mutation MetadataAutoTag($input:AutoTagMetadataInput!) {
@@ -393,23 +451,6 @@ class StashPluginHelper(StashInterface):
     
     def rename_generated_files(self):
         return self.call_GQL("mutation MigrateHashNaming {migrateHashNaming}")
-       
-    def find_duplicate_scenes_diff(self, distance: PhashDistance=PhashDistance.EXACT, fragment='id', duration_diff: float=10.00 ):
-        query = """
-        	query FindDuplicateScenes($distance: Int, $duration_diff: Float) {
-        		findDuplicateScenes(distance: $distance, duration_diff: $duration_diff) {
-        			...SceneSlim
-        		}
-        	}
-        """
-        if fragment:
-        	query = re.sub(r'\.\.\.SceneSlim', fragment, query)
-        else:
-        	query += "fragment SceneSlim on Scene { id  }"
-        
-        variables = { "distance": distance, "duration_diff": duration_diff }
-        result = self.call_GQL(query, variables)
-        return result['findDuplicateScenes'] 
 
 class mergeMetadata: # A class to merge scene metadata from source scene to destination scene
     srcData = None

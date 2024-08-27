@@ -42,9 +42,15 @@ stash = StashPluginHelper(
         config=config,
         maxbytes=10*1024*1024,
         )
+if len(sys.argv) > 1:
+    stash.Log(f"argv = {sys.argv}")
+else:
+    stash.Trace(f"No command line arguments. JSON_INPUT['args'] = {stash.JSON_INPUT['args']}")
 stash.Status(logLevel=logging.DEBUG)
-stash.Trace(f"\nStarting (__file__={__file__}) (stash.CALLED_AS_STASH_PLUGIN={stash.CALLED_AS_STASH_PLUGIN}) (stash.DEBUG_TRACING={stash.DEBUG_TRACING}) (stash.PLUGIN_TASK_NAME={stash.PLUGIN_TASK_NAME})************************************************")
+
+# stash.Trace(f"\nStarting (__file__={__file__}) (stash.CALLED_AS_STASH_PLUGIN={stash.CALLED_AS_STASH_PLUGIN}) (stash.DEBUG_TRACING={stash.DEBUG_TRACING}) (stash.PLUGIN_TASK_NAME={stash.PLUGIN_TASK_NAME})************************************************")
 # stash.encodeToUtf8 = True
+
 
 LOG_STASH_N_PLUGIN = stash.LOG_TO_STASH if stash.CALLED_AS_STASH_PLUGIN else stash.LOG_TO_CONSOLE + stash.LOG_TO_FILE
 listSeparator               = stash.Setting('listSeparator', ',', notEmpty=True)
@@ -285,16 +291,20 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
     stash.Trace("#########################################################################")
     stash.Log(f"Waiting for find_duplicate_scenes_diff to return results; duration_diff={duration_diff}; significantTimeDiff={significantTimeDiff}", printTo=LOG_STASH_N_PLUGIN)
     DupFileSets = stash.find_duplicate_scenes_diff(duration_diff=duration_diff)
+    qtyResults = len(DupFileSets)
     stash.Trace("#########################################################################")
     for DupFileSet in DupFileSets:
         stash.Trace(f"DupFileSet={DupFileSet}")
         QtyDupSet+=1
+        stash.Progress(QtyDupSet, qtyResults)
         SepLine = "---------------------------"
         DupFileToKeep = ""
         DupToCopyFrom = ""
         DupFileDetailList = []
         for DupFile in DupFileSet:
             QtyDup+=1
+            stash.log.sl.progress(f"Scene ID = {DupFile['id']}")
+            time.sleep(2)
             Scene = stash.find_scene(DupFile['id'])
             sceneData = f"Scene = {Scene}"
             stash.Trace(sceneData, toAscii=True)
@@ -392,10 +402,13 @@ def deleteTagggedDuplicates():
     QtyFailedQuery = 0
     stash.Trace("#########################################################################")
     sceneIDs = stash.find_scenes(f={"tags": {"value":tagId, "modifier":"INCLUDES"}}, fragment='id')
-    stash.Trace(f"Found the following scenes with tag ({duplicateMarkForDeletion}): sceneIDs = {sceneIDs}")
+    qtyResults = len(sceneIDs)
+    stash.Trace(f"Found {qtyResults} scenes with tag ({duplicateMarkForDeletion}): sceneIDs = {sceneIDs}")
     for sceneID in sceneIDs:
         # stash.Trace(f"Getting scene data for scene ID {sceneID['id']}.")
         QtyDup += 1
+        prgs = QtyDup / qtyResults
+        stash.Progress(QtyDup, qtyResults)
         scene = stash.find_scene(sceneID['id'])
         if scene == None or len(scene) == 0:
             stash.Warn(f"Could not get scene data for scene ID {sceneID['id']}.")

@@ -43,8 +43,6 @@ config = {
     "pathToExclude": "",
     # Define a whitelist of allowed tags or EMPTY to allow all tags. Example Usage: "tag1", "tag2", "tag3"
     "tagWhitelist": "",
-    # Define whether files should be renamed when moved
-    "rename_files": True,
     # Define whether the original file name should be used if title is empty
     "if_notitle_use_org_filename": True, # Warning: Do not recommend setting this to False.
     # Current Stash DB schema only allows maximum base file name length to be 255
