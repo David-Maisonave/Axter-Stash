@@ -3,7 +3,7 @@
 # Get the latest developers version from following link: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor
 # Note: To call this script outside of Stash, pass argument --url and the Stash URL.
 #       Example:    python filemonitor.py --url http://localhost:9999
-import os, sys, time, pathlib, argparse, platform, traceback
+import os, sys, time, pathlib, argparse, platform, traceback, logging
 from StashPluginHelper import StashPluginHelper
 import watchdog  # pip install watchdog  # https://pythonhosted.org/watchdog/
 from watchdog.observers import Observer # This is also needed for event attributes
