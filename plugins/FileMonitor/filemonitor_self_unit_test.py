@@ -41,5 +41,5 @@ self_unit_test = {
     ],    
     # MUST ToDo: Always set selfUnitTest to False before checking in this code!!!
     "selfUnitTest_repeat"   : False , # Enable to turn on self unit test.
-    "selfUnitTest_set_time" : True  , # Enable to turn on self unit test.
+    "selfUnitTest_set_time" : False  , # Enable to turn on self unit test.
 }
