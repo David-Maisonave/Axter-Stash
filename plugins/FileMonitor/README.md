@@ -79,18 +79,24 @@ To configure the schedule or to add new task, edit the **task_scheduler** sectio
 	{"task" : "CheckStashIsRunning",    "minutes" :5}, # Checks every 5 minutes
 ],
 ````
-- To add plugins to the task list, both the Plugin-ID and the plugin name is required. The plugin ID is usually the file name of the script without the extension.
-  - For plugin task, optionally **validateDir** field can be included that defines the plugin sub directory, which is checked to see if it exist before running the task.
+- To add plugins to the task list, use the Plugin-ID in the "task" field. The plugin ID is usually the file name of the script without the extension.
+  - Plugin task have the following optional fields: taskName, taskMode, validateDir, and taskQue
+    - The **validateDir** field can be used to define the plugin sub directory, which is checked to see if it exist before running the task.
+    - **taskName** field is used to name the task to call for the associated plugin. It can not be used with "taskQue":False
+    - **taskQue** field is used to call the plugin without using the Task Queue. I.E. "taskQue":False. When this field is set to False, the taskName field can NOT be used.  Instead use taskMode to identify the task to call.
+    - **taskMode** field is used in order to run the plugin without using the Task Queue. The plugin runs immediatly. Be careful not to confuse taskMode with taskName. Look in the plugin *.yml file under the **tasks** section where it defines both the task-name and the task-mode.
 - Task can be scheduled to run monthly, weekly, hourly, and by minutes.
 - The scheduler list uses two types of syntax. One is **weekday** based, and the other is **frequency** based.
   - **weekday Based**
     - Use the weekday based syntax for daily, weekly, and monthly schedules.
     - All the weekday based methods must have a **weekday** field and a **time** field, which specifies the day(s) of the week and the time to start the task.
     - **Daily**:
-      - A daily task populates the weekday field with all the days of the week.
+      - A daily task populates the weekday field with all the days of the week or with keyword **every**.
       - **Daily Example**:
         - Starts a task daily at 6AM.
           - `{"task" : "Optimise Database",   "weekday" : "monday,tuesday,wednesday,thursday,friday,saturday,sunday",   "time" : "06:00"},`
+        - Starts a task daily at 2PM.
+          - `{"task" : "Optimise Database",   "weekday" : "every",   "time" : "14:00"},`
     - **Weekly**:
       - **Weekly Example**:
         - Starts a task weekly every monday and 9AM.
