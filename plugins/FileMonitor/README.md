@@ -37,7 +37,7 @@ To enable the scheduler go to **Stash->Settings->Plugins->Plugins->FileMonitor**
   - Auto Tag -> [Auto Tag] (Daily)
   - Maintenance -> [Clean] (every 2 days)
   - Maintenance -> [Clean Generated Files] (every 2 days)
-  - Maintenance -> [Optimize Database] (Daily)
+  - Maintenance -> [Optimise Database] (Daily)
   - Generated Content-> [Generate] (Every Sunday at 7AM)
   - Library -> [Scan] (Weekly) (Every Sunday at 3AM)
   - Backup -> [Backup] 2nd sunday of the month at 1AM
@@ -56,7 +56,7 @@ To configure the schedule or to add new task, edit the **task_scheduler** sectio
 	# The following task runs plugin DupFileManager (tag_duplicates_task) if the plugin is installed. The task runs in the background because of "taskQue" : False
 	{"task" : "DupFileManager", "taskMode" : "tag_duplicates_task",  "validateDir" : "DupFileManager",  "taskQue" : False,
 				"weekday" : "every",   "time" : "02:30"}, # [Plugin Tasks] -> DupFileManager -> [Delete Duplicates] (Daily at 2:30AM)
-	{"task" : "Optimize Database",  "weekday" : "monday,tuesday,wednesday,thursday,friday", "time" : "07:00"},  # Maintenance -> [Optimize Database] (Every weekday at 7AM)
+	{"task" : "Optimise Database",  "weekday" : "monday,tuesday,wednesday,thursday,friday", "time" : "07:00"},  # Maintenance -> [Optimise Database] (Every weekday at 7AM)
 
 	# The following tasks are scheduled weekly
 	# Optional field for task "Scan", "Auto Tag", and "Clean" is 'paths'. For detail usage, see examples #A3: in filemonitor_task_examples.py
@@ -65,7 +65,7 @@ To configure the schedule or to add new task, edit the **task_scheduler** sectio
 	{"task" : "Generate",               "weekday" : "saturday",   "time" : "04:00"}, # Generated Content-> [Generate] (Every saturday at 4AM)
 	{"task" : "Clean",                  "weekday" : "saturday",   "time" : "04:30"}, # Maintenance -> [Clean] (Every saturday at 4:30AM)
 	{"task" : "Clean Generated Files",  "weekday" : "saturday",   "time" : "05:00"}, # Maintenance -> [Clean Generated Files] (Every saturday at 5AM)
-	{"task" : "Optimize Database",      "weekday" : "saturday",   "time" : "05:30"}, # Maintenance -> [Optimize Database] (Every saturday at 5:30AM)
+	{"task" : "Optimise Database",      "weekday" : "saturday",   "time" : "05:30"}, # Maintenance -> [Optimise Database] (Every saturday at 5:30AM)
 
 	# To perform a task monthly, specify the day of the month as in the weekly schedule format, and add a monthly field.
 		# The monthly field value must be 1, 2, 3, or 4.
@@ -104,9 +104,9 @@ To configure the schedule or to add new task, edit the **task_scheduler** sectio
       - A daily task populates the weekday field with all the days of the week or with keyword **every**.
       - **Daily Example**:
         - Starts a task daily at 6AM.
-          - `{"task" : "Optimize Database",   "weekday" : "monday,tuesday,wednesday,thursday,friday,saturday,sunday",   "time" : "06:00"},`
+          - `{"task" : "Optimise Database",   "weekday" : "monday,tuesday,wednesday,thursday,friday,saturday,sunday",   "time" : "06:00"},`
         - Starts a task daily at 2PM.
-          - `{"task" : "Optimize Database",   "weekday" : "every",   "time" : "14:00"},`
+          - `{"task" : "Optimise Database",   "weekday" : "every",   "time" : "14:00"},`
     - **Weekly**:
       - **Weekly Example**:
         - Starts a task weekly every monday and 9AM.
