@@ -20,7 +20,7 @@ DupFileManager is a [Stash](https://github.com/stashapp/stash) plugin which mana
         - E.g. C:\Downloads,C:\DeleteMe-3rd,C:\DeleteMe-2nd,C:\DeleteMeFirst
     - **Permanent Delete** - Enable to permanently delete files, instead of moving files to trash can.
     - **Max Dup Process** - Use to limit the maximum files to process. Can be used to do a limited test run.
-    - **Merge Duplicate Tags** - Before deletion, merge metadata from duplicate. E.g. Tag names, performers, studios, title, galleries, rating, details, etc...
+galleries, rating, details, etc...
     - **Swap High Resolution** - When enabled, swaps higher resolution files between whitelist and blacklist/graylist files.
     - **Swap Longer Duration** - When enabled, swaps scene with longer duration.
   - Options available via DupFileManager_config.py
