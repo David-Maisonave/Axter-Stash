@@ -5,9 +5,6 @@ DupFileManager is a [Stash](https://github.com/stashapp/stash) plugin which mana
 <img width="500" alt="DupFileManager_Task_UI" src="https://github.com/user-attachments/assets/d25fd76b-4624-401b-bb12-091a4dadbe0c">
 
 ### Features
-
-- Can merge potential source in the duplicate file names for tag names, performers, and studios.
-  - Normally when Stash searches the file name for tag names, performers, and studios, it only does so using the primary file.
 - Delete duplicate file task with the following options:
   - Tasks (Settings->Task->[Plugin Tasks]->DupFileManager)
     - **Tag Duplicates** - Set tag DuplicateMarkForDeletion to the duplicates with lower resolution, duration, file name length, and/or black list path.
@@ -30,6 +27,8 @@ DupFileManager is a [Stash](https://github.com/stashapp/stash) plugin which mana
     - **dup_path** - Alternate path to move deleted files to. Example: "C:\TempDeleteFolder"
     - **toRecycleBeforeSwap** - When enabled, moves destination file to recycle bin before swapping files.
     - **addPrimaryDupPathToDetails** - If enabled, adds the primary duplicate path to the scene detail.
+- Optionally merge metadata between duplicates before file deletion. (tag names, performers, studios, etc...)
+  - <img width="500" alt="MergeMetadataOption" src="https://github.com/user-attachments/assets/73ca7775-37e4-4409-8dac-1ddc7f31415d">
 
 ### Requirements
 
