@@ -37,7 +37,7 @@ settings:
     type: STRING
   zzdebugTracing:
     displayName: Debug Tracing
-    description: (Default=false) [***For Advanced Users***] Enable debug tracing. When enabled, additional tracing logging is added to Stash\plugins\RenameFile\renamefile.log
+    description: Enable debug tracing so-as to add additional debug logging in Stash\plugins\RenameFile\renamefile.log
     type: BOOLEAN
   zzdryRun:
     displayName: Dry Run
