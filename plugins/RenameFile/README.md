@@ -4,10 +4,13 @@ RenameFile is a [Stash](https://github.com/stashapp/stash) plugin which performs
 - **Append tag names** to file name
 - **Append Performer names** to file name
 
-It allows users to rename the video (scene) file name by editing the [Title] field located in the scene [Edit] tab.
-In addition, the plugin optionally also appends tags and performers to the file name if the name does not already exist in the original file name.
+Users can rename the file name by editing the **[Title]** field and then click **[Save]**.
 
-Note: This script is **largely** based on the [Renamer](https://github.com/Serechops/Serechops-Stash/tree/main/plugins/Renamer) script.
+<img width="270" alt="RenameFileViaTitleUnderEditTab" src="https://github.com/user-attachments/assets/f27d0205-d4ed-44fb-9bb2-5b9a75cba2e0">
+
+The [Title] field is located under the [Edit] tab.
+
+Optionally, the plugin can also append tags and performers to the file name if the name does not already exist in the original file name.
 
 ### Using RenameFile
 - Open a scene (via Stash), and click on the [**Edit**] tab. Populate the [**Title**] field with the desired file name. 
@@ -64,4 +67,7 @@ Please use the following link to report RenameFile bugs:
 Please use the following link to report RenameFile Feature Request:[RenameFile Feature Reques](https://github.com/David-Maisonave/Axter-Stash/issues/new?assignees=&labels=Enhancement&projects=&template=feature_request_plugin.yml&title=%F0%9F%92%A1%EF%B8%8F%5BEnhancement%5D%3A%5BRenameFile%5D+Your_Short_title)
 
 Please do **NOT** use the feature request to include any problems associated with errors. Instead use the bug report for error issues.
+
+**Note:** This script is **largely** based on the [Renamer](https://github.com/Serechops/Serechops-Stash/tree/main/plugins/Renamer) script.
+
 
