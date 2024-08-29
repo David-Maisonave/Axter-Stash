@@ -7,8 +7,12 @@ RenameFile is a [Stash](https://github.com/stashapp/stash) plugin which performs
 Users can rename the file name by editing the **[Title]** field and then click **[Save]**.
 
 <img width="270" alt="RenameFileViaTitleUnderEditTab" src="https://github.com/user-attachments/assets/f27d0205-d4ed-44fb-9bb2-5b9a75cba2e0">
+<img width="270" alt="RenameFileViaTitle_AfterSaved" src="https://github.com/user-attachments/assets/bf5779ea-77b3-478a-8f72-2dba695db6f0">
 
 The [Title] field is located under the [Edit] tab.
+
+![RenameFileViaTitle_AfterSaved_InExplorer](https://github.com/user-attachments/assets/a749e19e-c3c7-4726-9fb2-dabe7d5d68b1)
+
 
 Optionally, the plugin can also append tags and performers to the file name if the name does not already exist in the original file name.
 
