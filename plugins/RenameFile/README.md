@@ -11,8 +11,7 @@ Users can rename the file name by editing the **[Title]** field and then click *
 
 The [Title] field is located under the [Edit] tab.
 
-![RenameFileViaTitle_AfterSaved_InExplorer](https://github.com/user-attachments/assets/a749e19e-c3c7-4726-9fb2-dabe7d5d68b1)
-
+<img width="560" alt="RenameFileViaTitle_AfterSaved_InExplorer" src="https://github.com/user-attachments/assets/60cd807b-dd49-4ac8-9eee-801050e20a2c">
 
 Optionally, the plugin can also append tags and performers to the file name if the name does not already exist in the original file name.
 
