@@ -7,6 +7,8 @@ import os, sys, time, pathlib, argparse, platform, shutil, logging
 from StashPluginHelper import StashPluginHelper
 from DupFileManager_config import config # Import config from DupFileManager_config.py
 
+# ToDo: Add schedule for deletion date argument at command line. Variable can also be fetched from JSON_INPUT["args"]
+#       This variable will be used in function setTagId when initializing variable BaseDupStr
 parser = argparse.ArgumentParser()
 parser.add_argument('--url', '-u', dest='stash_url', type=str, help='Add Stash URL')
 parser.add_argument('--trace', '-t', dest='trace', action='store_true', help='Enables debug trace mode.')
