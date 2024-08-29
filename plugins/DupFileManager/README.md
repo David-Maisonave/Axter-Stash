@@ -15,10 +15,10 @@ DupFileManager is a [Stash](https://github.com/stashapp/stash) plugin which mana
     - Has a 3 tier path selection to determine which duplicates to keep, and which should be candidates for deletions.
       - **Whitelist** - List of paths NOT to be deleted. 
         - E.g. C:\Favorite\,E:\MustKeep\
-      - **Gray-List** - List of preferential paths to determine which duplicate should be the primary. 
-        - E.g. C:\2nd_Favorite\,H:\ShouldKeep\
-      - **Blacklist** - List of LEAST preferential paths to determine primary candidates for deletion. 
-        - E.g. C:\Downloads\,F:\DeleteMeFirst\
+      - **Gray-List** - List of preferential paths to determine which duplicate should be the primary. The list should be in order of most preferable in the beginning of the list.
+        - E.g. C:\2nd_Fav,C:\3rd_Fav,C:\4th_Fav,H:\ShouldKeep
+      - **Blacklist** - List of LEAST preferential paths to determine primary candidates for deletion. The list should be in order of least preferable at the end.
+        - E.g. C:\Downloads,C:\DeleteMe-3rd,C:\DeleteMe-2nd,C:\DeleteMeFirst
     - **Permanent Delete** - Enable to permanently delete files, instead of moving files to trash can.
     - **Max Dup Process** - Use to limit the maximum files to process. Can be used to do a limited test run.
     - **Merge Duplicate Tags** - Before deletion, merge metadata from duplicate. E.g. Tag names, performers, studios, title, galleries, rating, details, etc...
