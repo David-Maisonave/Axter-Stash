@@ -20,7 +20,7 @@ Optionally, the plugin can also append tags and performers to the file name if t
   - Note: Do **NOT** include the file folder name and do **NOT** include file extension. 
 - After populating the Title field, click the save button.
 - After a few seconds, the file will get renamed and the screen will get updated with the new file name.
-- The append tags and perfomers option is disable by default. To enable these options go to the Settings->Plugins->Plugins->[RenameFile] field options, and enable the associated field.
+- The append tags and performers option is disable by default. To enable these options go to the Settings->Plugins->Plugins->[RenameFile] field options, and enable the associated field.
 - When [Append Tags] is enabled, by default tag names are appended to the file name only if the tags do not exist in the original name. Same applies to [Append Performers] option.
 - Since this plugin is largely based on the [Renamer](https://github.com/Serechops/Serechops-Stash/tree/main/plugins/Renamer) plugin, it inherited some of its features, like being able to include any of the following fields when auto-renaming is executed:
   - studio, performers, date, height, video_codec, frame_rate
@@ -61,7 +61,7 @@ That's it!!!
 
 ### Options
 - Main options are accessible in the GUI via Settings->Plugins->Plugins->[RenameFile].
-- Advanced options are avialable in the **renamefile_settings.py** file. After making changes, go to http://localhost:9999/settings?tab=plugins, and click [Reload Plugins].
+- Advanced options are available in the **renamefile_settings.py** file. After making changes, go to http://localhost:9999/settings?tab=plugins, and click [Reload Plugins].
 
 ## Bugs and Feature Request
 Please use the following link to report RenameFile bugs:
@@ -72,5 +72,3 @@ Please use the following link to report RenameFile Feature Request:[RenameFile F
 Please do **NOT** use the feature request to include any problems associated with errors. Instead use the bug report for error issues.
 
 **Note:** This script is **largely** based on the [Renamer](https://github.com/Serechops/Serechops-Stash/tree/main/plugins/Renamer) script.
-
-
