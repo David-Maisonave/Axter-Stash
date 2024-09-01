@@ -1,10 +1,7 @@
 # RenameFile: Ver 0.5.0 (By David Maisonave)
-RenameFile is a [Stash](https://github.com/stashapp/stash) plugin which performs the following tasks.
-- **Rename Scene File Name** (On-The-Fly)
-- **Append tag names** to file name
-- **Append Performer names** to file name
+RenameFile is a [Stash](https://github.com/stashapp/stash) plugin.
 
-Users can rename the file name by editing the **[Title]** field and then click **[Save]**.
+The plugin allows user to rename one scene at a time by editing the **[Title]** field and then clicking **[Save]**.
 
 <img width="270" alt="RenameFileViaTitleUnderEditTab" src="https://github.com/user-attachments/assets/f27d0205-d4ed-44fb-9bb2-5b9a75cba2e0">
 <img width="270" alt="RenameFileViaTitle_AfterSaved" src="https://github.com/user-attachments/assets/bf5779ea-77b3-478a-8f72-2dba695db6f0">
@@ -13,7 +10,20 @@ The [Title] field is located under the [Edit] tab.
 
 <img width="560" alt="RenameFileViaTitle_AfterSaved_InExplorer" src="https://github.com/user-attachments/assets/60cd807b-dd49-4ac8-9eee-801050e20a2c">
 
-Optionally, the plugin can also append tags and performers to the file name if the name does not already exist in the original file name.
+The plugin can optionally append the following fields if they do not already exist in the file name.
+- tags
+- performers
+- studio
+- galleries
+- resolution
+- video_codec
+- frame_rate
+- date
+
+### RenameFile vs RenameOnUpdate
+Although RenameFile has a similar name to other plugins (RenameOnUpdate, Renamer, etc..), it's main purpose is entirely different.
+The main purpose of RenameFile is to rename one scene at a time, which is the scene being displayed on the web browser. The scene is renamed by using the Title field, which is used to rename the base (stem) of the file name.
+Other plugins with similar names are used for mass renaming, and do not edit the base (stem).
 
 ### Using RenameFile
 - Open a scene (via Stash), and click on the [**Edit**] tab. Populate the [**Title**] field with the desired file name. 
