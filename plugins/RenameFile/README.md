@@ -19,7 +19,7 @@ Optionally, the plugin can also append tags and performers to the file name if t
 - Open a scene (via Stash), and click on the [**Edit**] tab. Populate the [**Title**] field with the desired file name. 
   - Note: Do **NOT** include the file folder name and do **NOT** include file extension. 
 - After populating the Title field, click the save button.
-  - **Warning:** On Windows, if Stash or any other player is playing the video, the RenameFile plugin will get an access denied error if **handleExe** is not implemented. Use one of the following methods to avoid this error:
+  - **Warning:** On Windows, if Stash or any other player is playing the video, the RenameFile plugin will get an access denied error. Use one of the following two methods to avoid this error:
     - **Option#1:** Populate **handleExe** in renamefile_settings.py with the full path of handle.exe. RenameFile will use this program to close all opened file handles before renaming a file. See options section for more details.
     - **Option#2:** Refresh the browser for page playing the video before renaming the file via Title field.
 - After a few seconds, the file will get renamed and the screen will get updated with the new file name.
