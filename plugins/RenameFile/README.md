@@ -21,9 +21,9 @@ The plugin can optionally append the following fields if they do not already exi
 - date
 
 ### RenameFile vs RenameOnUpdate
-Although RenameFile has a similar name to other plugins (RenameOnUpdate, Renamer, etc..), it's main purpose is entirely different.
-The main purpose of RenameFile is to rename one scene at a time, which is the scene being displayed on the web browser. The scene is renamed by using the Title field, which is used to rename the base (stem) of the file name.
-Other plugins with similar names are used for mass renaming, and do not edit the base (stem).
+- Although RenameFile has a similar name to other plugins (RenameOnUpdate, Renamer, etc..), it's main purpose is entirely different.
+  - The main purpose of RenameFile is to rename one scene at a time, which is the scene being displayed on the web browser. The scene is renamed by using the Title field, which is used to rename the base (stem) of the file name.
+  - Other plugins with similar names are used for mass renaming (rename all your scenes), and do not edit the base (stem).
 
 ### Using RenameFile
 - Open a scene (via Stash), and click on the [**Edit**] tab. Populate the [**Title**] field with the desired file name. 
