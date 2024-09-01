@@ -50,7 +50,7 @@ To avoid this error, refresh the URL before changing the Title field.
   - `pip install stashapp-tools --upgrade`
   - `pip install pyYAML`
   - `pip install requests`
-- For (Windows-Only) optional feature handleExe, the following program is required:
+- For (Windows-Only) optional feature **handleExe**, download handle.exe:
   - https://learn.microsoft.com/en-us/sysinternals/downloads/handle
 
 ### Installation
