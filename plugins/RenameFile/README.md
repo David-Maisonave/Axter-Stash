@@ -7,18 +7,11 @@ RenameFile is a [Stash](https://github.com/stashapp/stash) plugin.
 <img width="270" alt="RenameFileViaTitle_AfterSaved" src="https://github.com/user-attachments/assets/bf5779ea-77b3-478a-8f72-2dba695db6f0">
 
 - The [Title] field is located under the [Edit] tab.
+- After clicking **[Save]**, the change can be seen in File Explorer momentarily.
+  - <img width="560" alt="RenameFileViaTitle_AfterSaved_InExplorer" src="https://github.com/user-attachments/assets/60cd807b-dd49-4ac8-9eee-801050e20a2c">
 
-<img width="560" alt="RenameFileViaTitle_AfterSaved_InExplorer" src="https://github.com/user-attachments/assets/60cd807b-dd49-4ac8-9eee-801050e20a2c">
-
-- The plugin can optionally append the following fields if they do not already exist in the file name.
-  - tags
-  - performers
-  - studio
-  - galleries
-  - resolution
-  - video_codec
-  - frame_rate
-  - date
+- The plugin can optionally append the following fields if they do not already exist in the file name:
+  - title, performers, tags, studio, galleries, resolution, width, height, video_codec, frame_rate, date
 
 ### RenameFile vs RenameOnUpdate
 - Although RenameFile has a similar name to other plugins (RenameOnUpdate, Renamer, etc..), it's main purpose is entirely different.
