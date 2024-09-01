@@ -50,6 +50,8 @@ To avoid this error, refresh the URL before changing the Title field.
   - `pip install stashapp-tools --upgrade`
   - `pip install pyYAML`
   - `pip install requests`
+- For (Windows-Only) optional feature handleExe, the following program is required:
+  - https://learn.microsoft.com/en-us/sysinternals/downloads/handle
 
 ### Installation
 - Follow **Requirements** instructions.
@@ -62,6 +64,11 @@ That's it!!!
 ### Options
 - Main options are accessible in the GUI via Settings->Plugins->Plugins->[RenameFile].
 - Advanced options are available in the **renamefile_settings.py** file. After making changes, go to http://localhost:9999/settings?tab=plugins, and click [Reload Plugins].
+  - **handleExe** - Populate this field in order to allow RenameFile plugin to close all open file handles.
+    - In Windows, a file can't be renamed if the file is opened by another process. In other words, if a file is being played by Stash or any other video player, the RenameFile plugin will get an access denied error when trying to rename the file.
+    - As a workaround, the 'handleExe' field can be populated with the full path to handle.exe or handle64.exe. (See requirements for download link)
+    - RenameFile can use the Handle.exe program to close all opened file handles by all processes before renaming the file.
+    - **Warning:** This feature can cause the process playing the video to crash.
 
 ## Bugs and Feature Request
 Please use the following link to report RenameFile bugs:
