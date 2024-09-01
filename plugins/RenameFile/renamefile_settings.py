@@ -52,7 +52,7 @@ config = {
     # In Windows, a file can't be renamed if the file is opened by another process.
     # In other words, if a file is being played by Stash or any other video player, the RenameFile plugin
     # will get an access denied error when trying to rename the file.
-    # As a workaround, the 'handleExe' field can be populated with a full path to handle.exe or handle64.exe.
+    # As a workaround, the 'handleExe' field can be populated with the full path to handle.exe or handle64.exe.
     # This executable can be downloaded from the following link:
     # https://learn.microsoft.com/en-us/sysinternals/downloads/handle
     # RenameFile can use the Handle.exe program to close all opened file handles by all processes before renaming the file.
