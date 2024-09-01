@@ -8,6 +8,7 @@ import stashapi.log as log # Importing stashapi.log as log for critical events O
 from stashapi.stashapp import StashInterface
 from StashPluginHelper import StashPluginHelper
 from renamefile_settings import config # Import settings from renamefile_settings.py
+from openedFile import openedFile
 
 # **********************************************************************
 # Constant global variables --------------------------------------------
@@ -76,6 +77,10 @@ tag_whitelist = config["tagWhitelist"]
 if not tag_whitelist:
     tag_whitelist = ""
 stash.Trace(f"(tag_whitelist={tag_whitelist})")
+handleExe = stash.pluginConfig['handleExe']
+openedfile = None
+if handleExe != None and handleExe != "" and os.path.isfile(handleExe):
+    openedfile = openedFile(handleExe, stash)
 
 endpointHost = stash.JSON_INPUT['server_connection']['Host']
 if endpointHost == "0.0.0.0":
@@ -299,6 +304,10 @@ def rename_scene(scene_id):
         return None
     targetDidExist = True if os.path.isfile(new_file_path) else False
     try:
+        if openedfile != None:
+            results = openedfile.closeFile(original_file_path)
+            if results != None:
+                stash.Warn(f"Had to close '{original_file_path}', because it was opened by following pids:{results['pids']}")
         if move_files:
             if not dry_run:
                 shutil.move(original_file_path, new_file_path)
@@ -340,12 +349,15 @@ def rename_files_task():
         stash.Log("No changes were made.")
     return
 
-if stash.PLUGIN_TASK_NAME == "rename_files_task":
-    rename_files_task()
-elif inputToUpdateScenePost:
-    rename_files_task()
+try:
+    if stash.PLUGIN_TASK_NAME == "rename_files_task":
+        rename_files_task()
+    elif inputToUpdateScenePost:
+        rename_files_task()
+except Exception as e:
+    tb = traceback.format_exc()
+    stash.Error(f"Exception while running Plugin. Error: {e}\nTraceBack={tb}")
+    stash.log.exception('Got exception on main handler')
 
 stash.Trace("\n*********************************\nEXITING   ***********************\n*********************************")
 
-# ToDo: Wish List
-    # Add code to get tags from duplicate filenames

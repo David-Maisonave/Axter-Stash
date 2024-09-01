@@ -592,9 +592,9 @@ def start_library_monitor():
                             if lastScanJob['timeOutDelayProcess'] > MAX_TIMEOUT_FOR_DELAY_PATH_PROCESS:
                                 lastScanJob['timeOutDelayProcess'] = MAX_TIMEOUT_FOR_DELAY_PATH_PROCESS
                         timeOutInSeconds = lastScanJob['timeOutDelayProcess']
-                        stash.LogOnce(f"Awaiting file change-trigger, with a short timeout ({timeOutInSeconds} seconds), because of active delay path processing.")
+                        stash.Log(f"Awaiting file change-trigger, with a short timeout ({timeOutInSeconds} seconds), because of active delay path processing.")
                     else:
-                        stash.LogOnce(f"Waiting for a file change-trigger. Timeout = {timeOutInSeconds} seconds.")
+                        stash.Log(f"Waiting for a file change-trigger. Timeout = {timeOutInSeconds} seconds.")
                     signal.wait(timeout=timeOutInSeconds)
                     if lastScanJob['DelayedProcessTargetPaths'] != []:
                         stash.TraceOnce(f"Processing delay scan for path(s) {lastScanJob['DelayedProcessTargetPaths']}")
@@ -727,29 +727,35 @@ def start_library_monitor_service():
         args = args + ["-a", stash.API_KEY]
     stash.ExecutePythonScript(args)
 
-if parse_args.stop or parse_args.restart or stash.PLUGIN_TASK_NAME == "stop_library_monitor":
-    stop_library_monitor()
-    if parse_args.restart:
-        time.sleep(5)
-        stash.run_plugin_task(plugin_id=stash.PLUGIN_ID, task_name=StartFileMonitorAsAPluginTaskName)
-        stash.Trace(f"Restart FileMonitor EXIT")
-    else:
-        stash.Trace(f"Stop FileMonitor EXIT")
-elif stash.PLUGIN_TASK_NAME == StartFileMonitorAsAServiceTaskID:
-    start_library_monitor_service()
-    stash.Trace(f"{StartFileMonitorAsAServiceTaskID} EXIT")
-elif stash.PLUGIN_TASK_NAME == StartFileMonitorAsAPluginTaskID:
-    start_library_monitor()
-    stash.Trace(f"{StartFileMonitorAsAPluginTaskID} EXIT")
-elif not stash.CALLED_AS_STASH_PLUGIN:
-    try:
+runTypeID=0
+runTypeName=["NothingToDo", "stop_library_monitor", "StartFileMonitorAsAServiceTaskID", "StartFileMonitorAsAPluginTaskID", "CommandLineStartLibMonitor"]
+try:
+    if parse_args.stop or parse_args.restart or stash.PLUGIN_TASK_NAME == "stop_library_monitor":
+        runTypeID=1
+        stop_library_monitor()
+        if parse_args.restart:
+            time.sleep(5)
+            stash.run_plugin_task(plugin_id=stash.PLUGIN_ID, task_name=StartFileMonitorAsAPluginTaskName)
+            stash.Trace(f"Restart FileMonitor EXIT")
+        else:
+            stash.Trace(f"Stop FileMonitor EXIT")
+    elif stash.PLUGIN_TASK_NAME == StartFileMonitorAsAServiceTaskID:
+        runTypeID=2
+        start_library_monitor_service()
+        stash.Trace(f"{StartFileMonitorAsAServiceTaskID} EXIT")
+    elif stash.PLUGIN_TASK_NAME == StartFileMonitorAsAPluginTaskID:
+        runTypeID=3
+        start_library_monitor()
+        stash.Trace(f"{StartFileMonitorAsAPluginTaskID} EXIT")
+    elif not stash.CALLED_AS_STASH_PLUGIN:
+        runTypeID=4
         start_library_monitor()
         stash.Trace("Command line FileMonitor EXIT")
-    except Exception as e:
-        tb = traceback.format_exc()
-        stash.Error(f"Exception while running FileMonitor from the command line. Error: {e}\nTraceBack={tb}")
-        stash.log.exception('Got exception on main handler')
-else:
-    stash.Log(f"Nothing to do!!! (stash.PLUGIN_TASK_NAME={stash.PLUGIN_TASK_NAME})")
+    else:
+        stash.Log(f"Nothing to do!!! (stash.PLUGIN_TASK_NAME={stash.PLUGIN_TASK_NAME})")
+except Exception as e:
+    tb = traceback.format_exc()
+    stash.Error(f"Exception while running FileMonitor. runType='{runTypeName[runTypeID]}'; Error: {e}\nTraceBack={tb}")
+    stash.log.exception('Got exception on main handler')
 
 stash.Trace("\n*********************************\nEXITING   ***********************\n*********************************")

@@ -47,4 +47,16 @@ config = {
     "if_notitle_use_org_filename": True, # Warning: Do not recommend setting this to False.
     # Current Stash DB schema only allows maximum base file name length to be 255
     "max_filename_length": 255,
+    
+    # handleExe is for Windows only.
+    # In Windows, a file can't be renamed if the file is opened by another process.
+    # In other words, if a file is being played by Stash or any other video player, the RenameFile plugin
+    # will get an access denied error when trying to rename the file.
+    # As a workaround, the 'handleExe' field can be populated with a full path to handle.exe or handle64.exe.
+    # This executable can be downloaded from the following link:
+    # https://learn.microsoft.com/en-us/sysinternals/downloads/handle
+    # RenameFile can use the Handle.exe program to close all opened file handles by all processes before renaming the file.
+    #
+    # Warning: This feature can cause the process playing the video to crash.
+    "handleExe": r"C:\Sysinternals\handle64.exe", # https://learn.microsoft.com/en-us/sysinternals/downloads/handle
 }
