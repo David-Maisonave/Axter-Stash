@@ -1,6 +1,6 @@
 name: DupFileManager
 description: Manages duplicate files.
-version: 0.1.3
+version: 0.1.2
 url: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/DupFileManager
 settings:
   mergeDupFilename:
@@ -37,11 +37,11 @@ settings:
     type: STRING
   zxGraylist:
     displayName: Gray List
-    description: Preferential paths to determine which duplicate should be kept. E.g. C:\2nd_Fav,C:\3rd_Fav,C:\4th_Fav,H:\ShouldKeep
+    description: List of preferential paths to determine which duplicate should be the primary. E.g. C:\2nd_Favorite\,H:\ShouldKeep\
     type: STRING
   zyBlacklist:
     displayName: Black List
-    description: Least preferential paths; Determine primary deletion candidates. E.g. C:\Downloads,C:\DelMe-3rd,C:\DelMe-2nd,C:\DeleteMeFirst
+    description: List of LEAST preferential paths to determine primary candidates for deletion. E.g. C:\Downloads\,F:\DeleteMeFirst\
     type: STRING
   zyMaxDupToProcess:
     displayName: Max Dup Process
@@ -49,7 +49,7 @@ settings:
     type: NUMBER
   zzdebugTracing:
     displayName: Debug Tracing
-    description: Enable debug tracing so-as to add additional debug logging in Stash\plugins\DupFileManager\DupFileManager.log
+    description: (Default=false) [***For Advanced Users***] Enable debug tracing. When enabled, additional tracing logging is added to Stash\plugins\DupFileManager\DupFileManager.log
     type: BOOLEAN
 exec:
   - python
@@ -68,7 +68,3 @@ tasks:
     description: Delete duplicate scenes. Performs deletion without first tagging.
     defaultArgs:
       mode: delete_duplicates_task
-  - name: Clear Duplicate Tags
-    description: Removes DuplicateMarkForDeletion tag from all files.
-    defaultArgs:
-      mode: clear_duplicate_tags_task

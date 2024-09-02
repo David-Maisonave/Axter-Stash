@@ -1,31 +1,29 @@
-""" 
-StashPluginHelper (By David Maisonave aka Axter)
-    See end of this file for example usage
-    Log Features:
-        Can optionally log out to multiple outputs for each Log or Trace call.
-        Logging includes source code line number
-        Sets a maximum plugin log file size
-    Stash Interface Features:
-        Gets STASH_URL value from command line argument and/or from STDIN_READ
-        Sets FRAGMENT_SERVER based on command line arguments or STDIN_READ
-        Sets PLUGIN_ID based on the main script file name (in lower case)
-        Gets PLUGIN_TASK_NAME value
-        Sets pluginSettings (The plugin UI settings)
-    Misc Features:
-        Gets DRY_RUN value from command line argument and/or from UI and/or from config file
-        Gets DEBUG_TRACING value from command line argument and/or from UI and/or from config file
-        Sets RUNNING_IN_COMMAND_LINE_MODE to True if detects multiple arguments
-        Sets CALLED_AS_STASH_PLUGIN to True if it's able to read from STDIN_READ
-""" 
 from stashapi.stashapp import StashInterface
 from logging.handlers import RotatingFileHandler
-import re, inspect, sys, os, pathlib, logging, json, ctypes
+import re, inspect, sys, os, pathlib, logging, json
 import concurrent.futures
 from stashapi.stash_types import PhashDistance
 import __main__
 
 _ARGUMENT_UNSPECIFIED_ = "_ARGUMENT_UNSPECIFIED_"
 
+# StashPluginHelper (By David Maisonave aka Axter)
+    # See end of this file for example usage
+    # Log Features:
+        # Can optionally log out to multiple outputs for each Log or Trace call.
+        # Logging includes source code line number
+        # Sets a maximum plugin log file size
+    # Stash Interface Features:
+        # Gets STASH_URL value from command line argument and/or from STDIN_READ
+        # Sets FRAGMENT_SERVER based on command line arguments or STDIN_READ
+        # Sets PLUGIN_ID based on the main script file name (in lower case)
+        # Gets PLUGIN_TASK_NAME value
+        # Sets pluginSettings (The plugin UI settings)
+    # Misc Features:
+        # Gets DRY_RUN value from command line argument and/or from UI and/or from config file
+        # Gets DEBUG_TRACING value from command line argument and/or from UI and/or from config file
+        # Sets RUNNING_IN_COMMAND_LINE_MODE to True if detects multiple arguments
+        # Sets CALLED_AS_STASH_PLUGIN to True if it's able to read from STDIN_READ
 class StashPluginHelper(StashInterface):
     # Primary Members for external reference
     PLUGIN_TASK_NAME = None
@@ -400,7 +398,20 @@ class StashPluginHelper(StashInterface):
         return result['findDuplicateScenes'] 
     
     # #################################################################################################
-    # The below functions extends class StashInterface with functions which are not yet in the class
+    # The below functions extends class StashInterface with functions which are not yet in the class or
+    # fixes for functions which have not yet made it into official class.
+    def metadata_scan(self, paths:list=[], flags={}):
+        query = "mutation MetadataScan($input:ScanMetadataInput!) { metadataScan(input: $input) }"
+        scan_metadata_input = {"paths": paths}
+        if flags:
+            scan_metadata_input.update(flags)
+        else:
+            scanData = self.get_configuration_defaults("scan { ...ScanMetadataOptions }")
+            if scanData['scan'] != None:
+                scan_metadata_input.update(scanData.get("scan",{}))
+        result = self.call_GQL(query, {"input": scan_metadata_input})
+        return result["metadataScan"]
+    
     def get_all_scenes(self):
         query_all_scenes = """
             query AllScenes {

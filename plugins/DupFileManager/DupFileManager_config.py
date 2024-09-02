@@ -18,10 +18,6 @@ config = {
     "DupFileTag" : "DuplicateMarkForDeletion",
     # Tag name used to tag duplicates in the whitelist. E.g. DuplicateWhitelistFile
     "DupWhiteListTag" : "DuplicateWhitelistFile",
-    # If enabled, favor longer file name over shorter. If disabled, favor shorter file name.
-    "favorLongerFileName" : True,
-    # If enabled, favor larger file size over smaller. If disabled, favor smaller file size.
-    "favorLargerFileSize" : True,
     
     # The following fields are ONLY used when running DupFileManager in script mode
     "endpoint_Scheme" : "http", # Define endpoint to use when contacting the Stash server

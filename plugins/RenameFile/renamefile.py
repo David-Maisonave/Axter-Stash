@@ -313,6 +313,7 @@ def rename_scene(scene_id):
                 shutil.move(original_file_path, new_file_path)
             exitMsg = f"{dry_run_prefix}Moved file to '{new_file_path}' from '{original_file_path}'"
         else:
+            stash.Trace(f"Rename('{original_file_path}', '{new_file_path}')")
             if not dry_run:
                 os.rename(original_file_path, new_file_path)
             exitMsg = f"{dry_run_prefix}Renamed file to '{new_file_path}' from '{original_file_path}'"
@@ -326,6 +327,7 @@ def rename_scene(scene_id):
         else:
             raise
     
+    stash.Trace(f"scan path={original_parent_directory.resolve().as_posix()}")
     stash.metadata_scan(paths=[original_parent_directory.resolve().as_posix()])
     stash.Log(exitMsg)
     return new_filename 
