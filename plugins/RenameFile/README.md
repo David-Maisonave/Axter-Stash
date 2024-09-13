@@ -1,4 +1,4 @@
-# RenameFile: Ver 0.5.1 (By David Maisonave)
+# RenameFile: Ver 0.5.2 (By David Maisonave)
 RenameFile is a [Stash](https://github.com/stashapp/stash) plugin.
 
 - The plugin allows user to rename one scene at a time by editing the **[Title]** field and then clicking **[Save]**.
