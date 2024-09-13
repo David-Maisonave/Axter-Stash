@@ -63,6 +63,8 @@ config = {
     "runCleanAfterDelete": False,
     # Enable to run metadata_generate (Generate Content) after metadata scan.
     "runGenerateContent": False,
+    # Tag name when tagging files that are no longer in Stash Library paths.
+    "NotInLibraryTagName" : "_NoLongerPartOfLibrary",
     
     # When populated (comma separated list [lower-case]), only scan for changes for specified file extension
     "fileExtTypes" : "", # Example: "mp4,mpg,mpeg,m2ts,wmv,avi,m4v,flv,mov,asf,mkv,divx,webm,ts,mp2t"

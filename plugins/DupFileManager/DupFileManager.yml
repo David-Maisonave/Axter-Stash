@@ -1,8 +1,12 @@
 name: DupFileManager
 description: Manages duplicate files.
-version: 0.1.2
+version: 0.1.4
 url: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/DupFileManager
 settings:
+  doNotGeneratePhash:
+    displayName: Do Not Generate PHASH
+    description: Do not generate PHASH after tag or delete task.
+    type: BOOLEAN
   mergeDupFilename:
     displayName: Merge Duplicate Tags
     description: Before deletion, merge metadata from duplicate. E.g. Tag names, performers, studios, title, galleries, rating, details, etc...
@@ -23,8 +27,20 @@ settings:
     displayName: Run Clean After Delete
     description: After running a 'Delete Duplicates' task, run Clean, Clean-Generated, and Optimize-Database.
     type: BOOLEAN
+  zSwapBetterBitRate:
+    displayName: Swap Better Bit Rate
+    description: Swap better bit rate for duplicate files. Use with DupFileManager_config.py file option favorHighBitRate
+    type: BOOLEAN
+  zSwapBetterFrameRate:
+    displayName: Swap Better Frame Rate
+    description: Swap better frame rate for duplicates. Use with DupFileManager_config.py file option favorHigherFrameRate
+    type: BOOLEAN
+  zSwapCodec:
+    displayName: Swap Better Codec
+    description: If enabled, swap better codec duplicate files to preferred path.
+    type: BOOLEAN
   zSwapHighRes:
-    displayName: Swap High Resolution
+    displayName: Swap Higher Resolution
     description: If enabled, swap higher resolution duplicate files to preferred path.
     type: BOOLEAN
   zSwapLongLength:
@@ -37,19 +53,23 @@ settings:
     type: STRING
   zxGraylist:
     displayName: Gray List
-    description: List of preferential paths to determine which duplicate should be the primary. E.g. C:\2nd_Favorite\,H:\ShouldKeep\
+    description: Preferential paths to determine which duplicate should be kept. E.g. C:\2nd_Fav,C:\3rd_Fav,C:\4th_Fav,H:\ShouldKeep
     type: STRING
   zyBlacklist:
     displayName: Black List
-    description: List of LEAST preferential paths to determine primary candidates for deletion. E.g. C:\Downloads\,F:\DeleteMeFirst\
+    description: Least preferential paths; Determine primary deletion candidates. E.g. C:\Downloads,C:\DelMe-3rd,C:\DelMe-2nd,C:\DeleteMeFirst
     type: STRING
+  zyMatchDupDistance:
+    displayName: Match Duplicate Distance
+    description: (Default=0) Where 0 = Exact Match, 1 = High Match, and 2 = Medium Match. 
+    type: NUMBER
   zyMaxDupToProcess:
     displayName: Max Dup Process
     description: Maximum number of duplicates to process. If 0, infinity
     type: NUMBER
   zzdebugTracing:
     displayName: Debug Tracing
-    description: (Default=false) [***For Advanced Users***] Enable debug tracing. When enabled, additional tracing logging is added to Stash\plugins\DupFileManager\DupFileManager.log
+    description: Enable debug tracing so-as to add additional debug logging in Stash\plugins\DupFileManager\DupFileManager.log
     type: BOOLEAN
 exec:
   - python
@@ -60,7 +80,11 @@ tasks:
     description: Set tag DuplicateMarkForDeletion to the duplicates with lower resolution, duration, file name length, or black list path.
     defaultArgs:
       mode: tag_duplicates_task
-  - name: Delete Tagged Duplicates
+  - name: Clear Tags
+    description: Clear tag DuplicateMarkForDeletion. Remove the tag from all files.
+    defaultArgs:
+      mode: clear_duplicate_tags_task
+  - name: Delete Tagged Scenes
     description: Only delete scenes having DuplicateMarkForDeletion tag.
     defaultArgs:
       mode: delete_tagged_duplicates_task
@@ -68,3 +92,7 @@ tasks:
     description: Delete duplicate scenes. Performs deletion without first tagging.
     defaultArgs:
       mode: delete_duplicates_task
+  - name: Generate PHASH Matching
+    description: Generate PHASH file matching. Used for file comparisons.
+    defaultArgs:
+      mode: generate_phash_task

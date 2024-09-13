@@ -38,7 +38,7 @@ config = {
         "date": '',      
     },
     # Add tags to exclude from RenameFile.
-    "excludeTags": ["DuplicateMarkForDeletion", "DuplicateMarkForSwap", "DuplicateWhitelistFile","_DuplicateMarkForDeletion","_DuplicateMarkForSwap", "_DuplicateWhitelistFile"],
+    "excludeTags": ["DuplicateMarkForDeletion", "DuplicateMarkForSwap", "DuplicateWhitelistFile","_DuplicateMarkForDeletion","_DuplicateMarkForSwap", "_DuplicateWhitelistFile","ExcludeDuplicateMarkForDeletion", "_ExcludeDuplicateMarkForDeletion"],
     # Add path(s) to exclude from RenameFile. Example Usage: r"/path/to/exclude1"  When entering multiple paths, use space. Example: r"/path_1_to/exclude" r"/someOtherPath2Exclude" r"/yetAnotherPath"
     "pathToExclude": "",
     # Define a whitelist of allowed tags or EMPTY to allow all tags. Example Usage: "tag1", "tag2", "tag3"
@@ -47,6 +47,8 @@ config = {
     "if_notitle_use_org_filename": True, # Warning: Do not recommend setting this to False.
     # Current Stash DB schema only allows maximum base file name length to be 255
     "max_filename_length": 255,
+    # Exclude tags with ignore_auto_tag set to True
+    "excludeIgnoreAutoTags": True,
     
     # handleExe is for Windows only.
     # In Windows, a file can't be renamed if the file is opened by another process.

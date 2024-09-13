@@ -1,6 +1,6 @@
 from stashapi.stashapp import StashInterface
 from logging.handlers import RotatingFileHandler
-import re, inspect, sys, os, pathlib, logging, json
+import re, inspect, sys, os, pathlib, logging, json, platform, subprocess, traceback, time
 import concurrent.futures
 from stashapi.stash_types import PhashDistance
 import __main__
@@ -61,6 +61,14 @@ class StashPluginHelper(StashInterface):
     LOG_FILE_DIR = None
     LOG_FILE_NAME = None
     STDIN_READ = None
+    stopProcessBarSpin = True
+    
+    IS_DOCKER = False
+    IS_WINDOWS = False
+    IS_LINUX = False
+    IS_FREEBSD = False
+    IS_MAC_OS = False
+    
     pluginLog = None
     logLinePreviousHits = []
     thredPool = None
@@ -107,6 +115,16 @@ class StashPluginHelper(StashInterface):
                     DryRunFieldName = "zzdryRun",
                     setStashLoggerAsPluginLogger = False):              
         self.thredPool = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+        if any(platform.win32_ver()):
+            self.IS_WINDOWS = True
+        elif platform.system().lower().startswith("linux"):
+            self.IS_LINUX = True
+            if self.isDocker():
+                self.IS_DOCKER = True
+        elif platform.system().lower().startswith("freebsd"):
+            self.IS_FREEBSD = True
+        elif sys.platform == "darwin":
+            self.IS_MAC_OS = True
         if logToWrnSet: self.log_to_wrn_set = logToWrnSet
         if logToErrSet: self.log_to_err_set = logToErrSet
         if logToNormSet: self.log_to_norm = logToNormSet
@@ -300,37 +318,43 @@ class StashPluginHelper(StashInterface):
         lineNo = inspect.currentframe().f_back.f_lineno
         self.Log(logMsg, printTo, logging.ERROR, lineNo, toAscii=toAscii)
     
-    def Status(self, printTo = 0, logLevel = logging.INFO, lineNo = -1):
+    # Above logging functions all use UpperCamelCase naming convention to avoid conflict with parent class logging function names.
+    # The below non-loggging functions use (lower) camelCase naming convention.
+    def status(self, printTo = 0, logLevel = logging.INFO, lineNo = -1):
         if printTo == 0: printTo = self.log_to_norm
         if lineNo == -1:
             lineNo = inspect.currentframe().f_back.f_lineno
         self.Log(f"StashPluginHelper Status: (CALLED_AS_STASH_PLUGIN={self.CALLED_AS_STASH_PLUGIN}), (RUNNING_IN_COMMAND_LINE_MODE={self.RUNNING_IN_COMMAND_LINE_MODE}), (DEBUG_TRACING={self.DEBUG_TRACING}), (DRY_RUN={self.DRY_RUN}), (PLUGIN_ID={self.PLUGIN_ID}), (PLUGIN_TASK_NAME={self.PLUGIN_TASK_NAME}), (STASH_URL={self.STASH_URL}), (MAIN_SCRIPT_NAME={self.MAIN_SCRIPT_NAME})",
             printTo, logLevel, lineNo)
     
-    def ExecuteProcess(self, args, ExecDetach=False):
-        import platform, subprocess
-        is_windows = any(platform.win32_ver())
+    def executeProcess(self, args, ExecDetach=False):
         pid = None
-        self.Trace(f"is_windows={is_windows} args={args}")
-        if is_windows:
+        self.Trace(f"self.IS_WINDOWS={self.IS_WINDOWS} args={args}")
+        if self.IS_WINDOWS:
             if ExecDetach:
-                self.Trace("Executing process using Windows DETACHED_PROCESS")
+                self.Trace(f"Executing process using Windows DETACHED_PROCESS; args=({args})")
                 DETACHED_PROCESS = 0x00000008
                 pid = subprocess.Popen(args,creationflags=DETACHED_PROCESS, shell=True).pid
             else:
                 pid = subprocess.Popen(args, shell=True).pid
         else:
-            self.Trace("Executing process using normal Popen")
-            pid = subprocess.Popen(args).pid
+            if ExecDetach:
+                # For linux detached, use nohup. I.E. subprocess.Popen(["nohup", "python", "test.py"])
+                if self.IS_LINUX:
+                    args = ["nohup"] + args
+                self.Trace(f"Executing detached process using Popen({args})")
+            else:
+                self.Trace(f"Executing process using normal Popen({args})")
+            pid = subprocess.Popen(args).pid # On detach, may need the following for MAC OS subprocess.Popen(args, shell=True, start_new_session=True)
         self.Trace(f"pid={pid}")
         return pid
     
-    def ExecutePythonScript(self, args, ExecDetach=True):
+    def executePythonScript(self, args, ExecDetach=True):
         PythonExe = f"{sys.executable}"
         argsWithPython = [f"{PythonExe}"] + args
-        return self.ExecuteProcess(argsWithPython,ExecDetach=ExecDetach)
+        return self.executeProcess(argsWithPython,ExecDetach=ExecDetach)
     
-    def Submit(self, *args, **kwargs):
+    def submit(self, *args, **kwargs):
         return self.thredPool.submit(*args, **kwargs)
     
     def asc2(self, data, convertToAscii=None):
@@ -340,24 +364,214 @@ class StashPluginHelper(StashInterface):
         # data = str(data).encode('ascii','ignore') # This works better for logging than ascii function
         # return str(data)[2:-1] # strip out b'str'
     
-    def init_mergeMetadata(self, excludeMergeTags=None):
+    def initMergeMetadata(self, excludeMergeTags=None):
         self.excludeMergeTags = excludeMergeTags
         self._mergeMetadata = mergeMetadata(self, self.excludeMergeTags)
     
-    # Must call init_mergeMetadata, before calling merge_metadata
-    def merge_metadata(self, SrcData, DestData): # Input arguments can be scene ID or scene metadata
+    # Must call initMergeMetadata, before calling mergeMetadata
+    def mergeMetadata(self, SrcData, DestData): # Input arguments can be scene ID or scene metadata
         if type(SrcData) is int:
             SrcData = self.find_scene(SrcData)
             DestData = self.find_scene(DestData)
         return self._mergeMetadata.merge(SrcData, DestData)
     
-    def Progress(self, currentIndex, maxCount):
+    def progressBar(self, currentIndex, maxCount):
         progress = (currentIndex / maxCount) if currentIndex < maxCount else (maxCount / currentIndex)
         self.log.progress(progress)
     
-    def run_plugin(self, plugin_id, task_mode=None, args:dict={}, asyn=False):
+    # Test via command line: pip uninstall -y pyYAML watchdog schedule requests
+    def modulesInstalled(self, moduleNames, install=True, silent=False): # moduleNames=["stashapp-tools", "requests", "pyYAML"]
+        retrnValue = True
+        for moduleName in moduleNames:
+            try: # Try Python 3.3 > way
+                import importlib
+                import importlib.util
+                if moduleName in sys.modules:
+                    if not silent: self.Trace(f"{moduleName!r} already in sys.modules")
+                elif self.isModuleInstalled(moduleName):
+                    if not silent: self.Trace(f"Module {moduleName!r} is available.")
+                else:
+                    if install and (results:=self.installModule(moduleName)) > 0:
+                        if results == 1:
+                            self.Log(f"Module {moduleName!r} has been installed")
+                        else:
+                            if not silent: self.Trace(f"Module {moduleName!r} is already installed")
+                        continue
+                    else:
+                        if install:
+                            self.Error(f"Can't find the {moduleName!r} module") 
+                        retrnValue = False
+            except Exception as e:
+                try:
+                    i = importlib.import_module(moduleName)
+                except ImportError as e:
+                    if install and (results:=self.installModule(moduleName)) > 0:
+                        if results == 1:
+                            self.Log(f"Module {moduleName!r} has been installed")
+                        else:
+                            if not silent: self.Trace(f"Module {moduleName!r} is already installed")
+                        continue
+                    else:
+                        if install:
+                            tb = traceback.format_exc()
+                            self.Error(f"Can't find the {moduleName!r} module! Error: {e}\nTraceBack={tb}") 
+                        retrnValue = False
+        return retrnValue
+    
+    def isModuleInstalled(self, moduleName):
+        try:
+            __import__(moduleName)
+            # self.Trace(f"Module {moduleName!r} is installed")
+            return True
+        except Exception as e:
+            tb = traceback.format_exc()
+            self.Warn(f"Module {moduleName!r} is NOT installed!") 
+            self.Trace(f"Error: {e}\nTraceBack={tb}")
+            pass
+        return False
+    
+    def installModule(self,moduleName):
+        # if not self.IS_DOCKER:
+            # try:
+                # self.Log(f"Attempting to install package {moduleName!r} using pip import method.")
+                # First try pip import method. (This may fail in a future version of pip.)
+                # self.installPackage(moduleName)
+                # self.Trace(f"installPackage called for module {moduleName!r}")
+                # if self.modulesInstalled(moduleNames=[moduleName], install=False):
+                    # self.Trace(f"Module {moduleName!r} installed")
+                    # return 1
+                # self.Trace(f"Module {moduleName!r} still not installed.")
+            # except Exception as e:
+                # tb = traceback.format_exc()
+                # self.Warn(f"pip import method failed for module {moduleName!r}. Will try command line method; Error: {e}\nTraceBack={tb}") 
+                # pass
+        # else:
+            # self.Trace("Running in Docker, so skipping pip import method.")
+        try:
+            if self.IS_LINUX:
+                # Note: Linux may first need : sudo apt install python3-pip
+                #       if error starts with "Command 'pip' not found"
+                #       or includes "No module named pip"
+                self.Log("Checking if pip installed.")
+                results = os.popen(f"pip --version").read()
+                if results.find("Command 'pip' not found") != -1 or results.find("No module named pip") != -1:
+                    results = os.popen(f"sudo apt install python3-pip").read()
+                    results = os.popen(f"pip --version").read()
+                    if results.find("Command 'pip' not found") != -1 or results.find("No module named pip") != -1:
+                        self.Error(f"Error while calling 'pip'. Make sure pip is installed, and make sure module {moduleName!r} is installed. Results = '{results}'")
+                        return -1
+                self.Trace("pip good.")
+            if self.IS_FREEBSD:
+                self.Warn("installModule may NOT work on freebsd")
+            pipArg = ""
+            if self.IS_DOCKER:
+                pipArg = " --break-system-packages"
+            self.Log(f"Attempting to install package {moduleName!r} via popen.")
+            results = os.popen(f"{sys.executable} -m pip install {moduleName}{pipArg}").read() # May need to be f"{sys.executable} -m pip install {moduleName}"
+            results = results.strip("\n")
+            self.Trace(f"pip results = {results}")
+            if results.find("Requirement already satisfied:") > -1:
+                self.Trace(f"Requirement already satisfied for module {moduleName!r}")
+                return 2
+            elif results.find("Successfully installed") > -1:
+                self.Trace(f"Successfully installed module {moduleName!r}")
+                return 1
+            elif self.modulesInstalled(moduleNames=[moduleName], install=False):
+                self.Trace(f"modulesInstalled returned True for module {moduleName!r}")
+                return 1
+            self.Error(f"Failed to install module {moduleName!r}")
+        except Exception as e:
+            tb = traceback.format_exc()
+            self.Error(f"Failed to install module {moduleName!r}. Error: {e}\nTraceBack={tb}") 
+        return 0
+    
+    def installPackage(self,package): # Should delete this.  It doesn't work consistently
+        try:
+            import pip
+            if hasattr(pip, 'main'):
+                pip.main(['install', package])
+                self.Trace()
+            else:
+                pip._internal.main(['install', package])
+                self.Trace()
+        except Exception as e:
+            tb = traceback.format_exc()
+            self.Error(f"Failed to install module {moduleName!r}. Error: {e}\nTraceBack={tb}")
+            return False
+        return True
+    
+    def isDocker(self):
+        cgroup = pathlib.Path('/proc/self/cgroup')
+        return pathlib.Path('/.dockerenv').is_file() or cgroup.is_file() and 'docker' in cgroup.read_text()
+    
+    def spinProcessBar(self, sleepSeconds = 1, maxPos = 30, trace = False):
+        if trace:
+            self.Trace(f"Starting spinProcessBar loop; sleepSeconds={sleepSeconds}, maxPos={maxPos}")
+        pos = 1
+        while self.stopProcessBarSpin == False:
+            if trace:
+                self.Trace(f"progressBar({pos}, {maxPos})")
+            self.progressBar(pos, maxPos)
+            pos +=1
+            if pos > maxPos:
+                pos = 1
+            time.sleep(sleepSeconds)
+    
+    def startSpinningProcessBar(self, sleepSeconds = 1, maxPos = 30, trace = False):
+        self.stopProcessBarSpin = False
+        if trace:
+            self.Trace(f"submitting spinProcessBar; sleepSeconds={sleepSeconds}, maxPos={maxPos}, trace={trace}")
+        self.submit(self.spinProcessBar, sleepSeconds, maxPos, trace)
+    
+    def stopSpinningProcessBar(self, sleepSeconds = 1):
+        self.stopProcessBarSpin = True
+        time.sleep(sleepSeconds)
+    
+    def createTagId(self, tagName, tagName_descp = "", deleteIfExist = False, ignoreAutoTag = False):
+        tagId = self.find_tags(q=tagName)
+        if len(tagId):
+            tagId = tagId[0]
+            if deleteIfExist:
+                self.destroy_tag(int(tagId['id']))
+            else:
+                return tagId['id']
+        tagId = self.create_tag({"name":tagName, "description":tagName_descp, "ignore_auto_tag": ignoreAutoTag})
+        self.Log(f"Dup-tagId={tagId['id']}")
+        return tagId['id']
+    
+    def removeTag(self, scene, tagName): # scene can be scene ID or scene metadata
+        scene_details = scene
+        if 'id' not in scene:
+            scene_details = self.find_scene(scene)
+        tagIds = []
+        doesHaveTagName = False
+        for tag in scene_details['tags']:
+            if tag['name'] != tagName:
+                tagIds += [tag['id']]
+            else:
+                doesHaveTagName = True
+        if doesHaveTagName:
+            dataDict = {'id' : scene_details['id']}
+            dataDict.update({'tag_ids' : tagIds})
+            self.update_scene(dataDict)
+        return doesHaveTagName
+    
+    def addTag(self, scene, tagName): # scene can be scene ID or scene metadata
+        scene_details = scene
+        if 'id' not in scene:
+            scene_details = self.find_scene(scene)
+        tagIds = [self.createTagId(tagName)]
+        for tag in scene_details['tags']:
+            if tag['name'] != tagName:
+                tagIds += [tag['id']]
+        dataDict = {'id' : scene_details['id']}
+        dataDict.update({'tag_ids' : tagIds})
+        self.update_scene(dataDict)
+    
+    def runPlugin(self, plugin_id, task_mode=None, args:dict={}, asyn=False):
         """Runs a plugin operation.
            The operation is run immediately and does not use the job queue.
+           This is a blocking call, and does not return until plugin completes.
         Args:
             plugin_id (ID):             plugin_id
             task_name (str, optional):  Plugin task to perform
@@ -375,43 +589,26 @@ class StashPluginHelper(StashInterface):
             "args": args,
         }
         if asyn:
-            self.Submit(self.call_GQL, query, variables)
+            self.submit(self.call_GQL, query, variables)
             return f"Made asynchronous call for plugin {plugin_id}"
         else:
             return self.call_GQL(query, variables)
-       
-    def find_duplicate_scenes_diff(self, distance: PhashDistance=PhashDistance.EXACT, fragment='id', duration_diff: float=10.00 ):
-        query = """
-        	query FindDuplicateScenes($distance: Int, $duration_diff: Float) {
-        		findDuplicateScenes(distance: $distance, duration_diff: $duration_diff) {
-        			...SceneSlim
-        		}
-        	}
-        """
-        if fragment:
-        	query = re.sub(r'\.\.\.SceneSlim', fragment, query)
-        else:
-        	query += "fragment SceneSlim on Scene { id  }"
-        
-        variables = { "distance": distance, "duration_diff": duration_diff }
-        result = self.call_GQL(query, variables)
-        return result['findDuplicateScenes'] 
     
-    # #################################################################################################
+    # ############################################################################################################
+    # Functions which are candidates to be added to parent class use snake_case naming convention.
+    # ############################################################################################################
     # The below functions extends class StashInterface with functions which are not yet in the class or
     # fixes for functions which have not yet made it into official class.
-    def metadata_scan(self, paths:list=[], flags={}):
+    def metadata_scan(self, paths:list=[], flags={}): # ToDo: Add option to add path to library if path not included when calling metadata_scan
         query = "mutation MetadataScan($input:ScanMetadataInput!) { metadataScan(input: $input) }"
         scan_metadata_input = {"paths": paths}
         if flags:
             scan_metadata_input.update(flags)
-        else:
-            scanData = self.get_configuration_defaults("scan { ...ScanMetadataOptions }")
-            if scanData['scan'] != None:
-                scan_metadata_input.update(scanData.get("scan",{}))
+        elif scan_config := self.get_configuration_defaults("scan { ...ScanMetadataOptions }").get("scan"):
+            scan_metadata_input.update(scan_config)
         result = self.call_GQL(query, {"input": scan_metadata_input})
         return result["metadataScan"]
-    
+        
     def get_all_scenes(self):
         query_all_scenes = """
             query AllScenes {
@@ -464,6 +661,43 @@ class StashPluginHelper(StashInterface):
     
     def rename_generated_files(self):
         return self.call_GQL("mutation MigrateHashNaming {migrateHashNaming}")
+       
+    def find_duplicate_scenes_diff(self, distance: PhashDistance=PhashDistance.EXACT, fragment='id', duration_diff: float=10.00 ):
+        query = """
+        	query FindDuplicateScenes($distance: Int, $duration_diff: Float) {
+        		findDuplicateScenes(distance: $distance, duration_diff: $duration_diff) {
+        			...SceneSlim
+        		}
+        	}
+        """
+        if fragment:
+        	query = re.sub(r'\.\.\.SceneSlim', fragment, query)
+        else:
+        	query += "fragment SceneSlim on Scene { id  }"
+        
+        variables = { "distance": distance, "duration_diff": duration_diff }
+        result = self.call_GQL(query, variables)
+        return result['findDuplicateScenes'] 
+    
+    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    # Direct SQL associated functions
+    def get_file_metadata(self, data, raw_data = False): # data is either file ID or scene metadata
+        results = None
+        if data == None:
+            return results
+        if 'files' in data and len(data['files']) > 0 and 'id' in data['files'][0]:
+            results = self.sql_query(f"select * from files where id =  {data['files'][0]['id']}")
+        else:
+            results = self.sql_query(f"select * from files where id =  {data}")
+        if raw_data:
+            return results
+        if 'rows' in results:
+            return results['rows'][0]
+        self.Error(f"Unknown error while SQL query with data='{data}'; Results='{results}'.")
+        return None
+    
+    def set_file_basename(self, id, basename):
+        return self.sql_commit(f"update files set basename = '{basename}' where id = {id}")
 
 class mergeMetadata: # A class to merge scene metadata from source scene to destination scene
     srcData = None
@@ -537,3 +771,54 @@ class mergeMetadata: # A class to merge scene metadata from source scene to dest
                         listToAdd += [item['id']]
             self.dataDict.update({ updateFieldName : listToAdd})
             # self.stash.Trace(f"Added {fieldName} ({dataAdded}) to scene ID({self.destData['id']})", toAscii=True)
+
+class taskQueue:
+    taskqueue = None
+    def __init__(self, taskqueue):
+        self.taskqueue = taskqueue
+    
+    def tooManyScanOnTaskQueue(self, tooManyQty = 5):
+        count = 0
+        if self.taskqueue == None:
+            return False
+        for jobDetails in self.taskqueue:
+            if jobDetails['description'] == "Scanning...":
+                count += 1
+        if count < tooManyQty:
+            return False
+        return True
+    
+    def cleanJobOnTaskQueue(self):
+        for jobDetails in self.taskqueue:
+            if jobDetails['description'] == "Cleaning...":
+                return True
+        return False
+    
+    def cleanGeneratedJobOnTaskQueue(self):
+        for jobDetails in self.taskqueue:
+            if jobDetails['description'] == "Cleaning generated files...":
+                return True
+        return False
+    
+    def isRunningPluginTaskJobOnTaskQueue(self, taskName):
+        for jobDetails in self.taskqueue:
+            if jobDetails['description'] == "Running plugin task: {taskName}":
+                return True
+        return False
+    
+    def tagDuplicatesJobOnTaskQueue(self):
+        return self.isRunningPluginTaskJobOnTaskQueue("Tag Duplicates")
+    
+    def clearDupTagsJobOnTaskQueue(self):
+        return self.isRunningPluginTaskJobOnTaskQueue("Clear Tags")
+    
+    def generatePhashMatchingJobOnTaskQueue(self):
+        return self.isRunningPluginTaskJobOnTaskQueue("Generate PHASH Matching")
+    
+    def deleteDuplicatesJobOnTaskQueue(self):
+        return self.isRunningPluginTaskJobOnTaskQueue("Delete Duplicates")
+    
+    def deleteTaggedScenesJobOnTaskQueue(self):
+        return self.isRunningPluginTaskJobOnTaskQueue("Delete Tagged Scenes")
+
+

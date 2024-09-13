@@ -1,3 +1,4 @@
 stashapp-tools >= 0.2.50
-pyYAML
+requests
 watchdog
+schedule

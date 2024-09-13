@@ -48,8 +48,8 @@ RenameFile is a [Stash](https://github.com/stashapp/stash) plugin.
 - pip install -r requirements.txt
 - Or manually install each requirement:
   - `pip install stashapp-tools --upgrade`
-  - `pip install pyYAML`
   - `pip install requests`
+  - `pip install psutil`
 - For (Windows-Only) optional feature **handleExe**, download handle.exe:
   - https://learn.microsoft.com/en-us/sysinternals/downloads/handle
 

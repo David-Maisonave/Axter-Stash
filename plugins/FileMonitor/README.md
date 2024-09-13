@@ -142,7 +142,7 @@ To configure the schedule or to add new task, edit the **task_scheduler** sectio
 - pip install -r requirements.txt
 - Or manually install each requirement:
   - `pip install stashapp-tools --upgrade`
-  - `pip install pyYAML`
+  - `pip install requests`
   - `pip install watchdog`
   - `pip install schedule`
 

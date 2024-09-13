@@ -1,4 +1,4 @@
-# DupFileManager: Ver 0.1.2 (By David Maisonave)
+# DupFileManager: Ver 0.1.4 (By David Maisonave)
 
 DupFileManager is a [Stash](https://github.com/stashapp/stash) plugin which manages duplicate file in the Stash system.
 
@@ -31,9 +31,9 @@ DupFileManager is a [Stash](https://github.com/stashapp/stash) plugin which mana
 
 ### Requirements
 
-`pip install --upgrade stashapp-tools`
-`pip install pyYAML`
-`pip install Send2Trash`
+- `pip install --upgrade stashapp-tools`
+- `pip install requests`
+- `pip install Send2Trash`
 
 ### Installation
 
