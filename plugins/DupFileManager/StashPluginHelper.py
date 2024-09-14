@@ -62,6 +62,7 @@ class StashPluginHelper(StashInterface):
     LOG_FILE_NAME = None
     STDIN_READ = None
     stopProcessBarSpin = True
+    NOT_IN_LIST = 2147483646
     
     IS_DOCKER = False
     IS_WINDOWS = False
@@ -527,6 +528,47 @@ class StashPluginHelper(StashInterface):
         self.stopProcessBarSpin = True
         time.sleep(sleepSeconds)
     
+    def startsWithInList(self, listToCk, itemToCk):
+        itemToCk = itemToCk.lower()
+        for listItem in listToCk:
+            if itemToCk.startswith(listItem.lower()):
+                return True
+        return False
+    
+    def indexStartsWithInList(self, listToCk, itemToCk):
+        itemToCk = itemToCk.lower()
+        index = -1
+        lenItemMatch = 0
+        returnValue = self.NOT_IN_LIST
+        for listItem in listToCk:
+            index += 1
+            if itemToCk.startswith(listItem.lower()):
+                if len(listItem) > lenItemMatch: # Make sure the best match is selected by getting match with longest string.
+                    lenItemMatch = len(listItem)
+                    returnValue = index
+        return returnValue
+    
+    def checkIfTagInlist(self, somelist, tagName, trace=False):
+        tagId = self.find_tags(q=tagName)
+        if len(tagId) > 0 and 'id' in tagId[0]:
+            tagId = tagId[0]['id']
+        else:
+            self.Warn(f"Could not find tag ID for tag '{tagName}'.")
+            return
+        somelist = somelist.split(",")
+        if trace:
+            self.Trace("#########################################################################")
+        scenes = self.find_scenes(f={"tags": {"value":tagId, "modifier":"INCLUDES"}}, fragment='id tags {id name} files {path width height duration size video_codec bit_rate frame_rate} details')
+        qtyResults = len(scenes)
+        self.Log(f"Found {qtyResults} scenes with tag ({tagName})")
+        Qty = 0
+        for scene in scenes:
+            Qty+=1
+            if self.startsWithInList(somelist, scene['files'][0]['path']):
+                self.Log(f"Found scene part of list; {scene['files'][0]['path']}")
+            elif trace:
+                self.Trace(f"Not part of list; {scene['files'][0]['path']}")
+    
     def createTagId(self, tagName, tagName_descp = "", deleteIfExist = False, ignoreAutoTag = False):
         tagId = self.find_tags(q=tagName)
         if len(tagId):
@@ -556,11 +598,11 @@ class StashPluginHelper(StashInterface):
             self.update_scene(dataDict)
         return doesHaveTagName
     
-    def addTag(self, scene, tagName): # scene can be scene ID or scene metadata
+    def addTag(self, scene, tagName, tagName_descp = "", ignoreAutoTag=False): # scene can be scene ID or scene metadata
         scene_details = scene
         if 'id' not in scene:
             scene_details = self.find_scene(scene)
-        tagIds = [self.createTagId(tagName)]
+        tagIds = [self.createTagId(tagName, tagName_descp=tagName_descp, ignoreAutoTag=ignoreAutoTag)]
         for tag in scene_details['tags']:
             if tag['name'] != tagName:
                 tagIds += [tag['id']]
@@ -593,6 +635,21 @@ class StashPluginHelper(StashInterface):
             return f"Made asynchronous call for plugin {plugin_id}"
         else:
             return self.call_GQL(query, variables)
+    
+    def stopJobs(self, startPos = 0, startsWith = ""):
+        taskQue = self.job_queue()
+        if taskQue != None:
+            count = 0
+            for jobDetails in taskQue:
+                count+=1
+                if count > startPos:
+                    if startsWith == "" or jobDetails['description'].startswith(startsWith):
+                        self.Log(f"Killing Job ID({jobDetails['id']}); description={jobDetails['description']}")
+                        self.stop_job(jobDetails['id'])
+                    else:
+                        self.Log(f"Excluding Job ID({jobDetails['id']}); description={jobDetails['description']}; {jobDetails})")
+                else:
+                    self.Log(f"Skipping Job ID({jobDetails['id']}); description={jobDetails['description']}; {jobDetails})")
     
     # ############################################################################################################
     # Functions which are candidates to be added to parent class use snake_case naming convention.

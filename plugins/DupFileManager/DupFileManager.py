@@ -43,6 +43,7 @@ stash = StashPluginHelper(
         config=config,
         maxbytes=10*1024*1024,
         )
+stash.convertToAscii = True
 if len(sys.argv) > 1:
     stash.Log(f"argv = {sys.argv}")
 else:
@@ -90,6 +91,8 @@ elif codecRankingSetToUse == 2:
     codecRanking            = stash.Setting('codecRankingSet2')
 else:
     codecRanking            = stash.Setting('codecRankingSet1')
+skipIfTagged                = stash.Setting('skipIfTagged')
+killScanningPostProcess     = stash.Setting('killScanningPostProcess')
 
 matchDupDistance            = int(stash.Setting('zyMatchDupDistance'))
 matchPhaseDistance          = PhashDistance.EXACT
@@ -211,13 +214,13 @@ def testReparsePointAndSymLink(merge=False, deleteDup=False):
 detailPrefix = "BaseDup="
 detailPostfix = "<BaseDup>\n"
 
-def setTagId(tagName, sceneDetails, DupFileToKeep):
+def setTagId(tagName, sceneDetails, DupFileToKeep, TagReason="", ignoreAutoTag=False):
     details = ""
     ORG_DATA_DICT = {'id' : sceneDetails['id']}
     dataDict = ORG_DATA_DICT.copy()
     doAddTag = True
     if addPrimaryDupPathToDetails:
-        BaseDupStr = f"{detailPrefix}{DupFileToKeep['files'][0]['path']}\n{stash.STASH_URL}/scenes/{DupFileToKeep['id']}\n(matchDupDistance={matchPhaseDistanceText})\n{detailPostfix}"
+        BaseDupStr = f"{detailPrefix}{DupFileToKeep['files'][0]['path']}\n{stash.STASH_URL}/scenes/{DupFileToKeep['id']}\n{TagReason}(matchDupDistance={matchPhaseDistanceText})\n{detailPostfix}"
         if sceneDetails['details'] == "":
             details = BaseDupStr
         elif not sceneDetails['details'].startswith(detailPrefix):
@@ -227,7 +230,7 @@ def setTagId(tagName, sceneDetails, DupFileToKeep):
             doAddTag = False
             break
     if doAddTag:
-        stash.addTag(sceneDetails, tagName)
+        stash.addTag(sceneDetails, tagName, ignoreAutoTag=ignoreAutoTag)
     if details != "":
         dataDict.update({'details' : details})
     if dataDict != ORG_DATA_DICT:
@@ -235,28 +238,7 @@ def setTagId(tagName, sceneDetails, DupFileToKeep):
         stash.Trace(f"[setTagId] Updated {sceneDetails['files'][0]['path']} with metadata {dataDict}", toAscii=True)
     else:
         stash.Trace(f"[setTagId] Nothing to update {sceneDetails['files'][0]['path']}.", toAscii=True)
-
-
-def isInList(listToCk, itemToCk):
-    itemToCk = itemToCk.lower()
-    for item in listToCk:
-        if itemToCk.startswith(item):
-            return True
-    return False
-
-NOT_IN_LIST = 65535
-def indexInList(listToCk, itemToCk):
-    itemToCk = itemToCk.lower()
-    index = -1
-    lenItemMatch = 0
-    returnValue = NOT_IN_LIST
-    for item in listToCk:
-        index += 1
-        if itemToCk.startswith(item):
-            if len(item) > lenItemMatch: # Make sure the best match is selected by getting match with longest string.
-                lenItemMatch = len(item)
-                returnValue = index
-    return returnValue
+    return doAddTag
 
 def hasSameDir(path1, path2):
     if pathlib.Path(path1).resolve().parent == pathlib.Path(path2).resolve().parent:
@@ -296,8 +278,8 @@ def isBetterVideo(scene1, scene2, swapCandidateCk = False):
             stash.Trace(f"[isBetterVideo]:[favorHighBitRate={favorHighBitRate}] Better bit rate. {scene1['files'][0]['path']}={scene1['files'][0]['bit_rate']} v.s. {scene2['files'][0]['path']}={scene2['files'][0]['bit_rate']}")
             return True
     if (favorCodecRanking and swapCandidateCk == False) or (swapCandidateCk and swapCodec):
-        scene1CodecRank = indexInList(codecRanking, scene1['files'][0]['video_codec'])
-        scene2CodecRank = indexInList(codecRanking, scene2['files'][0]['video_codec'])
+        scene1CodecRank = stash.indexStartsWithInList(codecRanking, scene1['files'][0]['video_codec'])
+        scene2CodecRank = stash.indexStartsWithInList(codecRanking, scene2['files'][0]['video_codec'])
         if scene2CodecRank < scene1CodecRank:
             stash.Trace(f"[isBetterVideo] Better codec. {scene1['files'][0]['path']}={scene1['files'][0]['video_codec']}:Rank={scene1CodecRank} v.s. {scene2['files'][0]['path']}={scene2['files'][0]['video_codec']}:Rank={scene2CodecRank}")
             return True
@@ -309,7 +291,7 @@ def isBetterVideo(scene1, scene2, swapCandidateCk = False):
 
 def isSwapCandidate(DupFileToKeep, DupFile):
     # Don't move if both are in whitelist
-    if isInList(whitelist, DupFileToKeep['files'][0]['path']) and isInList(whitelist, DupFile['files'][0]['path']):
+    if stash.startsWithInList(whitelist, DupFileToKeep['files'][0]['path']) and stash.startsWithInList(whitelist, DupFile['files'][0]['path']):
         return False
     if swapHighRes and (int(DupFileToKeep['files'][0]['width']) > int(DupFile['files'][0]['width']) or int(DupFileToKeep['files'][0]['height']) > int(DupFile['files'][0]['height'])):
         if not significantLessTime(int(DupFileToKeep['files'][0]['duration']), int(DupFile['files'][0]['duration'])):
@@ -349,32 +331,20 @@ def isTaggedExcluded(Scene):
     return False
 
 def isWorseKeepCandidate(DupFileToKeep, Scene):
-    if not isInList(whitelist, Scene['files'][0]['path']) and isInList(whitelist, DupFileToKeep['files'][0]['path']):
+    if not stash.startsWithInList(whitelist, Scene['files'][0]['path']) and stash.startsWithInList(whitelist, DupFileToKeep['files'][0]['path']):
         return True
-    if not isInList(graylist, Scene['files'][0]['path']) and isInList(graylist, DupFileToKeep['files'][0]['path']):
+    if not stash.startsWithInList(graylist, Scene['files'][0]['path']) and stash.startsWithInList(graylist, DupFileToKeep['files'][0]['path']):
         return True
-    if not isInList(blacklist, DupFileToKeep['files'][0]['path']) and isInList(blacklist, Scene['files'][0]['path']):
+    if not stash.startsWithInList(blacklist, DupFileToKeep['files'][0]['path']) and stash.startsWithInList(blacklist, Scene['files'][0]['path']):
         return True
     
-    if isInList(graylist, Scene['files'][0]['path']) and isInList(graylist, DupFileToKeep['files'][0]['path']) and indexInList(graylist, DupFileToKeep['files'][0]['path']) < indexInList(graylist, Scene['files'][0]['path']):
+    if stash.startsWithInList(graylist, Scene['files'][0]['path']) and stash.startsWithInList(graylist, DupFileToKeep['files'][0]['path']) and stash.indexStartsWithInList(graylist, DupFileToKeep['files'][0]['path']) < stash.indexStartsWithInList(graylist, Scene['files'][0]['path']):
         return True
-    if isInList(blacklist, DupFileToKeep['files'][0]['path']) and isInList(blacklist, Scene['files'][0]['path']) and indexInList(blacklist, DupFileToKeep['files'][0]['path']) < indexInList(blacklist, Scene['files'][0]['path']):
+    if stash.startsWithInList(blacklist, DupFileToKeep['files'][0]['path']) and stash.startsWithInList(blacklist, Scene['files'][0]['path']) and stash.indexStartsWithInList(blacklist, DupFileToKeep['files'][0]['path']) < stash.indexStartsWithInList(blacklist, Scene['files'][0]['path']):
         return True      
     return False
 
-stopProcessBarSpin = True
-def spinProcessBar(sleepSeconds = 1):
-    pos = 1
-    maxPos = 30
-    while stopProcessBarSpin == False:
-        stash.progressBar(pos, maxPos)
-        pos +=1
-        if pos > maxPos:
-            pos = 1
-        time.sleep(sleepSeconds)
-
 def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
-    global stopProcessBarSpin
     duplicateMarkForDeletion_descp = 'Tag added to duplicate scenes so-as to tag them for deletion.'
     stash.Trace(f"duplicateMarkForDeletion = {duplicateMarkForDeletion}")    
     dupTagId = stash.createTagId(duplicateMarkForDeletion, duplicateMarkForDeletion_descp, ignoreAutoTag=True)
@@ -389,6 +359,7 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
     QtyAlmostDup = 0
     QtyRealTimeDiff = 0
     QtyTagForDel = 0
+    QtyNewlyTag = 0
     QtySkipForDel = 0
     QtyExcludeForDel = 0
     QtySwap = 0
@@ -397,15 +368,15 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
     stash.Log("#########################################################################")
     stash.Trace("#########################################################################")
     stash.Log(f"Waiting for find_duplicate_scenes_diff to return results; matchDupDistance={matchPhaseDistanceText}; significantTimeDiff={significantTimeDiff}", printTo=LOG_STASH_N_PLUGIN)
-    stopProcessBarSpin = False
-    stash.submit(spinProcessBar)
-    DupFileSets = stash.find_duplicate_scenes(matchPhaseDistance)
-    stopProcessBarSpin = True
-    time.sleep(1) # Make sure we give time for spinProcessBar to exit
+    stash.startSpinningProcessBar()
+    mergeFieldData = "code director title rating100 date studio {id} movies {movie {id} } galleries {id} performers {id} urls" if merge else ""
+    DupFileSets = stash.find_duplicate_scenes(matchPhaseDistance, fragment='id tags {id name} files {path width height duration size video_codec bit_rate frame_rate} details ' + mergeFieldData)
+    stash.stopSpinningProcessBar()
     qtyResults = len(DupFileSets)
     stash.Trace("#########################################################################")
+    stash.Log(f"Found {qtyResults} duplicate sets...")
     for DupFileSet in DupFileSets:
-        stash.Trace(f"DupFileSet={DupFileSet}")
+        # stash.Trace(f"DupFileSet={DupFileSet}", toAscii=True)
         QtyDupSet+=1
         stash.progressBar(QtyDupSet, qtyResults)
         SepLine = "---------------------------"
@@ -414,10 +385,12 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
         DupFileDetailList = []
         for DupFile in DupFileSet:
             QtyDup+=1
-            time.sleep(2)
-            Scene = stash.find_scene(DupFile['id'])
-            sceneData = f"Scene = {Scene}"
-            stash.Trace(sceneData, toAscii=True)
+            # Scene = stash.find_scene(DupFile['id'])
+            Scene = DupFile
+            if skipIfTagged and duplicateMarkForDeletion in Scene['tags']:
+                stash.Trace(f"Skipping scene '{Scene['files'][0]['path']}' because already tagged with {duplicateMarkForDeletion}")
+                continue
+            stash.Trace(f"Scene = {Scene}", toAscii=True)
             DupFileDetailList = DupFileDetailList + [Scene]
             if DupFileToKeep != "":
                 if int(DupFileToKeep['files'][0]['duration']) == int(Scene['files'][0]['duration']): # Do not count fractions of a second as a difference
@@ -437,23 +410,23 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
                 elif isBetterVideo(DupFileToKeep, Scene):
                     stash.Trace(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason=codec,bit_rate, or frame_rate: {DupFileToKeep['files'][0]['video_codec']}, {DupFileToKeep['files'][0]['bit_rate']}, {DupFileToKeep['files'][0]['frame_rate']} : {Scene['files'][0]['video_codec']}, {Scene['files'][0]['bit_rate']}, {Scene['files'][0]['frame_rate']}")
                     DupFileToKeep = Scene
-                elif isInList(whitelist, Scene['files'][0]['path']) and not isInList(whitelist, DupFileToKeep['files'][0]['path']):
+                elif stash.startsWithInList(whitelist, Scene['files'][0]['path']) and not stash.startsWithInList(whitelist, DupFileToKeep['files'][0]['path']):
                     stash.Trace(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason=not whitelist vs whitelist")
                     DupFileToKeep = Scene
                 elif isTaggedExcluded(Scene) and not isTaggedExcluded(DupFileToKeep):
                     stash.Trace(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason=not ExcludeTag vs ExcludeTag")
                     DupFileToKeep = Scene
-                elif isInList(blacklist, DupFileToKeep['files'][0]['path']) and not isInList(blacklist, Scene['files'][0]['path']):
+                elif stash.startsWithInList(blacklist, DupFileToKeep['files'][0]['path']) and not stash.startsWithInList(blacklist, Scene['files'][0]['path']):
                     stash.Trace(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason=blacklist vs not blacklist")
                     DupFileToKeep = Scene
-                elif isInList(blacklist, DupFileToKeep['files'][0]['path']) and isInList(blacklist, Scene['files'][0]['path']) and indexInList(blacklist, DupFileToKeep['files'][0]['path']) > indexInList(blacklist, Scene['files'][0]['path']):
-                    stash.Trace(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason=blacklist-index {indexInList(blacklist, DupFileToKeep['files'][0]['path'])} > {indexInList(blacklist, Scene['files'][0]['path'])}")
+                elif stash.startsWithInList(blacklist, DupFileToKeep['files'][0]['path']) and stash.startsWithInList(blacklist, Scene['files'][0]['path']) and stash.indexStartsWithInList(blacklist, DupFileToKeep['files'][0]['path']) > stash.indexStartsWithInList(blacklist, Scene['files'][0]['path']):
+                    stash.Trace(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason=blacklist-index {stash.indexStartsWithInList(blacklist, DupFileToKeep['files'][0]['path'])} > {stash.indexStartsWithInList(blacklist, Scene['files'][0]['path'])}")
                     DupFileToKeep = Scene
-                elif isInList(graylist, Scene['files'][0]['path']) and not isInList(graylist, DupFileToKeep['files'][0]['path']):
+                elif stash.startsWithInList(graylist, Scene['files'][0]['path']) and not stash.startsWithInList(graylist, DupFileToKeep['files'][0]['path']):
                     stash.Trace(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason=not graylist vs graylist")
                     DupFileToKeep = Scene
-                elif isInList(graylist, Scene['files'][0]['path']) and isInList(graylist, DupFileToKeep['files'][0]['path']) and indexInList(graylist, DupFileToKeep['files'][0]['path']) > indexInList(graylist, Scene['files'][0]['path']):
-                    stash.Trace(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason=graylist-index {indexInList(graylist, DupFileToKeep['files'][0]['path'])} > {indexInList(graylist, Scene['files'][0]['path'])}")
+                elif stash.startsWithInList(graylist, Scene['files'][0]['path']) and stash.startsWithInList(graylist, DupFileToKeep['files'][0]['path']) and stash.indexStartsWithInList(graylist, DupFileToKeep['files'][0]['path']) > stash.indexStartsWithInList(graylist, Scene['files'][0]['path']):
+                    stash.Trace(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason=graylist-index {stash.indexStartsWithInList(graylist, DupFileToKeep['files'][0]['path'])} > {stash.indexStartsWithInList(graylist, Scene['files'][0]['path'])}")
                     DupFileToKeep = Scene
                 elif favorLongerFileName and len(DupFileToKeep['files'][0]['path']) < len(Scene['files'][0]['path']) and not isWorseKeepCandidate(DupFileToKeep, Scene):
                     stash.Trace(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason=path-len {len(DupFileToKeep['files'][0]['path'])} < {len(Scene['files'][0]['path'])}")
@@ -478,31 +451,32 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
                     result = stash.mergeMetadata(DupFile, DupFileToKeep)
                     if result != "Nothing To Merge":
                         QtyMerge += 1
-                
-                if isInList(whitelist, DupFile['files'][0]['path']) and (not whitelistDelDupInSameFolder or not hasSameDir(DupFile['files'][0]['path'], DupFileToKeep['files'][0]['path'])):
+                didAddTag = False
+                if stash.startsWithInList(whitelist, DupFile['files'][0]['path']) and (not whitelistDelDupInSameFolder or not hasSameDir(DupFile['files'][0]['path'], DupFileToKeep['files'][0]['path'])):
+                    QtySkipForDel+=1
                     if isSwapCandidate(DupFileToKeep, DupFile):
                         if merge:
                             stash.mergeMetadata(DupFileToKeep, DupFile)
                         if toRecycleBeforeSwap:
                             sendToTrash(DupFile['files'][0]['path'])
                         shutil.move(DupFileToKeep['files'][0]['path'], DupFile['files'][0]['path'])
-                        stash.Log(f"Moved better file '{DupFileToKeep['files'][0]['path']}' to '{DupFile['files'][0]['path']}'", toAscii=True, printTo=LOG_STASH_N_PLUGIN)
-                        DupFileToKeep = DupFile
                         QtySwap+=1
+                        stash.Log(f"Moved better file '{DupFileToKeep['files'][0]['path']}' to '{DupFile['files'][0]['path']}';QtyDup={QtyDup};QtySwap={QtySwap};QtySkipForDel={QtySkipForDel}", toAscii=True, printTo=LOG_STASH_N_PLUGIN)
+                        DupFileToKeep = DupFile
                     else:
-                        stash.Log(f"NOT processing duplicate, because it's in whitelist. '{DupFile['files'][0]['path']}'", toAscii=True)
                         if dupWhitelistTagId and tagDuplicates:
-                            setTagId(duplicateWhitelistTag, DupFile, DupFileToKeep)
-                    QtySkipForDel+=1
+                            didAddTag = setTagId(duplicateWhitelistTag, DupFile, DupFileToKeep, ignoreAutoTag=True)
+                        stash.Log(f"NOT processing duplicate, because it's in whitelist. '{DupFile['files'][0]['path']}';didAddWhiteTag={didAddTag};QtyDup={QtyDup};QtySkipForDel={QtySkipForDel}", toAscii=True)
                 else:
                     if isTaggedExcluded(DupFile):
-                        stash.Log(f"Excluding file {DupFile['files'][0]['path']} because tagged for exclusion via tag {excludeDupFileDeleteTag}")
                         QtyExcludeForDel+=1
+                        stash.Log(f"Excluding file {DupFile['files'][0]['path']} because tagged for exclusion via tag {excludeDupFileDeleteTag};QtyDup={QtyDup}")
                     else:
                         if deleteDup:
+                            QtyDeleted += 1
                             DupFileName = DupFile['files'][0]['path']
                             DupFileNameOnly = pathlib.Path(DupFileName).stem
-                            stash.Warn(f"Deleting duplicate '{DupFileName}'", toAscii=True, printTo=LOG_STASH_N_PLUGIN)
+                            stash.Warn(f"Deleting duplicate '{DupFileName}';QtyDup={QtyDup};QtyDeleted={QtyDeleted}", toAscii=True, printTo=LOG_STASH_N_PLUGIN)
                             if alternateTrashCanPath != "":
                                 destPath = f"{alternateTrashCanPath }{os.sep}{DupFileNameOnly}"
                                 if os.path.isfile(destPath):
@@ -511,19 +485,22 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
                             elif moveToTrashCan:
                                 sendToTrash(DupFileName)
                             stash.destroy_scene(DupFile['id'], delete_file=True)
-                            QtyDeleted += 1
                         elif tagDuplicates:
-                            if QtyTagForDel == 0:
-                                stash.Log(f"Tagging duplicate {DupFile['files'][0]['path']} for deletion with tag {duplicateMarkForDeletion}.", toAscii=True, printTo=LOG_STASH_N_PLUGIN)
+                            QtyTagForDel+=1
+                            didAddTag = setTagId(duplicateMarkForDeletion, DupFile, DupFileToKeep, ignoreAutoTag=True)
+                            if didAddTag:
+                                QtyNewlyTag+=1
+                            if QtyTagForDel == 1:
+                                stash.Log(f"Tagging duplicate {DupFile['files'][0]['path']} for deletion with tag {duplicateMarkForDeletion};didAddTag={didAddTag};QtyDup={QtyDup};QtyNewlyTag={QtyNewlyTag};QtyTagForDel={QtyTagForDel}", toAscii=True, printTo=LOG_STASH_N_PLUGIN)
                             else:
-                                stash.Log(f"Tagging duplicate {DupFile['files'][0]['path']} for deletion.", toAscii=True, printTo=LOG_STASH_N_PLUGIN)
-                            setTagId(duplicateMarkForDeletion, DupFile, DupFileToKeep)
-                        QtyTagForDel+=1
+                                stash.Log(f"Tagging duplicate {DupFile['files'][0]['path']} for deletion;didAddTag={didAddTag};QtyDup={QtyDup};QtyNewlyTag={QtyNewlyTag};QtyTagForDel={QtyTagForDel}", toAscii=True, printTo=LOG_STASH_N_PLUGIN)
         stash.Trace(SepLine)
         if maxDupToProcess > 0 and QtyDup > maxDupToProcess:
             break
     
     stash.Log(f"QtyDupSet={QtyDupSet}, QtyDup={QtyDup}, QtyDeleted={QtyDeleted}, QtySwap={QtySwap}, QtyTagForDel={QtyTagForDel}, QtySkipForDel={QtySkipForDel}, QtyExcludeForDel={QtyExcludeForDel}, QtyExactDup={QtyExactDup}, QtyAlmostDup={QtyAlmostDup}, QtyMerge={QtyMerge}, QtyRealTimeDiff={QtyRealTimeDiff}", printTo=LOG_STASH_N_PLUGIN)
+    if killScanningPostProcess:
+        stash.stopJobs(0, "Scanning...")
     if doNotGeneratePhash == False:
         stash.metadata_generate({"phashes": True})
     if cleanAfterDel:
@@ -533,7 +510,6 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
         stash.optimise_database()
 
 def manageTagggedDuplicates(clearTag=False):
-    global stopProcessBarSpin
     tagId = stash.find_tags(q=duplicateMarkForDeletion)
     if len(tagId) > 0 and 'id' in tagId[0]:
         tagId = tagId[0]['id']
@@ -545,25 +521,23 @@ def manageTagggedDuplicates(clearTag=False):
     QtyClearedTags = 0
     QtyFailedQuery = 0
     stash.Trace("#########################################################################")
-    stopProcessBarSpin = False
-    stash.submit(spinProcessBar)
-    sceneIDs = stash.find_scenes(f={"tags": {"value":tagId, "modifier":"INCLUDES"}}, fragment='id')
-    stopProcessBarSpin = True
-    time.sleep(1) # Make sure we give time for spinProcessBar to exit
-    qtyResults = len(sceneIDs)
-    stash.Trace(f"Found {qtyResults} scenes with tag ({duplicateMarkForDeletion}): sceneIDs = {sceneIDs}")
-    for sceneID in sceneIDs:
-        # stash.Trace(f"Getting scene data for scene ID {sceneID['id']}.")
+    stash.startSpinningProcessBar()
+    scenes = stash.find_scenes(f={"tags": {"value":tagId, "modifier":"INCLUDES"}}, fragment='id tags {id name} files {path width height duration size video_codec bit_rate frame_rate} details')
+    stash.stopSpinningProcessBar()
+    qtyResults = len(scenes)
+    stash.Trace(f"Found {qtyResults} scenes with tag ({duplicateMarkForDeletion})")
+    for scene in scenes:
         QtyDup += 1
         prgs = QtyDup / qtyResults
         stash.progressBar(QtyDup, qtyResults)
-        scene = stash.find_scene(sceneID['id'])
-        if scene == None or len(scene) == 0:
-            stash.Warn(f"Could not get scene data for scene ID {sceneID['id']}.")
-            QtyFailedQuery += 1
-            continue
+        # scene = stash.find_scene(sceneID['id'])
+        # if scene == None or len(scene) == 0:
+            # stash.Warn(f"Could not get scene data for scene ID {scene['id']}.")
+            # QtyFailedQuery += 1
+            # continue
         # stash.Trace(f"scene={scene}")
         if clearTag:
+            QtyClearedTags += 1            
             tags = [int(item['id']) for item in scene["tags"] if item['id'] != tagId]
             stash.TraceOnce(f"tagId={tagId}, len={len(tags)}, tags = {tags}")
             dataDict = {'id' : scene['id']}
@@ -575,10 +549,9 @@ def manageTagggedDuplicates(clearTag=False):
                     sceneDetails = sceneDetails[0:Pos1] + sceneDetails[Pos2 + len(detailPostfix):]                
                 dataDict.update({'details' : sceneDetails})
             dataDict.update({'tag_ids' : tags})
-            stash.Log(f"Updating scene with {dataDict}")
+            stash.Log(f"Updating scene with {dataDict};QtyClearedTags={QtyClearedTags}")
             stash.update_scene(dataDict)
             # stash.removeTag(scene, duplicateMarkForDeletion)
-            QtyClearedTags += 1            
         else:
             DupFileName = scene['files'][0]['path']
             DupFileNameOnly = pathlib.Path(DupFileName).stem
@@ -591,8 +564,8 @@ def manageTagggedDuplicates(clearTag=False):
             elif moveToTrashCan:
                 sendToTrash(DupFileName)
             result = stash.destroy_scene(scene['id'], delete_file=True)
-            stash.Trace(f"destroy_scene result={result} for file {DupFileName}", toAscii=True)
             QtyDeleted += 1
+            stash.Trace(f"destroy_scene result={result} for file {DupFileName};QtyDeleted={QtyDeleted}", toAscii=True)
     stash.Log(f"QtyDup={QtyDup}, QtyClearedTags={QtyClearedTags}, QtyDeleted={QtyDeleted}, QtyFailedQuery={QtyFailedQuery}", printTo=LOG_STASH_N_PLUGIN)
     if doNotGeneratePhash == False and clearTag == False:
         stash.metadata_generate({"phashes": True})

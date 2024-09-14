@@ -43,6 +43,11 @@ config = {
     # If enabled, favor videos with higher frame rate. Used with either favorFrameRateChange option or UI [Swap Better Frame Rate] option.
     "favorHigherFrameRate" : True,
     
+    # If enabled, skip processing tagged scenes
+    "skipIfTagged" : True,
+    # If enabled, stop multiple scanning jobs after processing duplicates
+    "killScanningPostProcess" : True,
+    
     # The following fields are ONLY used when running DupFileManager in script mode
     "endpoint_Scheme" : "http", # Define endpoint to use when contacting the Stash server
     "endpoint_Host" : "0.0.0.0", # Define endpoint to use when contacting the Stash server

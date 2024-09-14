@@ -777,7 +777,7 @@ def synchronize_library(removeScene=False):
                 stash.destroy_scene(scene['id'])
                 stash.Log(f"Removed Scene ID={scene['id']}; path={scene['files'][0]['path']}")
             else:
-                stash.addTag(scene, NotInLibraryTagName)
+                stash.addTag(scene, NotInLibraryTagName, ignoreAutoTag=True)
                 stash.Trace(f"Tagged ({NotInLibraryTagName}) Scene ID={scene['id']}; path={scene['files'][0]['path']}")
 
 def manageTagggedScenes(clearTag=True):
