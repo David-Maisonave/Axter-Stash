@@ -12,16 +12,32 @@ config = {
     "toRecycleBeforeSwap" : True,
     # Character used to seperate items on the whitelist, blacklist, and graylist
     "listSeparator" : ",",
+    
+    # Tag names **************************************************
     # Tag used to tag duplicates with lower resolution, duration, and file name length.
     "DupFileTag" : "DuplicateMarkForDeletion",
     # Tag name used to tag duplicates in the whitelist. E.g. _DuplicateWhitelistFile
     "DupWhiteListTag" : "_DuplicateWhitelistFile",
-    # Tags used to exclude duplicate from deletion
+    # Tag name used to exclude duplicate from deletion
     "excludeDupFileDeleteTag" : "_ExcludeDuplicateMarkForDeletion",
+    # Tag name used to tag scenes with existing tag DuplicateMarkForDeletion, and that are in the graylist
+    "graylistMarkForDeletion" : "_GraylistMarkForDeletion",
+    # Tag name for scenes with significant longer duration but lower resolution
+    "longerDurationLowerResolution" : "_LongerDurationLowerResolution",
+    
+    # Favor setings *********************************************
     # If enabled, favor longer file name over shorter. If disabled, favor shorter file name.
     "favorLongerFileName" : True,
     # If enabled, favor larger file size over smaller. If disabled, favor smaller file size.
     "favorLargerFileSize" : True,
+    # If enabled, favor videos with a different bit rate value. If favorHighBitRate is true, favor higher rate. If favorHighBitRate is false, favor lower rate
+    "favorBitRateChange" : True,
+    # If enabled, favor videos with higher bit rate. Used with either favorBitRateChange option or UI [Swap Bit Rate Change] option.
+    "favorHighBitRate" : True,
+    # If enabled, favor videos with a different frame rate value. If favorHigherFrameRate is true, favor higher rate. If favorHigherFrameRate is false, favor lower rate
+    "favorFrameRateChange" : True,
+    # If enabled, favor videos with higher frame rate. Used with either favorFrameRateChange option or UI [Swap Better Frame Rate] option.
+    "favorHigherFrameRate" : True,
     # If enabled, favor videos with better codec according to codecRanking
     "favorCodecRanking" : True,
     # Codec Ranking in order of preference (default (codecRankingSet1) is order of ranking based on maximum potential efficiency)
@@ -34,19 +50,17 @@ config = {
     "codecRankingSet4"      : ["h264", "vp8", "mpeg4", "msmpeg4v3", "msmpeg4v2", "msmpeg4v1", "h266", "vp9", "av1", "h265", "h263", "h263i", "vp6f", "vc-1", "vc1", "AVC", "mpeg2", "mpeg2video", "wmv3", "wmv2", "wmv1", "mpeg1", "mpeg1video", "flv1", "png", "gif"],
     # Determines which codecRankingSet to use when ranking codec. Default is 1 for codecRankingSet1
     "codecRankingSetToUse"  : 1,
-    # If enabled, favor videos with a different bit rate value. If favorHighBitRate is true, favor higher rate. If favorHighBitRate is false, favor lower rate
-    "favorBitRateChange" : True,
-    # If enabled, favor videos with higher bit rate. Used with either favorBitRateChange option or UI [Swap Bit Rate Change] option.
-    "favorHighBitRate" : True,
-    # If enabled, favor videos with a different frame rate value. If favorHigherFrameRate is true, favor higher rate. If favorHigherFrameRate is false, favor lower rate
-    "favorFrameRateChange" : True,
-    # If enabled, favor videos with higher frame rate. Used with either favorFrameRateChange option or UI [Swap Better Frame Rate] option.
-    "favorHigherFrameRate" : True,
     
     # If enabled, skip processing tagged scenes
     "skipIfTagged" : True,
     # If enabled, stop multiple scanning jobs after processing duplicates
     "killScanningPostProcess" : True,
+    # If enabled, tag scenes which have longer duration, but lower resolution
+    "tagLongDurationLowRes" : True,
+    # If enabled, bit-rate is used in important comparisons for function allThingsEqual
+    "bitRateIsImporantComp" : True,
+    # If enabled, codec is used in important comparisons for function allThingsEqual
+    "codecIsImporantComp" : True,
     
     # The following fields are ONLY used when running DupFileManager in script mode
     "endpoint_Scheme" : "http", # Define endpoint to use when contacting the Stash server

@@ -2,6 +2,8 @@
 # By David Maisonave (aka Axter) Jul-2024 (https://www.axter.com/)
 # Get the latest developers version from following link: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/RenameFile
 # Based on source code from  https://github.com/Serechops/Serechops-Stash/tree/main/plugins/Renamer
+import ModulesValidate
+ModulesValidate.modulesInstalled(["requests"])
 import os, sys, shutil, json, hashlib, pathlib, logging, time, traceback
 from pathlib import Path
 import stashapi.log as log # Importing stashapi.log as log for critical events ONLY
@@ -35,6 +37,7 @@ settings = {
     "performerAppend": False,
     "studioAppend": False,
     "tagAppend": False,
+    "yRenameEvenIfTitleEmpty": False,
     "z_keyFIeldsIncludeInFileName": False,
     "zafileRenameViaMove": False,
     "zfieldKeyList": DEFAULT_FIELD_KEY_LIST,
@@ -52,10 +55,12 @@ stash = StashPluginHelper(
 if stash.PLUGIN_ID in stash.PLUGIN_CONFIGURATION:
     stash.pluginSettings.update(stash.PLUGIN_CONFIGURATION[stash.PLUGIN_ID])
 if stash.IS_DOCKER:
-    stash.log_to_wrn_set = stash.LOG_TO_STASH + stash.LOG_TO_FILE
+    stash.log_to_wrn_set = stash.LogTo.STASH + stash.LogTo.FILE
 # ----------------------------------------------------------------------
 WRAPPER_STYLES = config["wrapper_styles"]
 POSTFIX_STYLES = config["postfix_styles"]
+
+renameEvenIfTitleEmpty = stash.pluginSettings["yRenameEvenIfTitleEmpty"]
 
 # Extract dry_run setting from settings
 dry_run = stash.pluginSettings["zzdryRun"]
@@ -89,7 +94,7 @@ if len(tag_whitelist) > 0:
 handleExe = stash.pluginConfig['handleExe']
 openedfile = None
 if handleExe != None and handleExe != "" and os.path.isfile(handleExe):
-    stash.modulesInstalled(["psutil"], silent=True)
+    ModulesValidate.modulesInstalled(["psutil"], silent=True)
     from openedFile import openedFile
     openedfile = openedFile(handleExe, stash)
 
@@ -296,6 +301,8 @@ def rename_scene(scene_id):
     maxScanCountDefault = 5
     maxScanCountForUpdate = 10
     if scene_details['title'] == None or scene_details['title'] == "":
+        if renameEvenIfTitleEmpty == False:
+            return None
         maxScanCountDefault = 1
         maxScanCountForUpdate = 1
     if not os.path.isfile(original_file_path) and not taskqueue.clearDupTagsJobOnTaskQueue() and not taskqueue.deleteTaggedScenesJobOnTaskQueue() and not taskqueue.tooManyScanOnTaskQueue(maxScanCountDefault):
@@ -304,6 +311,9 @@ def rename_scene(scene_id):
         time.sleep(POST_SCAN_DELAY) # After a scan, need a few seconds delay before fetching data.
         scene_details = stash.find_scene(scene_id)
         original_file_path = scene_details['files'][0]['path']
+    if not os.path.isfile(original_file_path):
+        stash.Error(f"Can not rename file because path {original_file_path} doesn't exist.")
+        return None
     stash.Trace(f"(original_file_path={original_file_path})")
     # Check if the scene's path matches any of the excluded paths
     if exclude_paths and any(Path(original_file_path).match(exclude_path) for exclude_path in exclude_paths):

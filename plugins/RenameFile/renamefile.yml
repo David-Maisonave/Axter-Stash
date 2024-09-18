@@ -15,6 +15,10 @@ settings:
     displayName: Append Tags
     description: Enable to append tag names to file name when renaming a file. Requires tags to be included in [Key Fields] list, which by default it is included.
     type: BOOLEAN
+  yRenameEvenIfTitleEmpty:
+    displayName: Empty Title Rename
+    description: If enable, rename files even if TITLE field is empty.
+    type: BOOLEAN
   z_keyFIeldsIncludeInFileName: # Prefixing z_ to variable names so that the GUI will place these fields after above fields (alphabatically listed)
     displayName: Include Existing Key Field
     description: Enable to append performer, tags, studios, & galleries even if name already exists in the original file name.

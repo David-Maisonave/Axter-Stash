@@ -21,9 +21,10 @@ config = {
         
         # The following tasks are scheduled weekly
         # Optional field for task "Scan", "Auto Tag", and "Clean" is 'paths'. For detail usage, see examples #A3: in filemonitor_task_examples.py
-        {"task" : "Scan",                   "weekday" : "saturday",   "time" : "03:00"}, # Library -> [Scan] (Weekly) (Every saturday at 3AM)
-        {"task" : "Auto Tag",               "weekday" : "saturday",   "time" : "03:30"}, # Auto Tag -> [Auto Tag] (Weekly) (Every saturday at 3:30AM)
-        {"task" : "Generate",               "weekday" : "saturday",   "time" : "04:00"}, # Generated Content-> [Generate] (Every saturday at 4AM)
+        {"task" : "Scan",                   "weekday" : "saturday",   "time" : "02:30"}, # Library -> [Scan] (Weekly) (Every saturday at 2:30AM)
+        {"task" : "Auto Tag",               "weekday" : "saturday",   "time" : "03:00"}, # Auto Tag -> [Auto Tag] (Weekly) (Every saturday at 3AM)
+        {"task" : "Generate",               "weekday" : "saturday",   "time" : "03:30"}, # Generated Content-> [Generate] (Every saturday at 3:30AM)
+        {"task" : "Generate Phashes",       "weekday" : "saturday",   "time" : "04:00"}, # [Generate Phashes] (Every saturday at 4AM)
         {"task" : "Clean",                  "weekday" : "saturday",   "time" : "04:30"}, # Maintenance -> [Clean] (Every saturday at 4:30AM)
         {"task" : "Clean Generated Files",  "weekday" : "saturday",   "time" : "05:00"}, # Maintenance -> [Clean Generated Files] (Every saturday at 5AM)
         {"task" : "Optimise Database",      "weekday" : "saturday",   "time" : "05:30"}, # Maintenance -> [Optimise Database] (Every saturday at 5:30AM)

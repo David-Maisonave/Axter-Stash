@@ -1,12 +1,3 @@
-from stashapi.stashapp import StashInterface
-from logging.handlers import RotatingFileHandler
-import re, inspect, sys, os, pathlib, logging, json, platform, subprocess, traceback, time
-import concurrent.futures
-from stashapi.stash_types import PhashDistance
-import __main__
-
-_ARGUMENT_UNSPECIFIED_ = "_ARGUMENT_UNSPECIFIED_"
-
 # StashPluginHelper (By David Maisonave aka Axter)
     # See end of this file for example usage
     # Log Features:
@@ -24,6 +15,14 @@ _ARGUMENT_UNSPECIFIED_ = "_ARGUMENT_UNSPECIFIED_"
         # Gets DEBUG_TRACING value from command line argument and/or from UI and/or from config file
         # Sets RUNNING_IN_COMMAND_LINE_MODE to True if detects multiple arguments
         # Sets CALLED_AS_STASH_PLUGIN to True if it's able to read from STDIN_READ
+from stashapi.stashapp import StashInterface
+from logging.handlers import RotatingFileHandler
+import re, inspect, sys, os, pathlib, logging, json, platform, subprocess, traceback, time
+import concurrent.futures
+from stashapi.stash_types import PhashDistance
+from enum import Enum, IntEnum
+import __main__
+
 class StashPluginHelper(StashInterface):
     # Primary Members for external reference
     PLUGIN_TASK_NAME = None
@@ -45,15 +44,44 @@ class StashPluginHelper(StashInterface):
     API_KEY = None
     excludeMergeTags = None
     
+    # class EnumInt(IntEnum):
+        # def __repr__(self) -> str:
+            # return f"{self.__class__.__name__}.{self.name}"
+        # def __str__(self) -> str:
+            # return str(self.value)
+        # def serialize(self):
+            # return self.value
+    
+    class EnumValue(Enum):
+        def __repr__(self) -> str:
+            return f"{self.__class__.__name__}.{self.name}"
+        def __str__(self) -> str:
+            return str(self.value)
+        def __add__(self, other):
+            return self.value + other.value
+        def serialize(self):
+            return self.value
+
     # printTo argument
-    LOG_TO_FILE = 1
-    LOG_TO_CONSOLE = 2  # Note: Only see output when running in command line mode. In plugin mode, this output is lost.
-    LOG_TO_STDERR = 4   # Note: In plugin mode, output to StdErr ALWAYS gets sent to stash logging as an error.
-    LOG_TO_STASH = 8
-    LOG_TO_WARN = 16
-    LOG_TO_ERROR = 32
-    LOG_TO_CRITICAL = 64
-    LOG_TO_ALL = LOG_TO_FILE + LOG_TO_CONSOLE + LOG_TO_STDERR + LOG_TO_STASH
+    class LogTo(IntEnum):
+        FILE = 1
+        CONSOLE = 2  # Note: Only see output when running in command line mode. In plugin mode, this output is lost.
+        STDERR = 4   # Note: In plugin mode, output to StdErr ALWAYS gets sent to stash logging as an error.
+        STASH = 8
+        WARN = 16
+        ERROR = 32
+        CRITICAL = 64
+        ALL = FILE + CONSOLE + STDERR + STASH
+    
+    class DbgLevel(IntEnum):
+        TRACE = 1
+        DBG = 2
+        INF = 3
+        WRN = 4
+        ERR = 5
+        CRITICAL = 6
+    
+    DBG_LEVEL = DbgLevel.INF
     
     # Misc class variables
     MAIN_SCRIPT_NAME = None
@@ -62,7 +90,17 @@ class StashPluginHelper(StashInterface):
     LOG_FILE_NAME = None
     STDIN_READ = None
     stopProcessBarSpin = True
-    NOT_IN_LIST = 2147483646
+    updateProgressbarOnIter = 0
+    currentProgressbarIteration = 0
+    
+    class OS_Type(IntEnum):
+        WINDOWS = 1
+        LINUX = 2
+        MAC_OS = 3
+        FREEBSD = 4
+        UNKNOWN_OS = 5
+    
+    OS_TYPE = OS_Type.UNKNOWN_OS
     
     IS_DOCKER = False
     IS_WINDOWS = False
@@ -79,53 +117,73 @@ class StashPluginHelper(StashInterface):
     convertToAscii = False # If set True, it takes precedence over encodeToUtf8
     
     # Prefix message value
-    LEV_TRACE = "TRACE: "
-    LEV_DBG = "DBG: "
-    LEV_INF = "INF: "
-    LEV_WRN = "WRN: "
-    LEV_ERR = "ERR: "
-    LEV_CRITICAL = "CRITICAL: "
+    class Level(EnumValue):
+        TRACE = "TRACE: "
+        DBG = "DBG: "
+        INF = "INF: "
+        WRN = "WRN: "
+        ERR = "ERR: "
+        CRITICAL = "CRITICAL: "
     
-    # Default format
-    LOG_FORMAT = "[%(asctime)s] %(message)s"
-    
+    class Constant(EnumValue):
+        # Default format
+        LOG_FORMAT = "[%(asctime)s] %(message)s"
+        ARGUMENT_UNSPECIFIED = "_ARGUMENT_UNSPECIFIED_"
+        NOT_IN_LIST = 2147483646
+        
     # Externally modifiable variables
-    log_to_err_set = LOG_TO_FILE + LOG_TO_STDERR # This can be changed by the calling source in order to customize what targets get error messages
-    log_to_norm = LOG_TO_FILE + LOG_TO_CONSOLE # Can be change so-as to set target output for normal logging
+    log_to_err_set = LogTo.FILE + LogTo.STDERR # This can be changed by the calling source in order to customize what targets get error messages
+    log_to_norm = LogTo.FILE + LogTo.CONSOLE # Can be change so-as to set target output for normal logging
     # Warn message goes to both plugin log file and stash when sent to Stash log file.
-    log_to_wrn_set = LOG_TO_STASH # This can be changed by the calling source in order to customize what targets get warning messages
+    log_to_wrn_set = LogTo.STASH # This can be changed by the calling source in order to customize what targets get warning messages
 
     def __init__(self, 
-                    debugTracing = None,            # Set debugTracing to True so as to output debug and trace logging
-                    logFormat = LOG_FORMAT,         # Plugin log line format
-                    dateFmt = "%y%m%d %H:%M:%S",    # Date format when logging to plugin log file
-                    maxbytes = 8*1024*1024,         # Max size of plugin log file
-                    backupcount = 2,                # Backup counts when log file size reaches max size
-                    logToWrnSet = 0,                # Customize the target output set which will get warning logging
-                    logToErrSet = 0,                # Customize the target output set which will get error logging
-                    logToNormSet = 0,               # Customize the target output set which will get normal logging
-                    logFilePath = "",               # Plugin log file. If empty, the log file name will be set based on current python file name and path
-                    mainScriptName = "",            # The main plugin script file name (full path)
-                    pluginID = "",
-                    settings = None,                # Default settings for UI fields
-                    config = None,                  # From pluginName_config.py or pluginName_setting.py
-                    fragmentServer = None,
-                    stash_url = None,               # Stash URL (endpoint URL) Example: http://localhost:9999
-                    apiKey = None,                  # API Key only needed when username and password set while running script via command line
+                    debugTracing = None,                    # Set debugTracing to True so as to output debug and trace logging
+                    logFormat = Constant.LOG_FORMAT.value,  # Plugin log line format
+                    dateFmt = "%y%m%d %H:%M:%S",            # Date format when logging to plugin log file
+                    maxbytes = 8*1024*1024,                 # Max size of plugin log file
+                    backupcount = 2,                        # Backup counts when log file size reaches max size
+                    logToWrnSet = 0,                        # Customize the target output set which will get warning logging
+                    logToErrSet = 0,                        # Customize the target output set which will get error logging
+                    logToNormSet = 0,                       # Customize the target output set which will get normal logging
+                    logFilePath = "",                       # Plugin log file. If empty, the log file name will be set based on current python file name and path
+                    mainScriptName = "",                    # The main plugin script file name (full path)
+                    pluginID = "",      
+                    settings = None,                        # Default settings for UI fields
+                    config = None,                          # From pluginName_config.py or pluginName_setting.py
+                    fragmentServer = None,      
+                    stash_url = None,                       # Stash URL (endpoint URL) Example: http://localhost:9999
+                    apiKey = None,                          # API Key only needed when username and password set while running script via command line
                     DebugTraceFieldName = "zzdebugTracing",
+                    DebugFieldName = "zzDebug",
                     DryRunFieldName = "zzdryRun",
-                    setStashLoggerAsPluginLogger = False):              
+                    setStashLoggerAsPluginLogger = False,
+                    DBG_LEVEL = DbgLevel.INF):              
+        if DBG_LEVEL in list(self.DbgLevel):
+            self.DBG_LEVEL = DBG_LEVEL
+        if debugTracing:
+            self.DEBUG_TRACING = debugTracing
+            if self.DBG_LEVEL > self.DbgLevel.DBG:
+                self.DBG_LEVEL = self.DbgLevel.TRACE
+        elif self.DBG_LEVEL < self.DbgLevel.INF:
+            self.DEBUG_TRACING = True
         self.thredPool = concurrent.futures.ThreadPoolExecutor(max_workers=2)
-        if any(platform.win32_ver()):
+        if self.isWindows():
             self.IS_WINDOWS = True
-        elif platform.system().lower().startswith("linux"):
+            self.OS_TYPE = self.OS_Type.WINDOWS
+        elif self.isLinux():
             self.IS_LINUX = True
+            self.OS_TYPE = self.OS_Type.LINUX
             if self.isDocker():
                 self.IS_DOCKER = True
-        elif platform.system().lower().startswith("freebsd"):
+        elif self.isFreeBSD():
             self.IS_FREEBSD = True
-        elif sys.platform == "darwin":
+            self.OS_TYPE = self.OS_Type.FREEBSD
+            if self.isDocker():
+                self.IS_DOCKER = True
+        elif self.isMacOS():
             self.IS_MAC_OS = True
+            self.OS_TYPE = self.OS_Type.MAC_OS
         if logToWrnSet: self.log_to_wrn_set = logToWrnSet
         if logToErrSet: self.log_to_err_set = logToErrSet
         if logToNormSet: self.log_to_norm = logToNormSet
@@ -148,7 +206,6 @@ class StashPluginHelper(StashInterface):
         else:
             self.FRAGMENT_SERVER = {'Scheme': 'http', 'Host': '0.0.0.0', 'Port': '9999', 'SessionCookie': {'Name': 'session', 'Value': '', 'Path': '', 'Domain': '', 'Expires': '0001-01-01T00:00:00Z', 'RawExpires': '', 'MaxAge': 0, 'Secure': False, 'HttpOnly': False, 'SameSite': 0, 'Raw': '', 'Unparsed': None}, 'Dir': os.path.dirname(pathlib.Path(self.MAIN_SCRIPT_NAME).resolve().parent), 'PluginDir': pathlib.Path(self.MAIN_SCRIPT_NAME).resolve().parent}
         
-        if debugTracing: self.DEBUG_TRACING = debugTracing        
         if config:
             self.pluginConfig = config        
             if self.Setting('apiKey', "") != "":
@@ -210,8 +267,14 @@ class StashPluginHelper(StashInterface):
                 self.API_KEY = self.STASH_CONFIGURATION['apiKey']
         
         self.DRY_RUN = self.Setting(DryRunFieldName, self.DRY_RUN)
-        self.DEBUG_TRACING = self.Setting(DebugTraceFieldName, self.DEBUG_TRACING)
-        if self.DEBUG_TRACING: self.LOG_LEVEL = logging.DEBUG
+        if self.Setting(DebugTraceFieldName, self.DEBUG_TRACING):
+            self.DEBUG_TRACING = True
+            self.LOG_LEVEL = logging.TRACE
+            self.DBG_LEVEL = self.DbgLevel.TRACE
+        elif self.Setting(DebugFieldName, self.DEBUG_TRACING):
+            self.DEBUG_TRACING = True
+            self.LOG_LEVEL = logging.DEBUG
+            self.DBG_LEVEL = self.DbgLevel.DBG
         
         logging.basicConfig(level=self.LOG_LEVEL, format=logFormat, datefmt=dateFmt, handlers=[RFH])
         self.pluginLog = logging.getLogger(pathlib.Path(self.MAIN_SCRIPT_NAME).stem)
@@ -221,74 +284,104 @@ class StashPluginHelper(StashInterface):
     def __del__(self):
         self.thredPool.shutdown(wait=False)
     
-    def Setting(self, name, default=_ARGUMENT_UNSPECIFIED_, raiseEx=True, notEmpty=False):
+    def Setting(self, name, default=Constant.ARGUMENT_UNSPECIFIED.value, raiseEx=True, notEmpty=False):
         if self.pluginSettings != None and name in self.pluginSettings:
             if notEmpty == False or self.pluginSettings[name] != "":
                 return self.pluginSettings[name]
         if self.pluginConfig != None and name in self.pluginConfig:
             if notEmpty == False or self.pluginConfig[name] != "":
                 return self.pluginConfig[name]
-        if default == _ARGUMENT_UNSPECIFIED_ and raiseEx:
+        if default == self.Constant.ARGUMENT_UNSPECIFIED.value and raiseEx:
             raise Exception(f"Missing {name} from both UI settings and config file settings.") 
         return default
     
-    def Log(self, logMsg, printTo = 0, logLevel = logging.INFO, lineNo = -1, levelStr = "", logAlways = False, toAscii = None):
-        if toAscii or (toAscii == None and (self.encodeToUtf8 or self.convertToAscii)):
-            logMsg = self.asc2(logMsg)
-        else:
-            logMsg = logMsg
-        if printTo == 0: 
-            printTo = self.log_to_norm
-        elif printTo == self.LOG_TO_ERROR and logLevel == logging.INFO:
-            logLevel = logging.ERROR
-            printTo = self.log_to_err_set
-        elif printTo == self.LOG_TO_CRITICAL and logLevel == logging.INFO:
-            logLevel = logging.CRITICAL
-            printTo = self.log_to_err_set
-        elif printTo == self.LOG_TO_WARN and logLevel == logging.INFO:
-            logLevel = logging.WARN
-            printTo = self.log_to_wrn_set
-        if lineNo == -1:
-            lineNo = inspect.currentframe().f_back.f_lineno
-        LN_Str = f"[LN:{lineNo}]"
-        # print(f"{LN_Str}, {logAlways}, {self.LOG_LEVEL}, {logging.DEBUG}, {levelStr}, {logMsg}")
-        if logLevel == logging.DEBUG and (logAlways == False or self.LOG_LEVEL == logging.DEBUG):
-            if levelStr == "": levelStr = self.LEV_DBG
-            if printTo & self.LOG_TO_FILE: self.pluginLog.debug(f"{LN_Str} {levelStr}{logMsg}")
-            if printTo & self.LOG_TO_STASH: self.log.debug(f"{LN_Str} {levelStr}{logMsg}")
-        elif logLevel == logging.INFO or logLevel == logging.DEBUG:
-            if levelStr == "": levelStr = self.LEV_INF if logLevel == logging.INFO else self.LEV_DBG
-            if printTo & self.LOG_TO_FILE: self.pluginLog.info(f"{LN_Str} {levelStr}{logMsg}")
-            if printTo & self.LOG_TO_STASH: self.log.info(f"{LN_Str} {levelStr}{logMsg}")
-        elif logLevel == logging.WARN:
-            if levelStr == "": levelStr = self.LEV_WRN
-            if printTo & self.LOG_TO_FILE: self.pluginLog.warning(f"{LN_Str} {levelStr}{logMsg}")
-            if printTo & self.LOG_TO_STASH: self.log.warning(f"{LN_Str} {levelStr}{logMsg}")
-        elif logLevel == logging.ERROR:
-            if levelStr == "": levelStr = self.LEV_ERR
-            if printTo & self.LOG_TO_FILE: self.pluginLog.error(f"{LN_Str} {levelStr}{logMsg}")
-            if printTo & self.LOG_TO_STASH: self.log.error(f"{LN_Str} {levelStr}{logMsg}")
-        elif logLevel == logging.CRITICAL:
-            if levelStr == "": levelStr = self.LEV_CRITICAL
-            if printTo & self.LOG_TO_FILE: self.pluginLog.critical(f"{LN_Str} {levelStr}{logMsg}")
-            if printTo & self.LOG_TO_STASH: self.log.error(f"{LN_Str} {levelStr}{logMsg}")
-        if (printTo & self.LOG_TO_CONSOLE) and (logLevel != logging.DEBUG or self.DEBUG_TRACING or logAlways):
-            print(f"{LN_Str} {levelStr}{logMsg}")
-        if (printTo & self.LOG_TO_STDERR) and (logLevel != logging.DEBUG or self.DEBUG_TRACING or logAlways):
-            print(f"StdErr: {LN_Str} {levelStr}{logMsg}", file=sys.stderr)
+    def Log(self, logMsg, printTo = 0, logLevel = logging.INFO, lineNo = -1, levelStr = "", logAlways = False, toAscii = None, printLogException = False):
+        try:
+            if toAscii or (toAscii == None and (self.encodeToUtf8 or self.convertToAscii)):
+                logMsg = self.asc2(logMsg)
+            else:
+                logMsg = logMsg
+            if printTo == 0: 
+                printTo = self.log_to_norm
+            elif printTo == self.LogTo.ERROR and logLevel == logging.INFO:
+                logLevel = logging.ERROR
+                printTo = self.log_to_err_set
+            elif printTo == self.LogTo.CRITICAL and logLevel == logging.INFO:
+                logLevel = logging.CRITICAL
+                printTo = self.log_to_err_set
+            elif printTo == self.LogTo.WARN and logLevel == logging.INFO:
+                logLevel = logging.WARN
+                printTo = self.log_to_wrn_set
+            if lineNo == -1:
+                lineNo = inspect.currentframe().f_back.f_lineno
+            LN_Str = f"[LN:{lineNo}]"
+            # print(f"{LN_Str}, {logAlways}, {self.LOG_LEVEL}, {logging.DEBUG}, {levelStr}, {logMsg}")
+            if logLevel == logging.TRACE and (logAlways == False or self.LOG_LEVEL == logging.TRACE):
+                if levelStr == "": levelStr = self.Level.DBG
+                if printTo & self.LogTo.FILE: self.pluginLog.trace(f"{LN_Str} {levelStr}{logMsg}")
+                if printTo & self.LogTo.STASH: self.log.trace(f"{LN_Str} {levelStr}{logMsg}")
+            elif logLevel == logging.DEBUG and (logAlways == False or self.LOG_LEVEL == logging.DEBUG or self.LOG_LEVEL == logging.TRACE):
+                if levelStr == "": levelStr = self.Level.DBG
+                if printTo & self.LogTo.FILE: self.pluginLog.debug(f"{LN_Str} {levelStr}{logMsg}")
+                if printTo & self.LogTo.STASH: self.log.debug(f"{LN_Str} {levelStr}{logMsg}")
+            elif logLevel == logging.INFO or logLevel == logging.DEBUG:
+                if levelStr == "": levelStr = self.Level.INF if logLevel == logging.INFO else self.Level.DBG
+                if printTo & self.LogTo.FILE: self.pluginLog.info(f"{LN_Str} {levelStr}{logMsg}")
+                if printTo & self.LogTo.STASH: self.log.info(f"{LN_Str} {levelStr}{logMsg}")
+            elif logLevel == logging.WARN:
+                if levelStr == "": levelStr = self.Level.WRN
+                if printTo & self.LogTo.FILE: self.pluginLog.warning(f"{LN_Str} {levelStr}{logMsg}")
+                if printTo & self.LogTo.STASH: self.log.warning(f"{LN_Str} {levelStr}{logMsg}")
+            elif logLevel == logging.ERROR:
+                if levelStr == "": levelStr = self.Level.ERR
+                if printTo & self.LogTo.FILE: self.pluginLog.error(f"{LN_Str} {levelStr}{logMsg}")
+                if printTo & self.LogTo.STASH: self.log.error(f"{LN_Str} {levelStr}{logMsg}")
+            elif logLevel == logging.CRITICAL:
+                if levelStr == "": levelStr = self.Level.CRITICAL
+                if printTo & self.LogTo.FILE: self.pluginLog.critical(f"{LN_Str} {levelStr}{logMsg}")
+                if printTo & self.LogTo.STASH: self.log.error(f"{LN_Str} {levelStr}{logMsg}")
+            if (printTo & self.LogTo.CONSOLE) and (logLevel != logging.DEBUG or self.DEBUG_TRACING or logAlways):
+                print(f"{LN_Str} {levelStr}{logMsg}")
+            if (printTo & self.LogTo.STDERR) and (logLevel != logging.DEBUG or self.DEBUG_TRACING or logAlways):
+                print(f"StdErr: {LN_Str} {levelStr}{logMsg}", file=sys.stderr)
+        except Exception as e:
+            if printLogException:
+                tb = traceback.format_exc()
+                print(f"Exception calling [Log]; Error: {e}\nTraceBack={tb}")
+            pass
     
     def Trace(self, logMsg = "", printTo = 0, logAlways = False, lineNo = -1, toAscii = None):
-        if printTo == 0: printTo = self.LOG_TO_FILE
+        if printTo == 0: printTo = self.LogTo.FILE
+        if lineNo == -1:
+            lineNo = inspect.currentframe().f_back.f_lineno
+        logLev = logging.INFO if logAlways else logging.TRACE
+        if self.DBG_LEVEL == self.DbgLevel.TRACE or logAlways:
+            if logMsg == "":
+                logMsg = f"Line number {lineNo}..."
+            self.Log(logMsg, printTo, logLev, lineNo, self.Level.TRACE, logAlways, toAscii=toAscii)
+    
+    # Log once per session. Only logs the first time called from a particular line number in the code.
+    def TraceOnce(self, logMsg = "", printTo = 0, logAlways = False, toAscii = None):
+        lineNo = inspect.currentframe().f_back.f_lineno
+        if self.DBG_LEVEL == self.DbgLevel.TRACE or logAlways:
+            FuncAndLineNo = f"{inspect.currentframe().f_back.f_code.co_name}:{lineNo}"
+            if FuncAndLineNo in self.logLinePreviousHits:
+                return
+            self.logLinePreviousHits.append(FuncAndLineNo)
+            self.Trace(logMsg, printTo, logAlways, lineNo, toAscii=toAscii)
+    
+    def Debug(self, logMsg = "", printTo = 0, logAlways = False, lineNo = -1, toAscii = None):
+        if printTo == 0: printTo = self.LogTo.FILE
         if lineNo == -1:
             lineNo = inspect.currentframe().f_back.f_lineno
         logLev = logging.INFO if logAlways else logging.DEBUG
         if self.DEBUG_TRACING or logAlways:
             if logMsg == "":
                 logMsg = f"Line number {lineNo}..."
-            self.Log(logMsg, printTo, logLev, lineNo, self.LEV_TRACE, logAlways, toAscii=toAscii)
+            self.Log(logMsg, printTo, logLev, lineNo, self.Level.DBG, logAlways, toAscii=toAscii)
     
     # Log once per session. Only logs the first time called from a particular line number in the code.
-    def TraceOnce(self, logMsg = "", printTo = 0, logAlways = False, toAscii = None):
+    def DebugOnce(self, logMsg = "", printTo = 0, logAlways = False, toAscii = None):
         lineNo = inspect.currentframe().f_back.f_lineno
         if self.DEBUG_TRACING or logAlways:
             FuncAndLineNo = f"{inspect.currentframe().f_back.f_code.co_name}:{lineNo}"
@@ -298,8 +391,8 @@ class StashPluginHelper(StashInterface):
             self.Trace(logMsg, printTo, logAlways, lineNo, toAscii=toAscii)
 
     # Log INFO on first call, then do Trace on remaining calls.
-    def LogOnce(self, logMsg = "", printTo = 0, logAlways = False, traceOnRemainingCalls = True, toAscii = None):
-        if printTo == 0: printTo = self.LOG_TO_FILE
+    def LogOnce(self, logMsg = "", printTo = 0, logAlways = False, traceOnRemainingCalls = True, toAscii = None, printLogException = False):
+        if printTo == 0: printTo = self.LogTo.FILE
         lineNo = inspect.currentframe().f_back.f_lineno
         FuncAndLineNo = f"{inspect.currentframe().f_back.f_code.co_name}:{lineNo}"
         if FuncAndLineNo in self.logLinePreviousHits:
@@ -307,17 +400,17 @@ class StashPluginHelper(StashInterface):
                 self.Trace(logMsg, printTo, logAlways, lineNo, toAscii=toAscii) 
         else:
             self.logLinePreviousHits.append(FuncAndLineNo)
-            self.Log(logMsg, printTo, logging.INFO, lineNo, toAscii=toAscii)   
+            self.Log(logMsg, printTo, logging.INFO, lineNo, toAscii=toAscii, printLogException=printLogException)   
     
-    def Warn(self, logMsg, printTo = 0, toAscii = None):
+    def Warn(self, logMsg, printTo = 0, toAscii = None, printLogException = False):
         if printTo == 0: printTo = self.log_to_wrn_set
         lineNo = inspect.currentframe().f_back.f_lineno
-        self.Log(logMsg, printTo, logging.WARN, lineNo, toAscii=toAscii)
+        self.Log(logMsg, printTo, logging.WARN, lineNo, toAscii=toAscii, printLogException=printLogException)
     
-    def Error(self, logMsg, printTo = 0, toAscii = None):
+    def Error(self, logMsg, printTo = 0, toAscii = None, printLogException = False):
         if printTo == 0: printTo = self.log_to_err_set
         lineNo = inspect.currentframe().f_back.f_lineno
-        self.Log(logMsg, printTo, logging.ERROR, lineNo, toAscii=toAscii)
+        self.Log(logMsg, printTo, logging.ERROR, lineNo, toAscii=toAscii, printLogException=printLogException)
     
     # Above logging functions all use UpperCamelCase naming convention to avoid conflict with parent class logging function names.
     # The below non-loggging functions use (lower) camelCase naming convention.
@@ -369,141 +462,92 @@ class StashPluginHelper(StashInterface):
         self.excludeMergeTags = excludeMergeTags
         self._mergeMetadata = mergeMetadata(self, self.excludeMergeTags)
     
-    # Must call initMergeMetadata, before calling mergeMetadata
-    def mergeMetadata(self, SrcData, DestData): # Input arguments can be scene ID or scene metadata
-        if type(SrcData) is int:
-            SrcData = self.find_scene(SrcData)
-            DestData = self.find_scene(DestData)
-        return self._mergeMetadata.merge(SrcData, DestData)
+    def mergeMetadata(self, SrcData, DestData, retryCount = 12, sleepSecondsBetweenRetry = 5, excludeMergeTags=None): # Input arguments can be scene ID or scene metadata
+        import requests
+        if self._mergeMetadata == None:
+            self.initMergeMetadata(excludeMergeTags)
+        errMsg = None
+        for i in range(0, retryCount):
+            try:
+                if errMsg != None:
+                    self.Warn(errMsg)
+                if type(SrcData) is int:
+                    SrcData = self.find_scene(SrcData)
+                    DestData = self.find_scene(DestData)
+                return self._mergeMetadata.merge(SrcData, DestData)
+            except (requests.exceptions.ConnectionError, ConnectionResetError):
+                tb = traceback.format_exc()
+                errMsg = f"Exception calling [mergeMetadata]. Will retry; count({i}); Error: {e}\nTraceBack={tb}"
+            except Exception as e:
+                tb = traceback.format_exc()
+                errMsg = f"Exception calling [mergeMetadata]. Will retry; count({i}); Error: {e}\nTraceBack={tb}"
+            time.sleep(sleepSecondsBetweenRetry)
+    
+    def getUpdateProgressBarIter(self, qtyResults):
+        if qtyResults > 40000:
+            return 100
+        if qtyResults > 20000:
+            return 80
+        if qtyResults > 10000:
+          return 40
+        if qtyResults > 5000:
+          return 20
+        if qtyResults > 2000:
+          return 10
+        if qtyResults > 1000:
+          return 5
+        if qtyResults > 500:
+          return 3
+        if qtyResults > 200:
+          return 2
+        return 1
+    
+    # Use setProgressBarIter to reduce traffic to the server by only updating the progressBar every X(updateProgressbarOnIter) iteration.
+    def setProgressBarIter(self, qtyResults):
+        self.updateProgressbarOnIter = self.getUpdateProgressBarIter(qtyResults)
+        self.currentProgressbarIteration = 0
     
     def progressBar(self, currentIndex, maxCount):
-        progress = (currentIndex / maxCount) if currentIndex < maxCount else (maxCount / currentIndex)
-        self.log.progress(progress)
-    
-    # Test via command line: pip uninstall -y pyYAML watchdog schedule requests
-    def modulesInstalled(self, moduleNames, install=True, silent=False): # moduleNames=["stashapp-tools", "requests", "pyYAML"]
-        retrnValue = True
-        for moduleName in moduleNames:
-            try: # Try Python 3.3 > way
-                import importlib
-                import importlib.util
-                if moduleName in sys.modules:
-                    if not silent: self.Trace(f"{moduleName!r} already in sys.modules")
-                elif self.isModuleInstalled(moduleName):
-                    if not silent: self.Trace(f"Module {moduleName!r} is available.")
-                else:
-                    if install and (results:=self.installModule(moduleName)) > 0:
-                        if results == 1:
-                            self.Log(f"Module {moduleName!r} has been installed")
-                        else:
-                            if not silent: self.Trace(f"Module {moduleName!r} is already installed")
-                        continue
-                    else:
-                        if install:
-                            self.Error(f"Can't find the {moduleName!r} module") 
-                        retrnValue = False
-            except Exception as e:
-                try:
-                    i = importlib.import_module(moduleName)
-                except ImportError as e:
-                    if install and (results:=self.installModule(moduleName)) > 0:
-                        if results == 1:
-                            self.Log(f"Module {moduleName!r} has been installed")
-                        else:
-                            if not silent: self.Trace(f"Module {moduleName!r} is already installed")
-                        continue
-                    else:
-                        if install:
-                            tb = traceback.format_exc()
-                            self.Error(f"Can't find the {moduleName!r} module! Error: {e}\nTraceBack={tb}") 
-                        retrnValue = False
-        return retrnValue
-    
-    def isModuleInstalled(self, moduleName):
-        try:
-            __import__(moduleName)
-            # self.Trace(f"Module {moduleName!r} is installed")
-            return True
-        except Exception as e:
-            tb = traceback.format_exc()
-            self.Warn(f"Module {moduleName!r} is NOT installed!") 
-            self.Trace(f"Error: {e}\nTraceBack={tb}")
-            pass
-        return False
-    
-    def installModule(self,moduleName):
-        # if not self.IS_DOCKER:
-            # try:
-                # self.Log(f"Attempting to install package {moduleName!r} using pip import method.")
-                # First try pip import method. (This may fail in a future version of pip.)
-                # self.installPackage(moduleName)
-                # self.Trace(f"installPackage called for module {moduleName!r}")
-                # if self.modulesInstalled(moduleNames=[moduleName], install=False):
-                    # self.Trace(f"Module {moduleName!r} installed")
-                    # return 1
-                # self.Trace(f"Module {moduleName!r} still not installed.")
-            # except Exception as e:
-                # tb = traceback.format_exc()
-                # self.Warn(f"pip import method failed for module {moduleName!r}. Will try command line method; Error: {e}\nTraceBack={tb}") 
-                # pass
-        # else:
-            # self.Trace("Running in Docker, so skipping pip import method.")
-        try:
-            if self.IS_LINUX:
-                # Note: Linux may first need : sudo apt install python3-pip
-                #       if error starts with "Command 'pip' not found"
-                #       or includes "No module named pip"
-                self.Log("Checking if pip installed.")
-                results = os.popen(f"pip --version").read()
-                if results.find("Command 'pip' not found") != -1 or results.find("No module named pip") != -1:
-                    results = os.popen(f"sudo apt install python3-pip").read()
-                    results = os.popen(f"pip --version").read()
-                    if results.find("Command 'pip' not found") != -1 or results.find("No module named pip") != -1:
-                        self.Error(f"Error while calling 'pip'. Make sure pip is installed, and make sure module {moduleName!r} is installed. Results = '{results}'")
-                        return -1
-                self.Trace("pip good.")
-            if self.IS_FREEBSD:
-                self.Warn("installModule may NOT work on freebsd")
-            pipArg = ""
-            if self.IS_DOCKER:
-                pipArg = " --break-system-packages"
-            self.Log(f"Attempting to install package {moduleName!r} via popen.")
-            results = os.popen(f"{sys.executable} -m pip install {moduleName}{pipArg}").read() # May need to be f"{sys.executable} -m pip install {moduleName}"
-            results = results.strip("\n")
-            self.Trace(f"pip results = {results}")
-            if results.find("Requirement already satisfied:") > -1:
-                self.Trace(f"Requirement already satisfied for module {moduleName!r}")
-                return 2
-            elif results.find("Successfully installed") > -1:
-                self.Trace(f"Successfully installed module {moduleName!r}")
-                return 1
-            elif self.modulesInstalled(moduleNames=[moduleName], install=False):
-                self.Trace(f"modulesInstalled returned True for module {moduleName!r}")
-                return 1
-            self.Error(f"Failed to install module {moduleName!r}")
-        except Exception as e:
-            tb = traceback.format_exc()
-            self.Error(f"Failed to install module {moduleName!r}. Error: {e}\nTraceBack={tb}") 
-        return 0
-    
-    def installPackage(self,package): # Should delete this.  It doesn't work consistently
-        try:
-            import pip
-            if hasattr(pip, 'main'):
-                pip.main(['install', package])
-                self.Trace()
+        if self.updateProgressbarOnIter > 0:
+            self.currentProgressbarIteration+=1
+            if self.currentProgressbarIteration > self.updateProgressbarOnIter:
+                self.currentProgressbarIteration = 0
             else:
-                pip._internal.main(['install', package])
-                self.Trace()
+                return
+        progress = (currentIndex / maxCount) if currentIndex < maxCount else (maxCount / currentIndex)
+        try:
+            self.log.progress(progress)
         except Exception as e:
-            tb = traceback.format_exc()
-            self.Error(f"Failed to install module {moduleName!r}. Error: {e}\nTraceBack={tb}")
-            return False
-        return True
+            pass
     
     def isDocker(self):
         cgroup = pathlib.Path('/proc/self/cgroup')
         return pathlib.Path('/.dockerenv').is_file() or cgroup.is_file() and 'docker' in cgroup.read_text()
+    
+    def isWindows(self):
+        if any(platform.win32_ver()):
+            return True
+        return False
+    
+    def isLinux(self):
+        if platform.system().lower().startswith("linux"):
+            return True
+        return False
+    
+    def isFreeBSD(self):
+        if platform.system().lower().startswith("freebsd"):
+            return True
+        return False
+    
+    def isMacOS(self):
+        if sys.platform == "darwin":
+            return True
+        return False
+    
+    def isWindows(self):
+        if any(platform.win32_ver()):
+            return True
+        return False
     
     def spinProcessBar(self, sleepSeconds = 1, maxPos = 30, trace = False):
         if trace:
@@ -539,7 +583,7 @@ class StashPluginHelper(StashInterface):
         itemToCk = itemToCk.lower()
         index = -1
         lenItemMatch = 0
-        returnValue = self.NOT_IN_LIST
+        returnValue = self.Constant.NOT_IN_LIST.value
         for listItem in listToCk:
             index += 1
             if itemToCk.startswith(listItem.lower()):
@@ -598,17 +642,62 @@ class StashPluginHelper(StashInterface):
             self.update_scene(dataDict)
         return doesHaveTagName
     
-    def addTag(self, scene, tagName, tagName_descp = "", ignoreAutoTag=False): # scene can be scene ID or scene metadata
-        scene_details = scene
-        if 'id' not in scene:
-            scene_details = self.find_scene(scene)
-        tagIds = [self.createTagId(tagName, tagName_descp=tagName_descp, ignoreAutoTag=ignoreAutoTag)]
-        for tag in scene_details['tags']:
-            if tag['name'] != tagName:
-                tagIds += [tag['id']]
-        dataDict = {'id' : scene_details['id']}
-        dataDict.update({'tag_ids' : tagIds})
-        self.update_scene(dataDict)
+    def addTag(self, scene, tagName, tagName_descp = "", ignoreAutoTag=False, retryCount = 12, sleepSecondsBetweenRetry = 5): # scene can be scene ID or scene metadata
+        errMsg = None
+        for i in range(0, retryCount):
+            try:
+                if errMsg != None:
+                    self.Warn(errMsg)
+                scene_details = scene
+                if 'id' not in scene:
+                    scene_details = self.find_scene(scene)
+                tagIds = [self.createTagId(tagName, tagName_descp=tagName_descp, ignoreAutoTag=ignoreAutoTag)]
+                for tag in scene_details['tags']:
+                    if tag['name'] == tagName:
+                        return False
+                    else:
+                        tagIds += [tag['id']]
+                dataDict = {'id' : scene_details['id']}
+                dataDict.update({'tag_ids' : tagIds})
+                self.update_scene(dataDict)
+                return True
+            except (ConnectionResetError):
+                tb = traceback.format_exc()
+                errMsg = f"Exception calling [addTag]. Will retry; count({i}); Error: {e}\nTraceBack={tb}"
+            except Exception as e:
+                tb = traceback.format_exc()
+                errMsg = f"Exception calling [addTag]. Will retry; count({i}); Error: {e}\nTraceBack={tb}"
+            time.sleep(sleepSecondsBetweenRetry)
+    
+    def updateScene(self, update_input, create=False, retryCount = 24, sleepSecondsBetweenRetry = 5):
+        errMsg = None
+        for i in range(0, retryCount):
+            try:
+                if errMsg != None:
+                    self.Warn(errMsg)
+                return self.update_scene(update_input, create)
+            except (ConnectionResetError):
+                tb = traceback.format_exc()
+                errMsg = f"Exception calling [updateScene]. Will retry; count({i}); Error: {e}\nTraceBack={tb}"
+            except Exception as e:
+                tb = traceback.format_exc()
+                errMsg = f"Exception calling [updateScene]. Will retry; count({i}); Error: {e}\nTraceBack={tb}"
+            time.sleep(sleepSecondsBetweenRetry)
+    
+    def destroyScene(self, scene_id, delete_file=False, retryCount = 12, sleepSecondsBetweenRetry = 5):
+        errMsg = None
+        for i in range(0, retryCount):
+            try:
+                if errMsg != None:
+                    self.Warn(errMsg)
+                return self.destroy_scene(scene_id, delete_file)
+            except (ConnectionResetError):
+                tb = traceback.format_exc()
+                errMsg = f"Exception calling [updateScene]. Will retry; count({i}); Error: {e}\nTraceBack={tb}"
+            except Exception as e:
+                tb = traceback.format_exc()
+                errMsg = f"Exception calling [updateScene]. Will retry; count({i}); Error: {e}\nTraceBack={tb}"
+            time.sleep(sleepSecondsBetweenRetry)
     
     def runPlugin(self, plugin_id, task_mode=None, args:dict={}, asyn=False):
         """Runs a plugin operation.

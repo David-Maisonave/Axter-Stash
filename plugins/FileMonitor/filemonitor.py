@@ -3,8 +3,10 @@
 # Get the latest developers version from following link: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor
 # Note: To call this script outside of Stash, pass argument --url and the Stash URL.
 #       Example:    python filemonitor.py --url http://localhost:9999
-import os, sys, time, pathlib, argparse, platform, traceback, logging
+import ModulesValidate
+ModulesValidate.modulesInstalled(["watchdog", "schedule", "requests"])
 from StashPluginHelper import StashPluginHelper
+import os, sys, time, pathlib, argparse, platform, traceback, logging
 from StashPluginHelper import taskQueue
 from threading import Lock, Condition
 from multiprocessing import shared_memory
@@ -30,6 +32,7 @@ parser.add_argument('--restart', '-r', dest='restart', action='store_true', help
 parser.add_argument('--silent', '--quit', '-q', dest='quit', action='store_true', help='Run in silent mode. No output to console or stderr. Use this when running from pythonw.exe')
 parser.add_argument('--apikey', '-a', dest='apikey', type=str, help='API Key')
 parse_args = parser.parse_args()
+
 
 logToErrSet = 0
 logToNormSet = 0
@@ -57,7 +60,6 @@ stash = StashPluginHelper(
 stash.status(logLevel=logging.DEBUG)
 stash.Log(f"\nStarting (__file__={__file__}) (stash.CALLED_AS_STASH_PLUGIN={stash.CALLED_AS_STASH_PLUGIN}) (stash.DEBUG_TRACING={stash.DEBUG_TRACING}) (stash.DRY_RUN={stash.DRY_RUN}) (stash.PLUGIN_TASK_NAME={stash.PLUGIN_TASK_NAME})************************************************")
 stash.Trace(f"stash.JSON_INPUT={stash.JSON_INPUT}")
-stash.modulesInstalled(["watchdog", "schedule", "requests"])
 
 exitMsg = "Change success!!"
 mutex = Lock()
@@ -243,16 +245,24 @@ class StashScheduler: # Stash Scheduler
         
         result = None
         if task['task'] == "Clean":
+            result = self.jobIdOutput(stash.metadata_clean(dry_run=stash.DRY_RUN))
+        elif task['task'] == "Clean Path":
             result = self.jobIdOutput(stash.metadata_clean(paths=targetPaths, dry_run=stash.DRY_RUN))
         elif task['task'] == "Clean Generated Files":
             result = self.jobIdOutput(stash.metadata_clean_generated())
         elif task['task'] == "Generate":
             result = self.jobIdOutput(stash.metadata_generate())
+        elif task['task'] == "Generate Phashes":
+            result = self.jobIdOutput(stash.metadata_generate({"phashes": True}))
         elif task['task'] == "Backup":
             result = self.jobIdOutput(self.runBackupTask(task))
         elif task['task'] == "Scan":
+            result = self.jobIdOutput(stash.metadata_scan())
+        elif task['task'] == "Scan Path":
             result = self.jobIdOutput(stash.metadata_scan(paths=targetPaths))
         elif task['task'] == "Auto Tag":
+            result = self.jobIdOutput(stash.metadata_autotag())
+        elif task['task'] == "Auto Tag Path":
             result = self.jobIdOutput(stash.metadata_autotag(paths=targetPaths))
         elif task['task'] == "Optimise Database":
             result = self.jobIdOutput(stash.optimise_database())
@@ -280,6 +290,11 @@ class StashScheduler: # Stash Scheduler
             if 'msg' in task and task['msg'] != "":
                 Msg = task['msg']
             result = stash.TraceOnce(Msg)
+        elif task['task'] == "DebugOnce":
+            Msg = "Scheduled DebugOnce."
+            if 'msg' in task and task['msg'] != "":
+                Msg = task['msg']
+            result = stash.DebugOnce(Msg)
         elif task['task'] == "CheckStashIsRunning":
             result = self.checkStashIsRunning(task)
         elif task['task'] == "python":
@@ -634,14 +649,14 @@ def start_library_monitor():
                     if TargetPath == SPECIAL_FILE_NAME:
                         if os.path.isfile(SPECIAL_FILE_NAME):
                             shm_buffer[0] = STOP_RUNNING_SIG
-                            stash.Log(f"[SpFl]Detected trigger file to kill FileMonitor. {SPECIAL_FILE_NAME}", printTo = stash.LOG_TO_FILE + stash.LOG_TO_CONSOLE + stash.LOG_TO_STASH)
+                            stash.Log(f"[SpFl]Detected trigger file to kill FileMonitor. {SPECIAL_FILE_NAME}", printTo = stash.LogTo.FILE + stash.LogTo.CONSOLE + stash.LogTo.STASH)
                         else:
                             stash.Trace(f"[SpFl]Did not find file {SPECIAL_FILE_NAME}.")
                 
                 # Make sure special file does not exist, incase change was missed.
                 if CREATE_SPECIAL_FILE_TO_EXIT and os.path.isfile(SPECIAL_FILE_NAME) and shm_buffer[0] == CONTINUE_RUNNING_SIG:
                     shm_buffer[0] = STOP_RUNNING_SIG
-                    stash.Log(f"[SpFl]Detected trigger file to kill FileMonitor. {SPECIAL_FILE_NAME}", printTo = stash.LOG_TO_FILE + stash.LOG_TO_CONSOLE + stash.LOG_TO_STASH)
+                    stash.Log(f"[SpFl]Detected trigger file to kill FileMonitor. {SPECIAL_FILE_NAME}", printTo = stash.LogTo.FILE + stash.LogTo.CONSOLE + stash.LogTo.STASH)
                 TargetPaths = []
                 TmpTargetPaths = list(set(TmpTargetPaths))
             if TmpTargetPaths != [] or lastScanJob['DelayedProcessTargetPaths'] != []:

@@ -3,6 +3,10 @@ description: Manages duplicate files.
 version: 0.1.6
 url: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/DupFileManager
 settings:
+  clearAllDupfileManagerTags:
+    displayName: Clear All Tags
+    description: Clear Tags task clears scenes of all tags (DuplicateMarkForDeletion, _DuplicateWhite..., _ExcludeDup..., _Graylist..., _LongerDur...)
+    type: BOOLEAN
   doNotGeneratePhash:
     displayName: Do Not Generate PHASH
     description: Do not generate PHASH after tag or delete task.
@@ -22,6 +26,10 @@ settings:
   whitelistDoTagLowResDup:
     displayName: Whitelist Duplicate Tagging
     description: Enable to tag whitelist duplicates of lower resolution or duration or same folder.
+    type: BOOLEAN
+  xGrayListTagging:
+    displayName: Tag Graylist
+    description: When adding tag DuplicateMarkForDeletion to graylist scene, also add tag _GraylistMarkForDeletion.
     type: BOOLEAN
   zCleanAfterDel:
     displayName: Run Clean After Delete
@@ -61,15 +69,19 @@ settings:
     type: STRING
   zyMatchDupDistance:
     displayName: Match Duplicate Distance
-    description: (Default=0) Where 0 = Exact Match, 1 = High Match, and 2 = Medium Match. 
+    description: (Default=0) Where 0 = Exact Match, 1 = High Match, 2 = Medium Match, and 3 = Low Match. 
     type: NUMBER
   zyMaxDupToProcess:
     displayName: Max Dup Process
     description: Maximum number of duplicates to process. If 0, infinity
     type: NUMBER
-  zzdebugTracing:
-    displayName: Debug Tracing
-    description: Enable debug tracing so-as to add additional debug logging in Stash\plugins\DupFileManager\DupFileManager.log
+  zzDebug:
+    displayName: Debug
+    description: Enable debug so-as to add additional debug logging in Stash\plugins\DupFileManager\DupFileManager.log
+    type: BOOLEAN
+  zzTracing:
+    displayName: Tracing
+    description: Enable tracing and debug so-as to add additional tracing and debug logging in Stash\plugins\DupFileManager\DupFileManager.log
     type: BOOLEAN
 exec:
   - python
@@ -96,3 +108,7 @@ tasks:
     description: Generate PHASH file matching. Used for file comparisons.
     defaultArgs:
       mode: generate_phash_task
+  - name: Tag Graylist
+    description: Set tag _GraylistMarkForDeletion to scenes having DuplicateMarkForDeletion tag and that are in the Graylist.
+    defaultArgs:
+      mode: graylist_tag_task
