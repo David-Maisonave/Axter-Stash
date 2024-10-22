@@ -668,6 +668,26 @@ class StashPluginHelper(StashInterface):
                 tb = traceback.format_exc()
                 errMsg = f"Exception calling [addTag]. Will retry; count({i}); Error: {e}\nTraceBack={tb}"
             time.sleep(sleepSecondsBetweenRetry)
+
+    def copyFields(self, srcData, fieldsToCpy):
+        destData = {}
+        for key in srcData:
+            if key in fieldsToCpy:
+                destData.update({key : srcData[key]})
+        return destData
+    
+    def renameTag(self,oldTagName, newTagName):
+        tagMetadata = self.find_tags(q=oldTagName)
+        if len(tagMetadata) > 0 and 'id' in tagMetadata[0]:
+            if tagMetadata[0]['name'] == newTagName:
+                return False
+            tagMetadata[0]['name'] = newTagName
+            fieldsToCpy = ["id", "name", "description", "aliases", "ignore_auto_tag", "favorite", "image", "parent_ids", "child_ids"]
+            tagUpdateInput = self.copyFields(tagMetadata[0], fieldsToCpy)
+            self.Trace(f"Renaming tag using tagUpdateInput = {tagUpdateInput}")
+            self.update_tag(tagUpdateInput)
+            return True
+        return False
     
     def updateScene(self, update_input, create=False, retryCount = 24, sleepSecondsBetweenRetry = 5):
         errMsg = None

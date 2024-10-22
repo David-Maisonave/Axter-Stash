@@ -6,6 +6,7 @@
 import ModulesValidate
 ModulesValidate.modulesInstalled(["send2trash", "requests"])
 import os, sys, time, pathlib, argparse, platform, shutil, traceback, logging, requests
+from datetime import datetime
 from StashPluginHelper import StashPluginHelper
 from stashapi.stash_types import PhashDistance
 from DupFileManager_config import config # Import config from DupFileManager_config.py
@@ -20,14 +21,8 @@ parser.add_argument('--remove_dup', '-r', dest='remove', action='store_true', he
 parse_args = parser.parse_args()
 
 settings = {
-    "clearAllDupfileManagerTags": False,
-    "doNotGeneratePhash": False,
     "mergeDupFilename": False,
-    "permanentlyDelete": False,
     "whitelistDelDupInSameFolder": False,
-    "whitelistDoTagLowResDup": False,
-    "xGrayListTagging": False,
-    "zCleanAfterDel": False,
     "zSwapHighRes": False,
     "zSwapLongLength": False,
     "zSwapBetterBitRate": False,
@@ -67,17 +62,16 @@ LOG_STASH_N_PLUGIN = stash.LogTo.STASH if stash.CALLED_AS_STASH_PLUGIN else stas
 listSeparator               = stash.Setting('listSeparator', ',', notEmpty=True)
 addPrimaryDupPathToDetails  = stash.Setting('addPrimaryDupPathToDetails') 
 clearAllDupfileManagerTags  = stash.Setting('clearAllDupfileManagerTags')
-doNotGeneratePhash          = stash.Setting('doNotGeneratePhash')
+doGeneratePhash             = stash.Setting('doGeneratePhash')
 mergeDupFilename            = stash.Setting('mergeDupFilename')
 moveToTrashCan              = False if stash.Setting('permanentlyDelete') else True
 alternateTrashCanPath       = stash.Setting('dup_path')
 whitelistDelDupInSameFolder = stash.Setting('whitelistDelDupInSameFolder')
-whitelistDoTagLowResDup     = stash.Setting('whitelistDoTagLowResDup')
-grayListTagging             = stash.Setting('xGrayListTagging')
+graylistTagging             = stash.Setting('graylistTagging')
 maxDupToProcess             = int(stash.Setting('zyMaxDupToProcess'))
 significantTimeDiff         = stash.Setting('significantTimeDiff')
 toRecycleBeforeSwap         = stash.Setting('toRecycleBeforeSwap')
-cleanAfterDel               = stash.Setting('zCleanAfterDel')
+cleanAfterDel               = stash.Setting('cleanAfterDel')
 
 swapHighRes                 = stash.Setting('zSwapHighRes')
 swapLongLength              = stash.Setting('zSwapLongLength')
@@ -130,6 +124,8 @@ duplicateMarkForDeletion = stash.Setting('DupFileTag')
 if duplicateMarkForDeletion == "":
     duplicateMarkForDeletion = 'DuplicateMarkForDeletion'
 
+base1_duplicateWhitelistTag = duplicateMarkForDeletion
+
 duplicateWhitelistTag = stash.Setting('DupWhiteListTag')
 if duplicateWhitelistTag == "":
     duplicateWhitelistTag = '_DuplicateWhitelistFile'
@@ -147,6 +143,23 @@ if longerDurationLowerResolution == "":
     longerDurationLowerResolution = '_LongerDurationLowerResolution'
 
 excludeMergeTags = [duplicateMarkForDeletion, duplicateWhitelistTag, excludeDupFileDeleteTag]
+
+if stash.Setting('underscoreDupFileTag') and not duplicateMarkForDeletion.startswith('_'):
+    duplicateMarkForDeletionWithOutUnderscore = duplicateMarkForDeletion
+    duplicateMarkForDeletion = "_" + duplicateMarkForDeletion
+    if stash.renameTag(duplicateMarkForDeletionWithOutUnderscore, duplicateMarkForDeletion):
+        stash.Log(f"Renamed tag {duplicateMarkForDeletionWithOutUnderscore} to {duplicateMarkForDeletion}")
+    stash.Trace(f"Added underscore to {duplicateMarkForDeletionWithOutUnderscore} = {duplicateMarkForDeletion}")
+    excludeMergeTags += [duplicateMarkForDeletion]
+else:
+    stash.Trace(f"duplicateMarkForDeletion = {duplicateMarkForDeletion}")
+
+base2_duplicateWhitelistTag = duplicateMarkForDeletion
+
+if stash.Setting('appendMatchDupDistance'):
+    duplicateMarkForDeletion += f"_{matchDupDistance}"
+    excludeMergeTags += [duplicateMarkForDeletion]
+
 stash.initMergeMetadata(excludeMergeTags)
 
 graylist = stash.Setting('zxGraylist').split(listSeparator)
@@ -300,12 +313,14 @@ def sendToTrash(path):
         except Exception as e:
             stash.Error(f"Failed to delete file {path}. Error: {e}", toAscii=True)
     return False
-
-def significantLessTime(durration1, durration2): # Where durration1 is ecpected to be smaller than durration2 IE(45/60=.75)
-    if 'files' in durration1:
+# If ckTimeDiff=False: Does durration2 have significant more time than durration1
+def significantTimeDiffCheck(durration1, durration2, ckTimeDiff = False): # If ckTimeDiff=True: is time different significant in either direction. 
+    if not isinstance(durration1, int) and 'files' in durration1:
         durration1 = int(durration1['files'][0]['duration'])
         durration2 = int(durration2['files'][0]['duration'])
     timeDiff = getTimeDif(durration1, durration2)
+    if ckTimeDiff and timeDiff > 1:
+        timeDiff = getTimeDif(durration2, durration1)
     if timeDiff < significantTimeDiff:
         return True
     return False
@@ -315,8 +330,10 @@ def getTimeDif(durration1, durration2): # Where durration1 is ecpected to be sma
 
 def isBetterVideo(scene1, scene2, swapCandidateCk = False): # is scene2 better than scene1
     # Prioritize higher reslution over codec, bit rate, and frame rate
-    if int(scene1['files'][0]['width']) > int(scene2['files'][0]['width']) or int(scene1['files'][0]['height']) > int(scene2['files'][0]['height']):
+    if int(scene1['files'][0]['width']) * int(scene1['files'][0]['height']) > int(scene2['files'][0]['width']) * int(scene2['files'][0]['height']):
         return False
+    # if int(scene1['files'][0]['width']) > int(scene2['files'][0]['width']) or int(scene1['files'][0]['height']) > int(scene2['files'][0]['height']):
+        # return False
     if (favorBitRateChange and swapCandidateCk == False) or (swapCandidateCk and swapBetterBitRate):
         if (favorHighBitRate and int(scene2['files'][0]['bit_rate']) > int(scene1['files'][0]['bit_rate'])) or (not favorHighBitRate and int(scene2['files'][0]['bit_rate']) < int(scene1['files'][0]['bit_rate'])):
             stash.Trace(f"[isBetterVideo]:[favorHighBitRate={favorHighBitRate}] Better bit rate. {scene1['files'][0]['path']}={scene1['files'][0]['bit_rate']} v.s. {scene2['files'][0]['path']}={scene2['files'][0]['bit_rate']}")
@@ -334,10 +351,13 @@ def isBetterVideo(scene1, scene2, swapCandidateCk = False): # is scene2 better t
     return False
 
 def significantMoreTimeCompareToBetterVideo(scene1, scene2): # is scene2 better than scene1
+    if isinstance(scene1, int):
+        scene1 = stash.find_scene(scene1)
+        scene2 = stash.find_scene(scene2)
     if int(scene1['files'][0]['duration']) >= int(scene2['files'][0]['duration']):
         return False
-    if int(scene1['files'][0]['width']) > int(scene2['files'][0]['width']) or int(scene1['files'][0]['height']) > int(scene2['files'][0]['height']):
-        if significantLessTime(scene1, scene2):
+    if int(scene1['files'][0]['width']) * int(scene1['files'][0]['height']) > int(scene2['files'][0]['width']) * int(scene2['files'][0]['height']):
+        if significantTimeDiffCheck(scene1, scene2):
             if tagLongDurationLowRes:
                 didAddTag = setTagId_withRetry(longerDurationLowerResolution, scene2, scene1, ignoreAutoTag=True)
                 stash.Log(f"Tagged sene2 with tag {longerDurationLowerResolution}, because scene1 is better video, but it has significant less time ({getTimeDif(int(scene1['files'][0]['duration']), int(scene2['files'][0]['duration']))}%) compare to scene2; scene1={scene1['files'][0]['path']} (ID={scene1['id']})(duration={scene1['files'][0]['duration']}); scene2={scene2['files'][0]['path']} (ID={scene2['id']}) (duration={scene1['files'][0]['duration']}); didAddTag={didAddTag}")
@@ -363,8 +383,9 @@ def isSwapCandidate(DupFileToKeep, DupFile):
     # Don't move if both are in whitelist
     if stash.startsWithInList(whitelist, DupFileToKeep['files'][0]['path']) and stash.startsWithInList(whitelist, DupFile['files'][0]['path']):
         return False
-    if swapHighRes and (int(DupFileToKeep['files'][0]['width']) > int(DupFile['files'][0]['width']) or int(DupFileToKeep['files'][0]['height']) > int(DupFile['files'][0]['height'])):
-        if not significantLessTime(DupFileToKeep, DupFile):
+    # if swapHighRes and (int(DupFileToKeep['files'][0]['width']) > int(DupFile['files'][0]['width']) or int(DupFileToKeep['files'][0]['height']) > int(DupFile['files'][0]['height'])):
+    if swapHighRes and int(DupFileToKeep['files'][0]['width']) * int(DupFileToKeep['files'][0]['height']) > int(DupFile['files'][0]['width']) * int(DupFile['files'][0]['height']):
+        if not significantTimeDiffCheck(DupFileToKeep, DupFile):
             return True
         else:
             stash.Warn(f"File '{DupFileToKeep['files'][0]['path']}' has a higher resolution than '{DupFile['files'][0]['path']}', but the duration is significantly shorter.", toAscii=True)
@@ -372,7 +393,7 @@ def isSwapCandidate(DupFileToKeep, DupFile):
         if int(DupFileToKeep['files'][0]['width']) >= int(DupFile['files'][0]['width']) or int(DupFileToKeep['files'][0]['height']) >= int(DupFile['files'][0]['height']):
             return True
     if isBetterVideo(DupFile, DupFileToKeep, swapCandidateCk=True):
-        if not significantLessTime(DupFileToKeep, DupFile):
+        if not significantTimeDiffCheck(DupFileToKeep, DupFile):
             return True
         else:
             stash.Warn(f"File '{DupFileToKeep['files'][0]['path']}' has better codec/bit-rate than '{DupFile['files'][0]['path']}', but the duration is significantly shorter; DupFileToKeep-ID={DupFileToKeep['id']};DupFile-ID={DupFile['id']};BitRate {DupFileToKeep['files'][0]['bit_rate']} vs {DupFile['files'][0]['bit_rate']};Codec {DupFileToKeep['files'][0]['video_codec']} vs {DupFile['files'][0]['video_codec']};FrameRate {DupFileToKeep['files'][0]['frame_rate']} vs {DupFile['files'][0]['frame_rate']};", toAscii=True)
@@ -422,11 +443,60 @@ def killScanningJobs():
         tb = traceback.format_exc()
         stash.Error(f"Exception while trying to kill scan jobs; Error: {e}\nTraceBack={tb}")
 
+def getPath(Scene, getParent = False):
+    path = stash.asc2(Scene['files'][0]['path'])
+    path = path.replace("'", "")
+    path = path.replace("\\\\", "\\")
+    if getParent:
+        return pathlib.Path(path).resolve().parent
+    return path
+
+def getHtmlReportTableRow(qtyResults):
+    htmlReportPrefix = stash.Setting('htmlReportPrefix')
+    htmlReportPrefix = htmlReportPrefix.replace('http://localhost:9999/graphql', stash.url)
+    htmlReportPrefix = htmlReportPrefix.replace('(QtyPlaceHolder)', f'{qtyResults}')
+    htmlReportPrefix = htmlReportPrefix.replace('(MatchTypePlaceHolder)', f'(Match Type = {matchPhaseDistanceText})')
+    htmlReportPrefix = htmlReportPrefix.replace('(DateCreatedPlaceHolder)', datetime.now().strftime("%d-%b-%Y, %H:%M:%S"))
+    return htmlReportPrefix
+
+htmlDetailDiffTextColor = stash.Setting('htmlDetailDiffTextColor')
+htmlSupperHighlight     = stash.Setting('htmlSupperHighlight')
+htmlLowerHighlight      = stash.Setting('htmlLowerHighlight')
+def getColor(Scene1, Scene2, ifScene1HigherChangeColor = False, roundUpNumber = False, qtyDiff=0):
+    if (Scene1 == Scene2) or (roundUpNumber and int(Scene1) == int(Scene2)):
+        return ""
+    if ifScene1HigherChangeColor and int(Scene1) > int(Scene2):
+        if (int(Scene1) - int(Scene2)) > qtyDiff:
+            return f' style="color:{htmlDetailDiffTextColor};background-color:{htmlSupperHighlight};"'
+        return f' style="color:{htmlDetailDiffTextColor};background-color:{htmlLowerHighlight};"'
+    return f' style="color:{htmlDetailDiffTextColor};"'
+
+def getRes(Scene):
+    return int(Scene['files'][0]['width']) * int(Scene['files'][0]['height'])
+
+reasonDict = {}
+
+def logReason(DupFileToKeep, Scene, reason):
+    global reasonDict
+    reasonDict[Scene['id']] = reason
+    reasonDict[DupFileToKeep['id']] = reason
+    stash.Debug(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason={reason}")
+
 def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
+    global reasonDict
     duplicateMarkForDeletion_descp = 'Tag added to duplicate scenes so-as to tag them for deletion.'
     stash.Trace(f"duplicateMarkForDeletion = {duplicateMarkForDeletion}")    
     dupTagId = stash.createTagId(duplicateMarkForDeletion, duplicateMarkForDeletion_descp, ignoreAutoTag=True)
     stash.Trace(f"dupTagId={dupTagId} name={duplicateMarkForDeletion}")
+    createHtmlReport        = stash.Setting('createHtmlReport')
+    previewOrStream         = "stream" if stash.Setting('streamOverPreview') else "preview"
+    htmlReportName          = f"{stash.PLUGINS_PATH}{os.sep}{stash.Setting('htmlReportName')}"
+    htmlReportNameHomePage  = htmlReportName
+    htmlReportTableRow      = stash.Setting('htmlReportTableRow')
+    htmlReportTableData     = stash.Setting('htmlReportTableData')
+    htmlReportVideoPreview  = stash.Setting('htmlReportVideoPreview')
+    htmlHighlightTimeDiff   = stash.Setting('htmlHighlightTimeDiff')
+    htmlReportPaginate      = stash.Setting('htmlReportPaginate')
     
     addDupWhitelistTag()
     addExcludeDupTag()
@@ -437,6 +507,8 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
     QtyAlmostDup = 0
     QtyRealTimeDiff = 0
     QtyTagForDel = 0
+    QtyTagForDelPaginate = 0
+    PaginateId = 0
     QtyNewlyTag = 0
     QtySkipForDel = 0
     QtyExcludeForDel = 0
@@ -447,13 +519,22 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
     stash.Trace("#########################################################################")
     stash.Log(f"Waiting for find_duplicate_scenes_diff to return results; matchDupDistance={matchPhaseDistanceText}; significantTimeDiff={significantTimeDiff}", printTo=LOG_STASH_N_PLUGIN)
     stash.startSpinningProcessBar()
-    mergeFieldData = "code director title rating100 date studio {id} movies {movie {id} } galleries {id} performers {id} urls" if merge else ""
-    DupFileSets = stash.find_duplicate_scenes(matchPhaseDistance, fragment='id tags {id name} files {path width height duration size video_codec bit_rate frame_rate} details ' + mergeFieldData)
+    htmlFileData = " paths {screenshot " + previewOrStream + "} " if createHtmlReport else ""
+    mergeFieldData = " code director title rating100 date studio {id} movies {movie {id} } galleries {id} performers {id} urls " if merge else ""
+    DupFileSets = stash.find_duplicate_scenes(matchPhaseDistance, fragment='id tags {id name} files {path width height duration size video_codec bit_rate frame_rate} details ' + mergeFieldData + htmlFileData)
     stash.stopSpinningProcessBar()
     qtyResults = len(DupFileSets)
     stash.setProgressBarIter(qtyResults)
     stash.Trace("#########################################################################")
     stash.Log(f"Found {qtyResults} duplicate sets...")
+    fileHtmlReport = None
+    if createHtmlReport:
+        fileHtmlReport = open(htmlReportName, "w")
+        fileHtmlReport.write(f"{getHtmlReportTableRow(qtyResults)}\n")
+        fileHtmlReport.write(f"{stash.Setting('htmlReportTable')}\n")
+        htmlReportTableHeader   = stash.Setting('htmlReportTableHeader')
+        fileHtmlReport.write(f"{htmlReportTableRow}{htmlReportTableHeader}Scene</th>{htmlReportTableHeader}Duplicate to Delete</th>{htmlReportTableHeader}Scene-ToKeep</th>{htmlReportTableHeader}Duplicate to Keep</th></tr>\n")
+    
     for DupFileSet in DupFileSets:
         # stash.Trace(f"DupFileSet={DupFileSet}", toAscii=True)
         QtyDupSet+=1
@@ -466,7 +547,7 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
             QtyDup+=1
             # Scene = stash.find_scene(DupFile['id'])
             Scene = DupFile
-            if skipIfTagged and duplicateMarkForDeletion in Scene['tags']:
+            if skipIfTagged and createHtmlReport == False and duplicateMarkForDeletion in Scene['tags']:
                 stash.Trace(f"Skipping scene '{Scene['files'][0]['path']}' because already tagged with {duplicateMarkForDeletion}")
                 continue
             stash.TraceOnce(f"Scene = {Scene}", toAscii=True)
@@ -478,49 +559,55 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
                     else:
                         QtyAlmostDup+=1
                         SepLine = "***************************"
-                        if significantLessTime(DupFileToKeep, Scene):
+                        if significantTimeDiffCheck(DupFileToKeep, Scene):
                             QtyRealTimeDiff += 1
                     
-                    if int(DupFileToKeep['files'][0]['width']) < int(Scene['files'][0]['width']) or int(DupFileToKeep['files'][0]['height']) < int(Scene['files'][0]['height']):
-                        stash.Debug(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason=resolution: {DupFileToKeep['files'][0]['width']}x{DupFileToKeep['files'][0]['height']} < {Scene['files'][0]['width']}x{Scene['files'][0]['height']}")
+                    # if int(DupFileToKeep['files'][0]['width']) < int(Scene['files'][0]['width']) or int(DupFileToKeep['files'][0]['height']) < int(Scene['files'][0]['height']):
+                    if int(DupFileToKeep['files'][0]['width']) * int(DupFileToKeep['files'][0]['height']) < int(Scene['files'][0]['width']) * int(Scene['files'][0]['height']):
+                        logReason(DupFileToKeep, Scene, f"resolution: {DupFileToKeep['files'][0]['width']}x{DupFileToKeep['files'][0]['height']} < {Scene['files'][0]['width']}x{Scene['files'][0]['height']}")
                         DupFileToKeep = Scene
                     elif significantMoreTimeCompareToBetterVideo(DupFileToKeep, Scene):
-                        stash.Debug(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason=duration: {DupFileToKeep['files'][0]['duration']} < {Scene['files'][0]['duration']}")
+                        if significantTimeDiffCheck(DupFileToKeep, Scene):
+                            theReason = f"significant-duration: <b style='color:red;background-color:bright green;'>{DupFileToKeep['files'][0]['duration']} < {Scene['files'][0]['duration']}</b>"
+                        else:
+                            theReason = f"duration: {DupFileToKeep['files'][0]['duration']} < {Scene['files'][0]['duration']}"
+                        reasonKeyword = "significant-duration" if significantTimeDiffCheck(DupFileToKeep, Scene) else "duration"
+                        logReason(DupFileToKeep, Scene, theReason)
                         DupFileToKeep = Scene
                     elif isBetterVideo(DupFileToKeep, Scene):
-                        stash.Debug(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason=codec,bit_rate, or frame_rate: {DupFileToKeep['files'][0]['video_codec']}, {DupFileToKeep['files'][0]['bit_rate']}, {DupFileToKeep['files'][0]['frame_rate']} : {Scene['files'][0]['video_codec']}, {Scene['files'][0]['bit_rate']}, {Scene['files'][0]['frame_rate']}")
+                        logReason(DupFileToKeep, Scene, f"codec,bit_rate, or frame_rate: {DupFileToKeep['files'][0]['video_codec']}, {DupFileToKeep['files'][0]['bit_rate']}, {DupFileToKeep['files'][0]['frame_rate']} : {Scene['files'][0]['video_codec']}, {Scene['files'][0]['bit_rate']}, {Scene['files'][0]['frame_rate']}")
                         DupFileToKeep = Scene
                     elif stash.startsWithInList(whitelist, Scene['files'][0]['path']) and not stash.startsWithInList(whitelist, DupFileToKeep['files'][0]['path']):
-                        stash.Debug(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason=not whitelist vs whitelist")
+                        logReason(DupFileToKeep, Scene, f"not whitelist vs whitelist")
                         DupFileToKeep = Scene
                     elif isTaggedExcluded(Scene) and not isTaggedExcluded(DupFileToKeep):
-                        stash.Debug(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason=not ExcludeTag vs ExcludeTag")
-                        DupFileToKeep = Scene
-                    elif stash.startsWithInList(blacklist, DupFileToKeep['files'][0]['path']) and not stash.startsWithInList(blacklist, Scene['files'][0]['path']):
-                        stash.Debug(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason=blacklist vs not blacklist")
-                        DupFileToKeep = Scene
-                    elif stash.startsWithInList(blacklist, DupFileToKeep['files'][0]['path']) and stash.startsWithInList(blacklist, Scene['files'][0]['path']) and stash.indexStartsWithInList(blacklist, DupFileToKeep['files'][0]['path']) > stash.indexStartsWithInList(blacklist, Scene['files'][0]['path']):
-                        stash.Debug(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason=blacklist-index {stash.indexStartsWithInList(blacklist, DupFileToKeep['files'][0]['path'])} > {stash.indexStartsWithInList(blacklist, Scene['files'][0]['path'])}")
-                        DupFileToKeep = Scene
-                    elif stash.startsWithInList(graylist, Scene['files'][0]['path']) and not stash.startsWithInList(graylist, DupFileToKeep['files'][0]['path']):
-                        stash.Debug(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason=not graylist vs graylist")
-                        DupFileToKeep = Scene
-                    elif stash.startsWithInList(graylist, Scene['files'][0]['path']) and stash.startsWithInList(graylist, DupFileToKeep['files'][0]['path']) and stash.indexStartsWithInList(graylist, DupFileToKeep['files'][0]['path']) > stash.indexStartsWithInList(graylist, Scene['files'][0]['path']):
-                        stash.Debug(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason=graylist-index {stash.indexStartsWithInList(graylist, DupFileToKeep['files'][0]['path'])} > {stash.indexStartsWithInList(graylist, Scene['files'][0]['path'])}")
+                        logReason(DupFileToKeep, Scene, f"not ExcludeTag vs ExcludeTag")
                         DupFileToKeep = Scene
                     elif allThingsEqual(DupFileToKeep, Scene):
                         # Only do below checks if all imporant things are equal.
-                        if favorLongerFileName and len(DupFileToKeep['files'][0]['path']) < len(Scene['files'][0]['path']) and not isWorseKeepCandidate(DupFileToKeep, Scene):
-                            stash.Debug(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason=path-len {len(DupFileToKeep['files'][0]['path'])} < {len(Scene['files'][0]['path'])}")
+                        if stash.startsWithInList(blacklist, DupFileToKeep['files'][0]['path']) and not stash.startsWithInList(blacklist, Scene['files'][0]['path']):
+                            logReason(DupFileToKeep, Scene, f"blacklist vs not blacklist")
+                            DupFileToKeep = Scene
+                        elif stash.startsWithInList(blacklist, DupFileToKeep['files'][0]['path']) and stash.startsWithInList(blacklist, Scene['files'][0]['path']) and stash.indexStartsWithInList(blacklist, DupFileToKeep['files'][0]['path']) > stash.indexStartsWithInList(blacklist, Scene['files'][0]['path']):
+                            logReason(DupFileToKeep, Scene, f"blacklist-index {stash.indexStartsWithInList(blacklist, DupFileToKeep['files'][0]['path'])} > {stash.indexStartsWithInList(blacklist, Scene['files'][0]['path'])}")
+                            DupFileToKeep = Scene
+                        elif stash.startsWithInList(graylist, Scene['files'][0]['path']) and not stash.startsWithInList(graylist, DupFileToKeep['files'][0]['path']):
+                            logReason(DupFileToKeep, Scene, f"not graylist vs graylist")
+                            DupFileToKeep = Scene
+                        elif stash.startsWithInList(graylist, Scene['files'][0]['path']) and stash.startsWithInList(graylist, DupFileToKeep['files'][0]['path']) and stash.indexStartsWithInList(graylist, DupFileToKeep['files'][0]['path']) > stash.indexStartsWithInList(graylist, Scene['files'][0]['path']):
+                            logReason(DupFileToKeep, Scene, f"graylist-index {stash.indexStartsWithInList(graylist, DupFileToKeep['files'][0]['path'])} > {stash.indexStartsWithInList(graylist, Scene['files'][0]['path'])}")
+                            DupFileToKeep = Scene
+                        elif favorLongerFileName and len(DupFileToKeep['files'][0]['path']) < len(Scene['files'][0]['path']) and not isWorseKeepCandidate(DupFileToKeep, Scene):
+                            logReason(DupFileToKeep, Scene, f"path-len {len(DupFileToKeep['files'][0]['path'])} < {len(Scene['files'][0]['path'])}")
                             DupFileToKeep = Scene
                         elif favorLargerFileSize and int(DupFileToKeep['files'][0]['size']) < int(Scene['files'][0]['size']) and not isWorseKeepCandidate(DupFileToKeep, Scene):
-                            stash.Debug(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason=size {DupFileToKeep['files'][0]['size']} < {Scene['files'][0]['size']}")
+                            logReason(DupFileToKeep, Scene, f"size {DupFileToKeep['files'][0]['size']} < {Scene['files'][0]['size']}")
                             DupFileToKeep = Scene
                         elif not favorLongerFileName and len(DupFileToKeep['files'][0]['path']) > len(Scene['files'][0]['path']) and not isWorseKeepCandidate(DupFileToKeep, Scene):
-                            stash.Debug(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason=path-len {len(DupFileToKeep['files'][0]['path'])} > {len(Scene['files'][0]['path'])}")
+                            logReason(DupFileToKeep, Scene, f"path-len {len(DupFileToKeep['files'][0]['path'])} > {len(Scene['files'][0]['path'])}")
                             DupFileToKeep = Scene
                         elif not favorLargerFileSize and int(DupFileToKeep['files'][0]['size']) > int(Scene['files'][0]['size']) and not isWorseKeepCandidate(DupFileToKeep, Scene):
-                            stash.Debug(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason=size {DupFileToKeep['files'][0]['size']} > {Scene['files'][0]['size']}")
+                            logReason(DupFileToKeep, Scene, f"size {DupFileToKeep['files'][0]['size']} > {Scene['files'][0]['size']}")
                             DupFileToKeep = Scene
                 else:
                     DupFileToKeep = Scene
@@ -560,6 +647,7 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
                         QtyExcludeForDel+=1
                         stash.Log(f"Excluding file {DupFile['files'][0]['path']} because tagged for exclusion via tag {excludeDupFileDeleteTag};QtyDup={QtyDup};Set={QtyDupSet} of {qtyResults}")
                     else:
+                        # ToDo: Add merge logic here
                         if deleteDup:
                             QtyDeleted += 1
                             DupFileName = DupFile['files'][0]['path']
@@ -575,8 +663,106 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
                             stash.destroyScene(DupFile['id'], delete_file=True)
                         elif tagDuplicates:
                             QtyTagForDel+=1
+                            QtyTagForDelPaginate+=1
                             didAddTag = setTagId_withRetry(duplicateMarkForDeletion, DupFile, DupFileToKeep, ignoreAutoTag=True)
-                            if grayListTagging and stash.startsWithInList(graylist, DupFile['files'][0]['path']):
+                            if fileHtmlReport != None:
+                                stash.Debug(f"Adding scene {DupFile['id']} to HTML report.")
+                                dupFileExist = True if os.path.isfile(DupFile['files'][0]['path']) else False
+                                toKeepFileExist = True if os.path.isfile(DupFileToKeep['files'][0]['path']) else False
+                                
+                                fileHtmlReport.write(f"{htmlReportTableRow}")
+                                
+                                fileHtmlReport.write(f"{htmlReportTableData}<video {htmlReportVideoPreview} poster=\"{DupFile['paths']['screenshot']}\"><source src=\"{DupFile['paths'][previewOrStream]}\" type=\"video/mp4\"></video></td>")
+                                fileHtmlReport.write(f"{htmlReportTableData}<a href=\"{stash.STASH_URL}/scenes/{DupFile['id']}\" target=\"_blank\" rel=\"noopener noreferrer\">{getPath(DupFile)}</a>")
+                                fileHtmlReport.write(f"<p><table><tr class=\"scene-details\"><th>Res</th><th>Durration</th><th>BitRate</th><th>Codec</th><th>FrameRate</th><th>size</th><th>ID</th><th>index</th></tr>")
+                                fileHtmlReport.write(f"<tr class=\"scene-details\"><td {getColor(getRes(DupFile), getRes(DupFileToKeep), True)}>{DupFile['files'][0]['width']}x{DupFile['files'][0]['height']}</td><td {getColor(DupFile['files'][0]['duration'], DupFileToKeep['files'][0]['duration'], True, True, htmlHighlightTimeDiff)}>{DupFile['files'][0]['duration']}</td><td {getColor(DupFile['files'][0]['bit_rate'], DupFileToKeep['files'][0]['bit_rate'])}>{DupFile['files'][0]['bit_rate']}</td><td {getColor(DupFile['files'][0]['video_codec'], DupFileToKeep['files'][0]['video_codec'])}>{DupFile['files'][0]['video_codec']}</td><td {getColor(DupFile['files'][0]['frame_rate'], DupFileToKeep['files'][0]['frame_rate'])}>{DupFile['files'][0]['frame_rate']}</td><td {getColor(DupFile['files'][0]['size'], DupFileToKeep['files'][0]['size'])}>{DupFile['files'][0]['size']}</td><td>{DupFile['id']}</td><td>{QtyTagForDel}</td></tr>")
+                                
+                                if DupFile['id'] in reasonDict:
+                                    fileHtmlReport.write(f"<tr class=\"reason-details\"><td colspan='8'>Reason: {reasonDict[DupFile['id']]}</td></tr>")
+                                # elif DupFileToKeep['id'] in reasonDict:
+                                    # fileHtmlReport.write(f"<tr class=\"reason-details\"><td colspan='8'>Reason: {reasonDict[DupFileToKeep['id']]}</td></tr>")
+                                elif int(DupFileToKeep['files'][0]['width']) * int(DupFileToKeep['files'][0]['height']) > int(DupFile['files'][0]['width']) * int(DupFile['files'][0]['height']):
+                                    fileHtmlReport.write(f"<tr class=\"reason-details\"><td colspan='8'>Reason: Resolution {DupFile['files'][0]['width']}x{DupFile['files'][0]['height']} < {DupFileToKeep['files'][0]['width']}x{DupFileToKeep['files'][0]['height']}</td></tr>")
+                                elif significantMoreTimeCompareToBetterVideo(DupFile, DupFileToKeep):
+                                    if significantTimeDiffCheck(DupFile, DupFileToKeep):
+                                        theReason = f"Significant-Duration: <b style='color:red;background-color:neon green;'>{DupFile['files'][0]['duration']} < {DupFileToKeep['files'][0]['duration']}</b>"
+                                    else:
+                                        theReason = f"Duration: {DupFile['files'][0]['duration']} < {DupFileToKeep['files'][0]['duration']}"
+                                    fileHtmlReport.write(f"<tr class=\"reason-details\"><td colspan='8'>Reason: {theReason}</td></tr>")
+                                elif isBetterVideo(DupFile, DupFileToKeep):
+                                    fileHtmlReport.write(f"<tr class=\"reason-details\"><td colspan='8'>Reason: Better Video</td></tr>")
+                                elif stash.startsWithInList(DupFileToKeep, DupFile['files'][0]['path']) and not stash.startsWithInList(whitelist, DupFile['files'][0]['path']):
+                                    fileHtmlReport.write(f"<tr class=\"reason-details\"><td colspan='8'>Reason: not whitelist vs whitelist</td></tr>")
+                                elif isTaggedExcluded(DupFileToKeep) and not isTaggedExcluded(DupFile):
+                                    fileHtmlReport.write(f"<tr class=\"reason-details\"><td colspan='8'>Reason: not ExcludeTag vs ExcludeTag</td></tr>")
+                                
+                                fileHtmlReport.write("</table>")
+                                fileHtmlReport.write(f"<button class=\"link-button\" title=\"Delete file and remove scene from stash\" value=\"Duplicate\" id=\"{DupFile['id']}\">[Delete]</button>")
+                                if dupFileExist:
+                                    fileHtmlReport.write(f"<button class=\"link-button\" title=\"Remove duplicate tag from scene\" value=\"RemoveDupTag\" id=\"{DupFile['id']}\">[Remove Tag]</button>")
+                                fileHtmlReport.write(f"<button class=\"link-button\" title=\"Add exclude scene from deletion tag\" value=\"AddExcludeTag\" id=\"{DupFile['id']}\">[Add Exclude Tag]</button>")
+                                fileHtmlReport.write(f"<button class=\"link-button\" title=\"Merge duplicate scene tags with ToKeep scene tags\" value=\"mergeTags\" id=\"{DupFile['id']}:{DupFileToKeep['id']}\">[Merge Tags]</button>")
+                                if dupFileExist:
+                                    fileHtmlReport.write(f"<a class=\"link-items\" title=\"Open folder\" href=\"file://{getPath(DupFile, True)}\">[Folder]</a>")
+                                    fileHtmlReport.write(f"<a class=\"link-items\" title=\"Play file locally\" href=\"file://{getPath(DupFile)}\">[Play]</a>")
+                                else:
+                                    fileHtmlReport.write("<b style='color:red;'>[File NOT Exist]<b>")
+                                # ToDo: Add following buttons:
+                                #       Copy file name from duplicate to ToKeep
+                                #       Copy *file* from duplicate to ToKeep
+                                fileHtmlReport.write("</p></td>")
+                                
+                                fileHtmlReport.write(f"{htmlReportTableData}<video {htmlReportVideoPreview} poster=\"{DupFileToKeep['paths']['screenshot']}\"><source src=\"{DupFileToKeep['paths'][previewOrStream]}\" type=\"video/mp4\"></video></td>")
+                                fileHtmlReport.write(f"{htmlReportTableData}<a href=\"{stash.STASH_URL}/scenes/{DupFileToKeep['id']}\" target=\"_blank\" rel=\"noopener noreferrer\">{getPath(DupFileToKeep)}</a>")
+                                fileHtmlReport.write(f"<p><table><tr class=\"scene-details\"><th>Res</th><th>Durration</th><th>BitRate</th><th>Codec</th><th>FrameRate</th><th>size</th><th>ID</th></tr>")
+                                fileHtmlReport.write(f"<tr class=\"scene-details\"><td>{DupFileToKeep['files'][0]['width']}x{DupFileToKeep['files'][0]['height']}</td><td>{DupFileToKeep['files'][0]['duration']}</td><td>{DupFileToKeep['files'][0]['bit_rate']}</td><td>{DupFileToKeep['files'][0]['video_codec']}</td><td>{DupFileToKeep['files'][0]['frame_rate']}</td><td>{DupFileToKeep['files'][0]['size']}</td><td>{DupFileToKeep['id']}</td></tr></table>")
+                                fileHtmlReport.write(f"<button class=\"link-button\" title=\"Delete [DupFileToKeep] and remove scene from stash\" value=\"ToKeep\" id=\"{DupFileToKeep['id']}\">[Delete]</button>")
+                                if isTaggedExcluded(DupFileToKeep):
+                                    fileHtmlReport.write(f"<button class=\"link-button\" title=\"Remove exclude scene from deletion tag\" value=\"RemoveExcludeTag\" id=\"{DupFileToKeep['id']}\">[Remove Exclude Tag]</button>")
+                                fileHtmlReport.write(f"<a class=\"link-items\" title=\"Open folder\" href=\"file://{getPath(DupFileToKeep, True)}\">[Folder]</a>")
+                                if toKeepFileExist:
+                                    fileHtmlReport.write(f"<a class=\"link-items\" title=\"Play file locally\" href=\"file://{getPath(DupFileToKeep)}\">[Play]</a>")
+                                else:
+                                    fileHtmlReport.write("<b style='color:red;'>[File NOT Exist]<b>")
+                                fileHtmlReport.write(f"</p></td>")
+                                
+                                fileHtmlReport.write("</tr>\n")
+                                
+                                if QtyTagForDelPaginate >= htmlReportPaginate:
+                                    QtyTagForDelPaginate = 0
+                                    fileHtmlReport.write("</table>\n")
+                                    homeHtmReportLink = f"<a class=\"link-items\" title=\"Home Page\" href=\"file://{htmlReportNameHomePage}\">[Home]</a>"
+                                    prevHtmReportLink = ""
+                                    if PaginateId > 0:
+                                        if PaginateId > 1:
+                                            prevHtmReport = htmlReportNameHomePage.replace(".html", f"_{PaginateId-1}.html")
+                                        else:
+                                            prevHtmReport = htmlReportNameHomePage
+                                        prevHtmReportLink = f"<a class=\"link-items\" title=\"Previous Page\" href=\"file://{prevHtmReport}\">[Prev]</a>"
+                                    nextHtmReport = htmlReportNameHomePage.replace(".html", f"_{PaginateId+1}.html")
+                                    nextHtmReportLink = f"<a class=\"link-items\" title=\"Next Page\" href=\"file://{nextHtmReport}\">[Next]</a>"
+                                    fileHtmlReport.write(f"<center><table><tr><td>{homeHtmReportLink}</td><td>{prevHtmReportLink}</td><td>{nextHtmReportLink}</td></tr></table></center>")
+                                    fileHtmlReport.write(f"{stash.Setting('htmlReportPostfix')}")
+                                    fileHtmlReport.close()
+                                    PaginateId+=1
+                                    fileHtmlReport = open(nextHtmReport, "w")
+                                    fileHtmlReport.write(f"{getHtmlReportTableRow(qtyResults)}\n")
+                                    if PaginateId > 1:
+                                        prevHtmReport = htmlReportNameHomePage.replace(".html", f"_{PaginateId-1}.html")
+                                    else:
+                                        prevHtmReport = htmlReportNameHomePage
+                                    prevHtmReportLink = f"<a class=\"link-items\" title=\"Previous Page\" href=\"file://{prevHtmReport}\">[Prev]</a>"
+                                    if len(DupFileSets) > (QtyTagForDel + htmlReportPaginate):
+                                        nextHtmReport = htmlReportNameHomePage.replace(".html", f"_{PaginateId+1}.html")
+                                        nextHtmReportLink = f"<a class=\"link-items\" title=\"Next Page\" href=\"file://{nextHtmReport}\">[Next]</a>"
+                                        fileHtmlReport.write(f"<center><table><tr><td>{homeHtmReportLink}</td><td>{prevHtmReportLink}</td><td>{nextHtmReportLink}</td></tr></table></center>")
+                                    else:
+                                        stash.Debug(f"DupFileSets Qty = {len(DupFileSets)}; DupFileDetailList Qty = {len(DupFileDetailList)}; QtyTagForDel = {QtyTagForDel}; htmlReportPaginate = {htmlReportPaginate}; QtyTagForDel + htmlReportPaginate = {QtyTagForDel+htmlReportPaginate}")
+                                        fileHtmlReport.write(f"<center><table><tr><td>{homeHtmReportLink}</td><td>{prevHtmReportLink}</td></tr></table></center>")
+                                    fileHtmlReport.write(f"{stash.Setting('htmlReportTable')}\n")
+                                    fileHtmlReport.write(f"{htmlReportTableRow}{htmlReportTableHeader}Scene</th>{htmlReportTableHeader}Duplicate to Delete</th>{htmlReportTableHeader}Scene-ToKeep</th>{htmlReportTableHeader}Duplicate to Keep</th></tr>\n")
+                            
+                            if graylistTagging and stash.startsWithInList(graylist, DupFile['files'][0]['path']):
                                 stash.addTag(DupFile, graylistMarkForDeletion, ignoreAutoTag=True)
                             if didAddTag:
                                 QtyNewlyTag+=1
@@ -589,25 +775,78 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
         if maxDupToProcess > 0 and QtyDup > maxDupToProcess:
             break
     
+    if fileHtmlReport != None:
+        fileHtmlReport.write("</table>\n")
+        if PaginateId > 0:
+            homeHtmReportLink = f"<a class=\"link-items\" title=\"Home Page\" href=\"file://{htmlReportNameHomePage}\">[Home]</a>"
+            if PaginateId > 1:
+                prevHtmReport = htmlReportNameHomePage.replace(".html", f"_{PaginateId-1}.html")
+            else:
+                prevHtmReport = htmlReportNameHomePage
+            prevHtmReportLink = f"<a class=\"link-items\" title=\"Previous Page\" href=\"file://{prevHtmReport}\">[Prev]</a>"
+            fileHtmlReport.write(f"<center><table><tr><td>{homeHtmReportLink}</td><td>{prevHtmReportLink}</td></tr></table></center>")
+        fileHtmlReport.write(f"<h2>Total Tagged for Deletion {QtyTagForDel}</h2>\n")
+        # ToDo: Add a menu after the report with the following options:
+        #       Delete all Dup tagged files (any match)
+        #       Remove all Dup tagged files (Just remove from stash, and leave file)
+        #       Delete Blacklist Dup tagged files
+        #       Remove Blacklist Dup tagged files
+        #       Delete all Dup tagged files (Exact Match)
+        #       Remove all Dup tagged files (Exact Match)
+        #       Delete all Dup tagged files (High Match)
+        #       Remove all Dup tagged files (High Match)
+        #       Delete all Dup tagged files (Medium Match)
+        #       Remove all Dup tagged files (Medium Match)
+        #       Delete all Dup tagged files (Low Match)
+        #       Remove all Dup tagged files (Low Match)
+        #       Clear dup tag from all scenes
+        #       Delete dup tag
+        #       Clear ExcludeDup tag
+        #       Delete ExcludeDup tag
+        #       Clear GraylistMarkForDel tag
+        #       Delete GraylistMarkForDel tag
+        #       Clear all DupFileManager created tags
+        #       Delete all DupFileManager created tags
+        fileHtmlReport.write(f"{stash.Setting('htmlReportPostfix')}")
+        fileHtmlReport.close()
+        # ToDo: Add a better working method to open HTML page htmlReportName
+        stash.Log(f"Opening web page {htmlReportName}")
+        import webbrowser
+        webbrowser.open(htmlReportName, new=2, autoraise=True)
+        os.system(f"start file://{htmlReportName}")
+        stash.Log(f"************************************************************", printTo = stash.LogTo.STASH)
+        stash.Log(f"************************************************************", printTo = stash.LogTo.STASH)
+        stash.Log(f"View Stash duplicate report using the following link:         file://{htmlReportName}", printTo = stash.LogTo.STASH)
+        stash.Log(f"************************************************************", printTo = stash.LogTo.STASH)
+        stash.Log(f"************************************************************", printTo = stash.LogTo.STASH)
+
+        
     stash.Debug("#####################################################")
     stash.Log(f"QtyDupSet={QtyDupSet}, QtyDup={QtyDup}, QtyDeleted={QtyDeleted}, QtySwap={QtySwap}, QtyTagForDel={QtyTagForDel}, QtySkipForDel={QtySkipForDel}, QtyExcludeForDel={QtyExcludeForDel}, QtyExactDup={QtyExactDup}, QtyAlmostDup={QtyAlmostDup}, QtyMerge={QtyMerge}, QtyRealTimeDiff={QtyRealTimeDiff}", printTo=LOG_STASH_N_PLUGIN)
     killScanningJobs()
-    if cleanAfterDel:
+    if cleanAfterDel and deleteDup:
         stash.Log("Adding clean jobs to the Task Queue", printTo=LOG_STASH_N_PLUGIN)
         stash.metadata_clean()
         stash.metadata_clean_generated()
         stash.optimise_database()
-    if doNotGeneratePhash == False:
+    if doGeneratePhash:
         stash.metadata_generate({"phashes": True})
 
+def findCurrentTagId(tagNames):
+    tagNames = [i for n, i in enumerate(tagNames) if i not in tagNames[:n]]
+    for tagName in tagNames:
+        tagId = stash.find_tags(q=tagName)
+        if len(tagId) > 0 and 'id' in tagId[0]:
+            stash.Debug("Using tag name {tagName} with Tag ID {tagId[0]['id']}")
+            return tagId[0]['id']
+    return "-1"
+
 def manageTagggedDuplicates(deleteScenes=False, clearTag=False, setGrayListTag=False):
-    tagId = stash.find_tags(q=duplicateMarkForDeletion)
-    if len(tagId) > 0 and 'id' in tagId[0]:
-        tagId = tagId[0]['id']
-    else:
+    tagId = findCurrentTagId([duplicateMarkForDeletion, base1_duplicateWhitelistTag, base2_duplicateWhitelistTag, 'DuplicateMarkForDeletion', '_DuplicateMarkForDeletion'])
+    if int(tagId) < 0:
         stash.Warn(f"Could not find tag ID for tag '{duplicateMarkForDeletion}'.")
         return
-    
+
     excludedTags = [duplicateMarkForDeletion]
     if clearAllDupfileManagerTags:
         excludedTags = [duplicateMarkForDeletion, duplicateWhitelistTag, excludeDupFileDeleteTag, graylistMarkForDeletion, longerDurationLowerResolution]
@@ -683,8 +922,53 @@ def manageTagggedDuplicates(deleteScenes=False, clearTag=False, setGrayListTag=F
     stash.Debug("#####################################################")
     stash.Log(f"QtyDup={QtyDup}, QtyClearedTags={QtyClearedTags}, QtySetGraylistTag={QtySetGraylistTag}, QtyDeleted={QtyDeleted}, QtyFailedQuery={QtyFailedQuery}", printTo=LOG_STASH_N_PLUGIN)
     killScanningJobs()
-    # if doNotGeneratePhash == False and clearTag == False:
-        # stash.metadata_generate({"phashes": True})
+    if deleteScenes:
+        if cleanAfterDel:
+            stash.Log("Adding clean jobs to the Task Queue", printTo=LOG_STASH_N_PLUGIN)
+            stash.metadata_clean()
+            stash.metadata_clean_generated()
+            stash.optimise_database()
+        if doNotGeneratePhash:
+            stash.metadata_generate({"phashes": True})
+
+def removeDupTag():
+    if 'removeDupTag' not in stash.JSON_INPUT['args']:
+        stash.Error(f"Could not find removeDupTag in JSON_INPUT ({stash.JSON_INPUT['args']})")
+        return
+    sceneToRemoveTag = stash.JSON_INPUT['args']['removeDupTag']
+    stash.removeTag(sceneToRemoveTag, duplicateMarkForDeletion)
+    stash.Log(f"Done removing tag from scene {sceneToRemoveTag}.")
+
+def addExcludeForDelTag():
+    if 'addExcludeForDelTag' not in stash.JSON_INPUT['args']:
+        stash.Error(f"Could not find addExcludeForDelTag in JSON_INPUT ({stash.JSON_INPUT['args']})")
+        return
+    scene = stash.JSON_INPUT['args']['addExcludeForDelTag']
+    stash.addTag(scene, excludeDupFileDeleteTag)
+    stash.Log(f"Done adding exclude tag to scene {scene}.")
+
+def removeExcludeForDelTag():
+    if 'removeExcludeForDelTag' not in stash.JSON_INPUT['args']:
+        stash.Error(f"Could not find removeExcludeForDelTag in JSON_INPUT ({stash.JSON_INPUT['args']})")
+        return
+    scene = stash.JSON_INPUT['args']['removeExcludeForDelTag']
+    stash.removeTag(scene, excludeDupFileDeleteTag)
+    stash.Log(f"Done removing exclude tag from scene {scene}.")
+
+def mergeTags():
+    if 'mergeScenes' not in stash.JSON_INPUT['args']:
+        stash.Error(f"Could not find mergeScenes in JSON_INPUT ({stash.JSON_INPUT['args']})")
+        return
+    mergeScenes = stash.JSON_INPUT['args']['mergeScenes']
+    scenes = mergeScenes.split(":")
+    if len(scenes) < 2:
+        stash.Error(f"Could not get both scenes from string {mergeScenes}")
+        return
+    stash.Log(f"Merging tags for scene {scenes[0]} and scene {scenes[1]}")
+    scene1 = stash.find_scene(int(scenes[0]))
+    scene2 = stash.find_scene(int(scenes[1]))
+    stash.mergeMetadata(scene1, scene2)
+    stash.Log(f"Done merging scenes for scene {scenes[0]} and scene {scenes[1]}")
 
 try:
     if stash.PLUGIN_TASK_NAME == "tag_duplicates_task":
@@ -704,6 +988,18 @@ try:
         stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
     elif stash.PLUGIN_TASK_NAME == "generate_phash_task":
         stash.metadata_generate({"phashes": True})
+        stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
+    elif stash.PLUGIN_TASK_NAME == "remove_a_duplicate_tag":
+        removeDupTag()
+        stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
+    elif stash.PLUGIN_TASK_NAME == "add_an_exclude_tag":
+        addExcludeForDelTag()
+        stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
+    elif stash.PLUGIN_TASK_NAME == "remove_an_exclude_tag":
+        removeExcludeForDelTag()
+        stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
+    elif stash.PLUGIN_TASK_NAME == "merge_tags":
+        mergeTags()
         stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
     elif parse_args.dup_tag:
         stash.PLUGIN_TASK_NAME = "dup_tag"
@@ -730,9 +1026,5 @@ except Exception as e:
     killScanningJobs()
     stash.convertToAscii = False
     stash.Error(f"Error: {e}\nTraceBack={tb}")
-
-
-
-
 
 stash.Log("\n*********************************\nEXITING   ***********************\n*********************************")

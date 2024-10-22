@@ -3,37 +3,13 @@ description: Manages duplicate files.
 version: 0.1.6
 url: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/DupFileManager
 settings:
-  clearAllDupfileManagerTags:
-    displayName: Clear All Tags
-    description: Clear Tags task clears scenes of all tags (DuplicateMarkForDeletion, _DuplicateWhite..., _ExcludeDup..., _Graylist..., _LongerDur...)
-    type: BOOLEAN
-  doNotGeneratePhash:
-    displayName: Do Not Generate PHASH
-    description: Do not generate PHASH after tag or delete task.
-    type: BOOLEAN
   mergeDupFilename:
     displayName: Merge Duplicate Tags
     description: Before deletion, merge metadata from duplicate. E.g. Tag names, performers, studios, title, galleries, rating, details, etc...
     type: BOOLEAN
-  permanentlyDelete:
-    displayName: Permanent Delete
-    description: Enable to permanently delete files, instead of moving files to trash can.
-    type: BOOLEAN
   whitelistDelDupInSameFolder:
     displayName: Whitelist Delete In Same Folder
     description: Allow whitelist deletion of duplicates within the same whitelist folder.
-    type: BOOLEAN
-  whitelistDoTagLowResDup:
-    displayName: Whitelist Duplicate Tagging
-    description: Enable to tag whitelist duplicates of lower resolution or duration or same folder.
-    type: BOOLEAN
-  xGrayListTagging:
-    displayName: Tag Graylist
-    description: When adding tag DuplicateMarkForDeletion to graylist scene, also add tag _GraylistMarkForDeletion.
-    type: BOOLEAN
-  zCleanAfterDel:
-    displayName: Run Clean After Delete
-    description: After running a 'Delete Duplicates' task, run Clean, Clean-Generated, and Optimize-Database.
     type: BOOLEAN
   zSwapBetterBitRate:
     displayName: Swap Better Bit Rate
@@ -73,7 +49,7 @@ settings:
     type: NUMBER
   zyMaxDupToProcess:
     displayName: Max Dup Process
-    description: Maximum number of duplicates to process. If 0, infinity
+    description: (Default=0) Maximum number of duplicates to process. If 0, infinity.
     type: NUMBER
   zzDebug:
     displayName: Debug
