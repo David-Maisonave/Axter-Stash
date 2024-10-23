@@ -970,6 +970,10 @@ def mergeTags():
     stash.mergeMetadata(scene1, scene2)
     stash.Log(f"Done merging scenes for scene {scenes[0]} and scene {scenes[1]}")
 
+# ToDo: Add additional menu items option only for bottom of report:
+#   Remove from stash all files no longer part of stash library 
+#   Remove from stash all files in the Exclusion list (Not supporting regexps)
+
 try:
     if stash.PLUGIN_TASK_NAME == "tag_duplicates_task":
         mangeDupFiles(tagDuplicates=True, merge=mergeDupFilename)
