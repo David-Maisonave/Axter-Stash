@@ -627,7 +627,7 @@ class StashPluginHelper(StashInterface):
     
     def removeTag(self, scene, tagName): # scene can be scene ID or scene metadata
         scene_details = scene
-        if 'id' not in scene:
+        if isinstance(scene, int) or 'id' not in scene:
             scene_details = self.find_scene(scene)
         tagIds = []
         doesHaveTagName = False
@@ -649,7 +649,7 @@ class StashPluginHelper(StashInterface):
                 if errMsg != None:
                     self.Warn(errMsg)
                 scene_details = scene
-                if 'id' not in scene:
+                if isinstance(scene, int) or 'id' not in scene:
                     scene_details = self.find_scene(scene)
                 tagIds = [self.createTagId(tagName, tagName_descp=tagName_descp, ignoreAutoTag=ignoreAutoTag)]
                 for tag in scene_details['tags']:
@@ -884,7 +884,8 @@ class mergeMetadata: # A class to merge scene metadata from source scene to dest
         self.mergeItems('tags', 'tag_ids', [], excludeName=self.excludeMergeTags)
         self.mergeItems('performers', 'performer_ids', [])
         self.mergeItems('galleries', 'gallery_ids', [])
-        self.mergeItems('movies', 'movies', [])
+        # ToDo: Need to find out why the following line no longer works in new Stash version
+        # self.mergeItems('movies', 'movies', [])
         self.mergeItems('urls', listToAdd=self.destData['urls'], NotStartWith=self.stash.STASH_URL)
         self.mergeItem('studio', 'studio_id', 'id')
         self.mergeItem('title')

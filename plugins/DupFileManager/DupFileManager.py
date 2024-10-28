@@ -4,7 +4,7 @@
 # Note: To call this script outside of Stash, pass argument --url 
 #       Example:    python DupFileManager.py --url http://localhost:9999 -a
 import ModulesValidate
-ModulesValidate.modulesInstalled(["send2trash", "requests"])
+ModulesValidate.modulesInstalled(["send2trash", "requests"], silent=True)
 import os, sys, time, pathlib, argparse, platform, shutil, traceback, logging, requests
 from datetime import datetime
 from StashPluginHelper import StashPluginHelper
@@ -46,11 +46,17 @@ stash = StashPluginHelper(
         DebugFieldName="zzDebug",
         )
 stash.convertToAscii = True
+doJsonReturnModeTypes = ["tag_duplicates_task", "removeDupTag", "addExcludeTag", "removeExcludeTag", "mergeTags", "getLocalDupReportPath", "createDuplicateReportWithoutTagging", "deleteLocalDupReportHtmlFiles"]
+doJsonReturn = False
+if stash.PLUGIN_TASK_NAME in doJsonReturnModeTypes:
+    doJsonReturn = True
+    stash.log_to_norm = stash.LogTo.FILE
+
 stash.Log("******************* Starting   *******************")
 if len(sys.argv) > 1:
     stash.Log(f"argv = {sys.argv}")
 else:
-    stash.Trace(f"No command line arguments. JSON_INPUT['args'] = {stash.JSON_INPUT['args']}")
+    stash.Trace(f"No command line arguments. JSON_INPUT['args'] = {stash.JSON_INPUT['args']}; PLUGIN_TASK_NAME = {stash.PLUGIN_TASK_NAME}")
 stash.status(logLevel=logging.DEBUG)
 
 
@@ -482,6 +488,8 @@ def logReason(DupFileToKeep, Scene, reason):
     reasonDict[DupFileToKeep['id']] = reason
     stash.Debug(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason={reason}")
 
+htmlReportName = f"{stash.PLUGINS_PATH}{os.sep}{stash.Setting('htmlReportName')}"
+
 def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
     global reasonDict
     duplicateMarkForDeletion_descp = 'Tag added to duplicate scenes so-as to tag them for deletion.'
@@ -490,7 +498,6 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
     stash.Trace(f"dupTagId={dupTagId} name={duplicateMarkForDeletion}")
     createHtmlReport        = stash.Setting('createHtmlReport')
     previewOrStream         = "stream" if stash.Setting('streamOverPreview') else "preview"
-    htmlReportName          = f"{stash.PLUGINS_PATH}{os.sep}{stash.Setting('htmlReportName')}"
     htmlReportNameHomePage  = htmlReportName
     htmlReportTableRow      = stash.Setting('htmlReportTableRow')
     htmlReportTableData     = stash.Setting('htmlReportTableData')
@@ -661,10 +668,12 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
                             elif moveToTrashCan:
                                 sendToTrash(DupFileName)
                             stash.destroyScene(DupFile['id'], delete_file=True)
-                        elif tagDuplicates:
+                        elif tagDuplicates or fileHtmlReport != None:
                             QtyTagForDel+=1
                             QtyTagForDelPaginate+=1
-                            didAddTag = setTagId_withRetry(duplicateMarkForDeletion, DupFile, DupFileToKeep, ignoreAutoTag=True)
+                            didAddTag = False
+                            if tagDuplicates:
+                                didAddTag = setTagId_withRetry(duplicateMarkForDeletion, DupFile, DupFileToKeep, ignoreAutoTag=True)
                             if fileHtmlReport != None:
                                 stash.Debug(f"Adding scene {DupFile['id']} to HTML report.")
                                 dupFileExist = True if os.path.isfile(DupFile['files'][0]['path']) else False
@@ -698,9 +707,9 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
                                 
                                 fileHtmlReport.write("</table>")
                                 fileHtmlReport.write(f"<button class=\"link-button\" title=\"Delete file and remove scene from stash\" value=\"Duplicate\" id=\"{DupFile['id']}\">[Delete]</button>")
-                                if dupFileExist:
-                                    fileHtmlReport.write(f"<button class=\"link-button\" title=\"Remove duplicate tag from scene\" value=\"RemoveDupTag\" id=\"{DupFile['id']}\">[Remove Tag]</button>")
-                                fileHtmlReport.write(f"<button class=\"link-button\" title=\"Add exclude scene from deletion tag\" value=\"AddExcludeTag\" id=\"{DupFile['id']}\">[Add Exclude Tag]</button>")
+                                if dupFileExist and tagDuplicates:
+                                    fileHtmlReport.write(f"<button class=\"link-button\" title=\"Remove duplicate tag from scene\" value=\"removeDupTag\" id=\"{DupFile['id']}\">[Remove Tag]</button>")
+                                fileHtmlReport.write(f"<button class=\"link-button\" title=\"Add exclude scene from deletion tag\" value=\"addExcludeTag\" id=\"{DupFile['id']}\">[Add Exclude Tag]</button>")
                                 fileHtmlReport.write(f"<button class=\"link-button\" title=\"Merge duplicate scene tags with ToKeep scene tags\" value=\"mergeTags\" id=\"{DupFile['id']}:{DupFileToKeep['id']}\">[Merge Tags]</button>")
                                 if dupFileExist:
                                     fileHtmlReport.write(f"<a class=\"link-items\" title=\"Open folder\" href=\"file://{getPath(DupFile, True)}\">[Folder]</a>")
@@ -718,7 +727,7 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
                                 fileHtmlReport.write(f"<tr class=\"scene-details\"><td>{DupFileToKeep['files'][0]['width']}x{DupFileToKeep['files'][0]['height']}</td><td>{DupFileToKeep['files'][0]['duration']}</td><td>{DupFileToKeep['files'][0]['bit_rate']}</td><td>{DupFileToKeep['files'][0]['video_codec']}</td><td>{DupFileToKeep['files'][0]['frame_rate']}</td><td>{DupFileToKeep['files'][0]['size']}</td><td>{DupFileToKeep['id']}</td></tr></table>")
                                 fileHtmlReport.write(f"<button class=\"link-button\" title=\"Delete [DupFileToKeep] and remove scene from stash\" value=\"ToKeep\" id=\"{DupFileToKeep['id']}\">[Delete]</button>")
                                 if isTaggedExcluded(DupFileToKeep):
-                                    fileHtmlReport.write(f"<button class=\"link-button\" title=\"Remove exclude scene from deletion tag\" value=\"RemoveExcludeTag\" id=\"{DupFileToKeep['id']}\">[Remove Exclude Tag]</button>")
+                                    fileHtmlReport.write(f"<button class=\"link-button\" title=\"Remove exclude scene from deletion tag\" value=\"removeExcludeTag\" id=\"{DupFileToKeep['id']}\">[Remove Exclude Tag]</button>")
                                 fileHtmlReport.write(f"<a class=\"link-items\" title=\"Open folder\" href=\"file://{getPath(DupFileToKeep, True)}\">[Folder]</a>")
                                 if toKeepFileExist:
                                     fileHtmlReport.write(f"<a class=\"link-items\" title=\"Play file locally\" href=\"file://{getPath(DupFileToKeep)}\">[Play]</a>")
@@ -762,7 +771,7 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
                                     fileHtmlReport.write(f"{stash.Setting('htmlReportTable')}\n")
                                     fileHtmlReport.write(f"{htmlReportTableRow}{htmlReportTableHeader}Scene</th>{htmlReportTableHeader}Duplicate to Delete</th>{htmlReportTableHeader}Scene-ToKeep</th>{htmlReportTableHeader}Duplicate to Keep</th></tr>\n")
                             
-                            if graylistTagging and stash.startsWithInList(graylist, DupFile['files'][0]['path']):
+                            if tagDuplicates and graylistTagging and stash.startsWithInList(graylist, DupFile['files'][0]['path']):
                                 stash.addTag(DupFile, graylistMarkForDeletion, ignoreAutoTag=True)
                             if didAddTag:
                                 QtyNewlyTag+=1
@@ -831,6 +840,7 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
         stash.optimise_database()
     if doGeneratePhash:
         stash.metadata_generate({"phashes": True})
+    sys.stdout.write("Report complete")
 
 def findCurrentTagId(tagNames):
     tagNames = [i for n, i in enumerate(tagNames) if i not in tagNames[:n]]
@@ -932,34 +942,42 @@ def manageTagggedDuplicates(deleteScenes=False, clearTag=False, setGrayListTag=F
             stash.metadata_generate({"phashes": True})
 
 def removeDupTag():
-    if 'removeDupTag' not in stash.JSON_INPUT['args']:
-        stash.Error(f"Could not find removeDupTag in JSON_INPUT ({stash.JSON_INPUT['args']})")
+    if 'Target' not in stash.JSON_INPUT['args']:
+        stash.Error(f"Could not find Target in JSON_INPUT ({stash.JSON_INPUT['args']})")
         return
-    sceneToRemoveTag = stash.JSON_INPUT['args']['removeDupTag']
-    stash.removeTag(sceneToRemoveTag, duplicateMarkForDeletion)
-    stash.Log(f"Done removing tag from scene {sceneToRemoveTag}.")
+    scene = stash.JSON_INPUT['args']['Target']
+    stash.Log(f"Processing scene ID# {scene}")
+    stash.removeTag(scene, duplicateMarkForDeletion)
+    stash.Log(f"Done removing tag from scene {scene}.")
+    jsonReturn = "{'removeDupTag' : 'complete', 'id': '" + f"{scene}" + "'}"
+    stash.Log(f"Sending json value {jsonReturn}")
+    sys.stdout.write(jsonReturn)
 
-def addExcludeForDelTag():
-    if 'addExcludeForDelTag' not in stash.JSON_INPUT['args']:
-        stash.Error(f"Could not find addExcludeForDelTag in JSON_INPUT ({stash.JSON_INPUT['args']})")
+def addExcludeTag():
+    if 'Target' not in stash.JSON_INPUT['args']:
+        stash.Error(f"Could not find Target in JSON_INPUT ({stash.JSON_INPUT['args']})")
         return
-    scene = stash.JSON_INPUT['args']['addExcludeForDelTag']
+    scene = stash.JSON_INPUT['args']['Target']
+    stash.Log(f"Processing scene ID# {scene}")
     stash.addTag(scene, excludeDupFileDeleteTag)
     stash.Log(f"Done adding exclude tag to scene {scene}.")
+    sys.stdout.write("{" + f"addExcludeTag : 'complete', id: '{scene}'" + "}")
 
-def removeExcludeForDelTag():
-    if 'removeExcludeForDelTag' not in stash.JSON_INPUT['args']:
-        stash.Error(f"Could not find removeExcludeForDelTag in JSON_INPUT ({stash.JSON_INPUT['args']})")
+def removeExcludeTag():
+    if 'Target' not in stash.JSON_INPUT['args']:
+        stash.Error(f"Could not find Target in JSON_INPUT ({stash.JSON_INPUT['args']})")
         return
-    scene = stash.JSON_INPUT['args']['removeExcludeForDelTag']
+    scene = stash.JSON_INPUT['args']['Target']
+    stash.Log(f"Processing scene ID# {scene}")
     stash.removeTag(scene, excludeDupFileDeleteTag)
     stash.Log(f"Done removing exclude tag from scene {scene}.")
+    sys.stdout.write("{" + f"removeExcludeTag : 'complete', id: '{scene}'" + "}")
 
 def mergeTags():
-    if 'mergeScenes' not in stash.JSON_INPUT['args']:
-        stash.Error(f"Could not find mergeScenes in JSON_INPUT ({stash.JSON_INPUT['args']})")
+    if 'Target' not in stash.JSON_INPUT['args']:
+        stash.Error(f"Could not find Target in JSON_INPUT ({stash.JSON_INPUT['args']})")
         return
-    mergeScenes = stash.JSON_INPUT['args']['mergeScenes']
+    mergeScenes = stash.JSON_INPUT['args']['Target']
     scenes = mergeScenes.split(":")
     if len(scenes) < 2:
         stash.Error(f"Could not get both scenes from string {mergeScenes}")
@@ -969,6 +987,55 @@ def mergeTags():
     scene2 = stash.find_scene(int(scenes[1]))
     stash.mergeMetadata(scene1, scene2)
     stash.Log(f"Done merging scenes for scene {scenes[0]} and scene {scenes[1]}")
+    sys.stdout.write("{" + f"mergeTags : 'complete', id1: '{scene1}', id2: '{scene2}'" + "}")
+
+def openWebpage():
+    htmlReportName          = f"{stash.PLUGINS_PATH}{os.sep}{stash.Setting('htmlReportName')}"
+    stash.Log(f"Opening web page {htmlReportName}")
+    # chromePath = r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+    chromePath = r"C:\PROGRA~2\Google\Chrome\Application\chrome.exe"
+    firefox = r"C:\PROGRA~1\MOZILL~1\firefox.exe"
+    browserPath = chromePath
+    if os.path.isfile(browserPath):
+        stash.Log(f"Opening web page {htmlReportName} with user {os.getlogin()} using {browserPath}")
+        # pw_record = pwd.getpwnam(os.getlogin())
+        # uid = pw_record.pw_uid
+        # gid = pw_record.pw_gid
+        # os.setgid(gid)
+        # os.setuid(uid)
+        # stash.Log(f"Using uid={uid} and gid={gid}")
+        # stash.executeProcess(f"\"{browserPath}\" -incognito --new-window \"file://{htmlReportName}\"", ExecDetach=True)
+        os.system(f"{browserPath} -incognito --new-window \"file://{htmlReportName}\"")
+    # else:
+    import webbrowser
+    webbrowser.open(htmlReportName, new=2, autoraise=True)
+    os.system(f"start file:///{htmlReportName}")
+
+def getLocalDupReportPath():
+    htmlReportExist = "true" if os.path.isfile(htmlReportName) else "false"
+    # htmlReportExist = "false"
+    localPath = htmlReportName.replace("\\", "\\\\")
+    jsonReturn = "{'LocalDupReportExist' : " + f"{htmlReportExist}" + ", 'Path': '" + f"{localPath}" + "'}"
+    stash.Log(f"Sending json value {jsonReturn}")
+    sys.stdout.write(jsonReturn)
+
+def deleteLocalDupReportHtmlFiles():
+    htmlReportExist = "true" if os.path.isfile(htmlReportName) else "false"
+    if os.path.isfile(htmlReportName):
+        stash.Log(f"Deleting file {htmlReportName}")
+        os.remove(htmlReportName)
+        for x in range(2, 9999):
+            fileName = htmlReportName.replace(".html", f"_{x-1}.html")
+            stash.Debug(f"Checking if file '{fileName}' exist.")
+            if not os.path.isfile(fileName):
+                break
+            stash.Log(f"Deleting file {fileName}")
+            os.remove(fileName)
+    else:
+        stash.Log(f"Report file does not exist: {htmlReportName}")
+    jsonReturn = "{'LocalDupReportExist' : " + f"{htmlReportExist}" + ", 'Path': '" + f"{htmlReportName}" + "', 'qty': '" + f"{x}" + "'}"
+    stash.Log(f"Sending json value {jsonReturn}")
+    sys.stdout.write(jsonReturn)
 
 # ToDo: Add additional menu items option only for bottom of report:
 #   Remove from stash all files no longer part of stash library 
@@ -993,17 +1060,26 @@ try:
     elif stash.PLUGIN_TASK_NAME == "generate_phash_task":
         stash.metadata_generate({"phashes": True})
         stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
-    elif stash.PLUGIN_TASK_NAME == "remove_a_duplicate_tag":
+    elif stash.PLUGIN_TASK_NAME == "removeDupTag":
         removeDupTag()
         stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
-    elif stash.PLUGIN_TASK_NAME == "add_an_exclude_tag":
-        addExcludeForDelTag()
+    elif stash.PLUGIN_TASK_NAME == "addExcludeTag":
+        addExcludeTag()
         stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
-    elif stash.PLUGIN_TASK_NAME == "remove_an_exclude_tag":
-        removeExcludeForDelTag()
+    elif stash.PLUGIN_TASK_NAME == "removeExcludeTag":
+        removeExcludeTag()
         stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
-    elif stash.PLUGIN_TASK_NAME == "merge_tags":
+    elif stash.PLUGIN_TASK_NAME == "mergeTags":
         mergeTags()
+        stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
+    elif stash.PLUGIN_TASK_NAME == "getLocalDupReportPath":
+        getLocalDupReportPath()
+        stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
+    elif stash.PLUGIN_TASK_NAME == "deleteLocalDupReportHtmlFiles":
+        deleteLocalDupReportHtmlFiles()
+        stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
+    elif stash.PLUGIN_TASK_NAME == "createDuplicateReportWithoutTagging":
+        mangeDupFiles(tagDuplicates=False, merge=mergeDupFilename)
         stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
     elif parse_args.dup_tag:
         stash.PLUGIN_TASK_NAME = "dup_tag"
@@ -1030,5 +1106,7 @@ except Exception as e:
     killScanningJobs()
     stash.convertToAscii = False
     stash.Error(f"Error: {e}\nTraceBack={tb}")
+    if doJsonReturn:
+        sys.stdout.write("{" + f"Exception : '{e}; See log file for TraceBack' " + "}")
 
 stash.Log("\n*********************************\nEXITING   ***********************\n*********************************")

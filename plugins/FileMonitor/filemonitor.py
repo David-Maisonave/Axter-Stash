@@ -4,7 +4,7 @@
 # Note: To call this script outside of Stash, pass argument --url and the Stash URL.
 #       Example:    python filemonitor.py --url http://localhost:9999
 import ModulesValidate
-ModulesValidate.modulesInstalled(["watchdog", "schedule", "requests"])
+ModulesValidate.modulesInstalled(["stashapp-tools", "watchdog", "schedule", "requests"])
 from StashPluginHelper import StashPluginHelper
 import os, sys, time, pathlib, argparse, platform, traceback, logging
 from StashPluginHelper import taskQueue

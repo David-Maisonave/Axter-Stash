@@ -118,7 +118,17 @@ table, th, td {border:1px solid black;}
 </style>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script>
-var superQuery = `{ mutation SceneDestroy($input:SceneDestroyInput!) {sceneDestroy(input: $input)} }`
+function RunPluginDupFileManager(Mode, ActionID, chkBxRemoveValid, button) {
+	$.ajax({method: "POST", url: "http://127.0.0.1:9999/graphql", contentType: "application/json", dataType: "text",
+	data: JSON.stringify({
+			query: `mutation RunPluginOperation($plugin_id:ID!,$args:Map!){runPluginOperation(plugin_id:$plugin_id,args:$args)}`,
+			variables: {"plugin_id": "DupFileManager", "args": { "Target" : ActionID, "mode":Mode}},
+		}), success: function(result){
+			console.log(result);
+			button.style.visibility = 'hidden';
+			if (!chkBxRemoveValid.checked) alert("Action " + Mode + " for scene(s) ID# " + ActionID + " complete.")	
+	}});
+}    
 $(document).ready(function(){
   $("button").click(function(){
 	chkBxRemoveValid = document.getElementById("RemoveValidatePrompt");
@@ -128,64 +138,19 @@ $(document).ready(function(){
 		if (!chkBxDisableDeleteConfirm.checked && !confirm("Are you sure you want to delete this file and remove scene from stash?")) {
 				return
 		}
+        const SceneId = this.id;
 		$.ajax({method: "POST", url: "http://127.0.0.1:9999/graphql", contentType: "application/json",
 		data: JSON.stringify({
 				query: `mutation SceneDestroy($input:SceneDestroyInput!) {sceneDestroy(input: $input)}`,
-				variables: {"input":{"delete_file":true,"id":this.id}},
+				variables: {"input":{"delete_file":true,"id":SceneId}},
 			}), success: function(result){
-		  $("#div1").html(result);
+                console.log(result);
+                if (!chkBxRemoveValid.checked) alert("Delete request received for scene ID# " + SceneId)
 		}});
 		this.style.visibility = 'hidden';
-		if (!chkBxRemoveValid.checked) alert("Sent delete request for scene ID# " + this.id)
 	}
-	else if (this.value === "RemoveDupTag")
-	{
-		$.ajax({method: "POST", url: "http://127.0.0.1:9999/graphql", contentType: "application/json",
-		data: JSON.stringify({
-				query: `mutation RunPluginOperation($plugin_id:ID!,$args:Map!){runPluginOperation(plugin_id:$plugin_id,args:$args)}`,
-				variables: {"plugin_id": "DupFileManager", "args": {"removeDupTag":this.id, "mode":"remove_a_duplicate_tag"}},
-			}), success: function(result){
-		  $("#div1").html(result);
-		}});
-		this.style.visibility = 'hidden';
-		if (!chkBxRemoveValid.checked) alert("Sent remove duplicate tag request for scene ID# " + this.id)	
-	}
-	else if (this.value === "AddExcludeTag")
-	{
-		$.ajax({method: "POST", url: "http://127.0.0.1:9999/graphql", contentType: "application/json",
-		data: JSON.stringify({
-				query: `mutation RunPluginOperation($plugin_id:ID!,$args:Map!){runPluginOperation(plugin_id:$plugin_id,args:$args)}`,
-				variables: {"plugin_id": "DupFileManager", "args": {"addExcludeForDelTag":this.id, "mode":"add_an_exclude_tag"}},
-			}), success: function(result){
-		  $("#div1").html(result);
-		}});
-		this.style.visibility = 'hidden';
-		if (!chkBxRemoveValid.checked) alert("Sent add exclude tag request for scene ID# " + this.id)	
-	}
-	else if (this.value === "RemoveExcludeTag")
-	{
-		$.ajax({method: "POST", url: "http://127.0.0.1:9999/graphql", contentType: "application/json",
-		data: JSON.stringify({
-				query: `mutation RunPluginOperation($plugin_id:ID!,$args:Map!){runPluginOperation(plugin_id:$plugin_id,args:$args)}`,
-				variables: {"plugin_id": "DupFileManager", "args": {"removeExcludeForDelTag":this.id, "mode":"remove_an_exclude_tag"}},
-			}), success: function(result){
-		  $("#div1").html(result);
-		}});
-		this.style.visibility = 'hidden';
-		if (!chkBxRemoveValid.checked) alert("Sent remove exclude tag request for scene ID# " + this.id)	
-	}
-	else if (this.value === "mergeTags")
-	{
-		$.ajax({method: "POST", url: "http://127.0.0.1:9999/graphql", contentType: "application/json",
-		data: JSON.stringify({
-				query: `mutation RunPluginOperation($plugin_id:ID!,$args:Map!){runPluginOperation(plugin_id:$plugin_id,args:$args)}`,
-				variables: {"plugin_id": "DupFileManager", "args": {"mergeScenes":this.id, "mode":"merge_tags"}},
-			}), success: function(result){
-		  $("#div1").html(result);
-		}});
-		this.style.visibility = 'hidden';
-		if (!chkBxRemoveValid.checked) alert("Sent merge scene request for scenes " + this.id)	
-	}
+	else
+		RunPluginDupFileManager(this.value, this.id, chkBxRemoveValid, this)
   });
 });
 </script>
