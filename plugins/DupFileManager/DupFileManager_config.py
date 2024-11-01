@@ -119,7 +119,7 @@ table, th, td {border:1px solid black;}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script>
 function RunPluginDupFileManager(Mode, ActionID, chkBxRemoveValid, button) {
-	$.ajax({method: "POST", url: "http://127.0.0.1:9999/graphql", contentType: "application/json", dataType: "text",
+	$.ajax({method: "POST", url: "http://localhost:9999/graphql", contentType: "application/json", dataType: "text",
 	data: JSON.stringify({
 			query: `mutation RunPluginOperation($plugin_id:ID!,$args:Map!){runPluginOperation(plugin_id:$plugin_id,args:$args)}`,
 			variables: {"plugin_id": "DupFileManager", "args": { "Target" : ActionID, "mode":Mode}},
@@ -139,7 +139,7 @@ $(document).ready(function(){
 				return
 		}
         const SceneId = this.id;
-		$.ajax({method: "POST", url: "http://127.0.0.1:9999/graphql", contentType: "application/json",
+		$.ajax({method: "POST", url: "http://localhost:9999/graphql", contentType: "application/json",
 		data: JSON.stringify({
 				query: `mutation SceneDestroy($input:SceneDestroyInput!) {sceneDestroy(input: $input)}`,
 				variables: {"input":{"delete_file":true,"id":SceneId}},
@@ -149,6 +149,12 @@ $(document).ready(function(){
 		}});
 		this.style.visibility = 'hidden';
 	}
+    else if (this.id === "AdvanceMenu")
+    {
+		var newUrl = window.location.href;
+		newUrl = newUrl.replace(/DuplicateTagScenes[_0-9]*.html/g, "DupFileManager/advance_options.html?GQL=http://localhost:9999/graphql");
+		window.open(newUrl, "_blank");
+    }
 	else
 		RunPluginDupFileManager(this.value, this.id, chkBxRemoveValid, this)
   });
@@ -166,6 +172,7 @@ $(document).ready(function(){
 <td><table><tr>
 <td><input type="checkbox" id="RemoveValidatePrompt" name="RemoveValidatePrompt"><label for="RemoveValidatePrompt" title="Disable Validate Prompts (Popups)">Disable Task Prompt</label><br></td>
 <td><input type="checkbox" id="RemoveToKeepConfirm" name="RemoveToKeepConfirm"><label for="RemoveToKeepConfirm" title="Disable confirmation prompts for delete scenes">Disable Delete Confirmation</label><br></td>
+<td><button id="AdvanceMenu" title="View advance menu for tagged duplicates." name="AdvanceMenu">Advance Tag Menu</button></td>
 </tr></table></td>
 </tr></table></center>
 <h2>Stash Duplicate Scenes Report (MatchTypePlaceHolder)</h2>\n""",

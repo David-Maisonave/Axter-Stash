@@ -421,6 +421,48 @@ class StashPluginHelper(StashInterface):
         self.Log(f"StashPluginHelper Status: (CALLED_AS_STASH_PLUGIN={self.CALLED_AS_STASH_PLUGIN}), (RUNNING_IN_COMMAND_LINE_MODE={self.RUNNING_IN_COMMAND_LINE_MODE}), (DEBUG_TRACING={self.DEBUG_TRACING}), (DRY_RUN={self.DRY_RUN}), (PLUGIN_ID={self.PLUGIN_ID}), (PLUGIN_TASK_NAME={self.PLUGIN_TASK_NAME}), (STASH_URL={self.STASH_URL}), (MAIN_SCRIPT_NAME={self.MAIN_SCRIPT_NAME})",
             printTo, logLevel, lineNo)
     
+    # Replaces obsolete UI settings variable with new name. Only use this with strings and numbers.
+    # Example usage:
+    #       obsoleteSettingsToConvert = {"OldVariableName" : "NewVariableName", "AnotherOldVarName" : "NewName2"}
+    #       stash.replaceObsoleteSettings(obsoleteSettingsToConvert, "ObsoleteSettingsCheckVer2")
+    def replaceObsoleteSettings(self, settingSet:dict, SettingToCheckFirst="", init_defaults=False):
+        if SettingToCheckFirst == "" or self.Setting(SettingToCheckFirst) == False:
+            for key in settingSet:
+                obsoleteVar = self.Setting(key)
+                if isinstance(obsoleteVar, bool):
+                    if obsoleteVar:
+                        if self.Setting(settingSet[key]) == False:
+                            self.Log(f"Detected obsolete (bool) settings ({key}). Moving obsolete settings to new setting name {settingSet[key]}.")
+                            results = self.configure_plugin(self.PLUGIN_ID, {settingSet[key]:self.Setting(key), key : False}, init_defaults)
+                            self.Debug(f"configure_plugin = {results}")
+                        else:
+                            self.Log(f"Detected obsolete (bool) settings ({key}), and deleting it's content because new setting name ({settingSet[key]}) is already populated.")
+                            results = self.configure_plugin(self.PLUGIN_ID, {key : False}, init_defaults)
+                            self.Debug(f"configure_plugin = {results}")                
+                elif isinstance(obsoleteVar, int): # Both int and bool type returns true here
+                    if obsoleteVar > 0:
+                        if self.Setting(settingSet[key]) > 0:
+                            self.Log(f"Detected obsolete (int) settings ({key}), and deleting it's content because new setting name ({settingSet[key]}) is already populated.")
+                            results = self.configure_plugin(self.PLUGIN_ID, {key : 0}, init_defaults)
+                            self.Debug(f"configure_plugin = {results}")
+                        else:
+                            self.Log(f"Detected obsolete (int) settings ({key}). Moving obsolete settings to new setting name {settingSet[key]}.")
+                            results = self.configure_plugin(self.PLUGIN_ID, {settingSet[key]:self.Setting(key), key : 0}, init_defaults)
+                            self.Debug(f"configure_plugin = {results}")
+                elif obsoleteVar != "":
+                    if self.Setting(settingSet[key]) == "":
+                        self.Log(f"Detected obsolete (str) settings ({key}). Moving obsolete settings to new setting name {settingSet[key]}.")
+                        results = self.configure_plugin(self.PLUGIN_ID, {settingSet[key]:self.Setting(key), key : ""}, init_defaults)
+                        self.Debug(f"configure_plugin = {results}")
+                    else:
+                        self.Log(f"Detected obsolete (str) settings ({key}), and deleting it's content because new setting name ({settingSet[key]}) is already populated.")
+                        results = self.configure_plugin(self.PLUGIN_ID, {key : ""}, init_defaults)
+                        self.Debug(f"configure_plugin = {results}")
+            if SettingToCheckFirst != "":
+                results = self.configure_plugin(self.PLUGIN_ID, {SettingToCheckFirst : True}, init_defaults)
+                self.Debug(f"configure_plugin = {results}")
+                        
+    
     def executeProcess(self, args, ExecDetach=False):
         pid = None
         self.Trace(f"self.IS_WINDOWS={self.IS_WINDOWS} args={args}")

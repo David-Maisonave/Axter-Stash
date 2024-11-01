@@ -33,4 +33,35 @@
   margin: 1em;
 }
 
+ /* Dashed border */
+hr.dashed {
+  border-top: 3px dashed #bbb;
+}
+
+/* Dotted border */
+hr.dotted {
+  border-top: 3px dotted #bbb;
+}
+
+/* Solid border */
+hr.solid {
+  border-top: 3px solid #bbb;
+}
+
+/* Rounded border */
+hr.rounded {
+  border-top: 8px solid #bbb;
+  border-radius: 5px;
+}
+
+h3.under_construction {
+	color:red;
+	background-color:yellow;
+}
+
+h3.submenu {
+	color:Tomato;
+	background-color:rgba(100, 100, 100);
+}
+
 /*# sourceMappingURL=DupFileManager.css.map */

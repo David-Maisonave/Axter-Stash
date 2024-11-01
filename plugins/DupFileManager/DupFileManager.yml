@@ -10,6 +10,10 @@ ui:
   - DupFileManager.css.map
   - DupFileManager.js.map
 settings:
+  matchDupDistance:
+    displayName: Match Duplicate Distance
+    description: (Default=0) Where 0 = Exact Match, 1 = High Match, 2 = Medium Match, and 3 = Low Match. 
+    type: NUMBER
   mergeDupFilename:
     displayName: Merge Duplicate Tags
     description: Before deletion, merge metadata from duplicate. E.g. Tag names, performers, studios, title, galleries, rating, details, etc...
@@ -18,46 +22,42 @@ settings:
     displayName: Whitelist Delete In Same Folder
     description: Allow whitelist deletion of duplicates within the same whitelist folder.
     type: BOOLEAN
-  zSwapBetterBitRate:
-    displayName: Swap Better Bit Rate
-    description: Swap better bit rate for duplicate files. Use with DupFileManager_config.py file option favorHighBitRate
-    type: BOOLEAN
-  zSwapBetterFrameRate:
-    displayName: Swap Better Frame Rate
-    description: Swap better frame rate for duplicates. Use with DupFileManager_config.py file option favorHigherFrameRate
-    type: BOOLEAN
-  zSwapCodec:
-    displayName: Swap Better Codec
-    description: If enabled, swap better codec duplicate files to preferred path.
-    type: BOOLEAN
-  zSwapHighRes:
-    displayName: Swap Higher Resolution
-    description: If enabled, swap higher resolution duplicate files to preferred path.
-    type: BOOLEAN
-  zSwapLongLength:
-    displayName: Swap Longer Duration
-    description: If enabled, swap longer duration media files to preferred path. Longer is determine by significantLongerTime field.
-    type: BOOLEAN
-  zWhitelist:
+  zvWhitelist:
     displayName: White List
     description: A comma seperated list of paths NOT to be deleted. E.g. C:\Favorite\,E:\MustKeep\
     type: STRING
-  zxGraylist:
+  zwGraylist:
     displayName: Gray List
     description: Preferential paths to determine which duplicate should be kept. E.g. C:\2nd_Fav,C:\3rd_Fav,C:\4th_Fav,H:\ShouldKeep
     type: STRING
-  zyBlacklist:
+  zxBlacklist:
     displayName: Black List
     description: Least preferential paths; Determine primary deletion candidates. E.g. C:\Downloads,C:\DelMe-3rd,C:\DelMe-2nd,C:\DeleteMeFirst
     type: STRING
-  zyMatchDupDistance:
-    displayName: Match Duplicate Distance
-    description: (Default=0) Where 0 = Exact Match, 1 = High Match, 2 = Medium Match, and 3 = Low Match. 
-    type: NUMBER
   zyMaxDupToProcess:
     displayName: Max Dup Process
     description: (Default=0) Maximum number of duplicates to process. If 0, infinity.
     type: NUMBER
+  zySwapBetterBitRate:
+    displayName: Swap Better Bit Rate
+    description: Swap better bit rate for duplicate files. Use with DupFileManager_config.py file option favorHighBitRate
+    type: BOOLEAN
+  zySwapBetterFrameRate:
+    displayName: Swap Better Frame Rate
+    description: Swap better frame rate for duplicates. Use with DupFileManager_config.py file option favorHigherFrameRate
+    type: BOOLEAN
+  zySwapCodec:
+    displayName: Swap Better Codec
+    description: If enabled, swap better codec duplicate files to preferred path.
+    type: BOOLEAN
+  zySwapHighRes:
+    displayName: Swap Higher Resolution
+    description: If enabled, swap higher resolution duplicate files to preferred path.
+    type: BOOLEAN
+  zySwapLongLength:
+    displayName: Swap Longer Duration
+    description: If enabled, swap longer duration media files to preferred path. Longer is determine by significantLongerTime field.
+    type: BOOLEAN
   zzDebug:
     displayName: Debug
     description: Enable debug so-as to add additional debug logging in Stash\plugins\DupFileManager\DupFileManager.log
@@ -87,11 +87,3 @@ tasks:
     description: Delete duplicate scenes. Performs deletion without first tagging.
     defaultArgs:
       mode: delete_duplicates_task
-  - name: Generate PHASH Matching
-    description: Generate PHASH file matching. Used for file comparisons.
-    defaultArgs:
-      mode: generate_phash_task
-  - name: Tag Graylist
-    description: Set tag _GraylistMarkForDeletion to scenes having DuplicateMarkForDeletion tag and that are in the Graylist.
-    defaultArgs:
-      mode: graylist_tag_task

@@ -21,20 +21,33 @@ parser.add_argument('--remove_dup', '-r', dest='remove', action='store_true', he
 parse_args = parser.parse_args()
 
 settings = {
+    "matchDupDistance": 0,
     "mergeDupFilename": False,
     "whitelistDelDupInSameFolder": False,
+    "zvWhitelist": "",
+    "zwGraylist": "",
+    "zxBlacklist": "",
+    "zyMaxDupToProcess": 0,
+    "zySwapHighRes": False,
+    "zySwapLongLength": False,
+    "zySwapBetterBitRate": False,
+    "zySwapCodec": False,
+    "zySwapBetterFrameRate": False,
+    "zzDebug": False,
+    "zzTracing": False,
+    
+    "zzObsoleteSettingsCheckVer2": False, # This is a hidden variable that is NOT displayed in the UI
+    
+    # Obsolete setting names
+    "zWhitelist": "",
+    "zxGraylist": "",
+    "zyBlacklist": "",
+    "zyMatchDupDistance": 0,
     "zSwapHighRes": False,
     "zSwapLongLength": False,
     "zSwapBetterBitRate": False,
     "zSwapCodec": False,
     "zSwapBetterFrameRate": False,
-    "zWhitelist": "",
-    "zxGraylist": "",
-    "zyBlacklist": "",
-    "zyMatchDupDistance": 0,
-    "zyMaxDupToProcess": 0,
-    "zzDebug": False,
-    "zzTracing": False,
 }
 stash = StashPluginHelper(
         stash_url=parse_args.stash_url,
@@ -46,22 +59,52 @@ stash = StashPluginHelper(
         DebugFieldName="zzDebug",
         )
 stash.convertToAscii = True
-doJsonReturnModeTypes = ["tag_duplicates_task", "removeDupTag", "addExcludeTag", "removeExcludeTag", "mergeTags", "getLocalDupReportPath", "createDuplicateReportWithoutTagging", "deleteLocalDupReportHtmlFiles"]
+
+advanceMenuOptions = [  "pathToDelete", "pathToDeleteBlacklist", "sizeToDeleteLess", "sizeToDeleteGreater", "sizeToDeleteBlacklistLess", "sizeToDeleteBlacklistGreater", "durationToDeleteLess", "durationToDeleteGreater", "durationToDeleteBlacklistLess", "durationToDeleteBlacklistGreater", 
+                        "commonResToDeleteLess", "commonResToDeleteEq", "commonResToDeleteGreater", "commonResToDeleteBlacklistLess", "commonResToDeleteBlacklistEq", "commonResToDeleteBlacklistGreater", "resolutionToDeleteLess", "resolutionToDeleteEq", "resolutionToDeleteGreater", 
+                        "resolutionToDeleteBlacklistLess", "resolutionToDeleteBlacklistEq", "resolutionToDeleteBlacklistGreater", "ratingToDeleteLess", "ratingToDeleteEq", "ratingToDeleteGreater", "ratingToDeleteBlacklistLess", "ratingToDeleteBlacklistEq", "ratingToDeleteBlacklistGreater", 
+                        "tagToDelete", "tagToDeleteBlacklist", "titleToDelete", "titleToDeleteBlacklist", "pathStrToDelete", "pathStrToDeleteBlacklist"]
+
+doJsonReturnModeTypes = ["tag_duplicates_task", "removeDupTag", "addExcludeTag", "removeExcludeTag", "mergeTags", "getLocalDupReportPath", 
+                         "createDuplicateReportWithoutTagging", "deleteLocalDupReportHtmlFiles", "clear_duplicate_tags_task",
+                         "deleteAllDupFileManagerTags", "deleteBlackListTaggedDuplicatesTask", "deleteTaggedDuplicatesLwrResOrLwrDuration",
+                         "deleteBlackListTaggedDuplicatesLwrResOrLwrDuration"]
+doJsonReturnModeTypes += [advanceMenuOptions]
 doJsonReturn = False
-if stash.PLUGIN_TASK_NAME in doJsonReturnModeTypes:
+if len(sys.argv) < 2 and stash.PLUGIN_TASK_NAME in doJsonReturnModeTypes:
     doJsonReturn = True
     stash.log_to_norm = stash.LogTo.FILE
+elif stash.PLUGIN_TASK_NAME == "doEarlyExit":
+    time.sleep(3)
+    stash.Log("Doing early exit because of task name")
+    time.sleep(3)
+    exit(0)
 
 stash.Log("******************* Starting   *******************")
 if len(sys.argv) > 1:
     stash.Log(f"argv = {sys.argv}")
 else:
-    stash.Trace(f"No command line arguments. JSON_INPUT['args'] = {stash.JSON_INPUT['args']}; PLUGIN_TASK_NAME = {stash.PLUGIN_TASK_NAME}")
+    stash.Debug(f"No command line arguments. JSON_INPUT['args'] = {stash.JSON_INPUT['args']}; PLUGIN_TASK_NAME = {stash.PLUGIN_TASK_NAME}; argv = {sys.argv}")
 stash.status(logLevel=logging.DEBUG)
-
 
 # stash.Trace(f"\nStarting (__file__={__file__}) (stash.CALLED_AS_STASH_PLUGIN={stash.CALLED_AS_STASH_PLUGIN}) (stash.DEBUG_TRACING={stash.DEBUG_TRACING}) (stash.PLUGIN_TASK_NAME={stash.PLUGIN_TASK_NAME})************************************************")
 # stash.encodeToUtf8 = True
+
+# ToDo: Remove below commented out lines of code
+# Test code that should be deleted after testing is complete
+# stash.configure_plugin(stash.PLUGIN_ID, {"zSwapHighRes" : True})
+# stash.configure_plugin(stash.PLUGIN_ID, {"zSwapLongLength" : True})
+# stash.configure_plugin(stash.PLUGIN_ID, {"zSwapBetterFrameRate" : True})
+# stash.configure_plugin(stash.PLUGIN_ID, {"zzObsoleteSettingsCheckVer2" : False})
+# stash.configure_plugin(stash.PLUGIN_ID, {"zSwapBetterBitRate" : True})
+# stash.configure_plugin(stash.PLUGIN_ID, {"zSwapCodec" : True})
+# stash.configure_plugin(stash.PLUGIN_ID, {"zyMatchDupDistance" : 1})
+# stash.configure_plugin(stash.PLUGIN_ID, {"zySwapCodec" : True})
+# stash.configure_plugin(stash.PLUGIN_ID, {"zxGraylist" : "B:\\_\\"})
+# exit(0)
+
+obsoleteSettingsToConvert = {"zWhitelist" : "zvWhitelist", "zxGraylist" : "zwGraylist", "zyBlacklist" : "zxBlacklist", "zyMatchDupDistance" : "matchDupDistance", "zSwapHighRes" : "zySwapHighRes", "zSwapLongLength" : "zySwapLongLength", "zSwapBetterBitRate" : "zySwapBetterBitRate", "zSwapCodec" : "zySwapCodec", "zSwapBetterFrameRate" : "zySwapBetterFrameRate"}
+stash.replaceObsoleteSettings(obsoleteSettingsToConvert, "zzObsoleteSettingsCheckVer2")
 
 
 LOG_STASH_N_PLUGIN = stash.LogTo.STASH if stash.CALLED_AS_STASH_PLUGIN else stash.LogTo.CONSOLE + stash.LogTo.FILE
@@ -79,11 +122,11 @@ significantTimeDiff         = stash.Setting('significantTimeDiff')
 toRecycleBeforeSwap         = stash.Setting('toRecycleBeforeSwap')
 cleanAfterDel               = stash.Setting('cleanAfterDel')
 
-swapHighRes                 = stash.Setting('zSwapHighRes')
-swapLongLength              = stash.Setting('zSwapLongLength')
-swapBetterBitRate           = stash.Setting('zSwapBetterBitRate')
-swapCodec                   = stash.Setting('zSwapCodec')
-swapBetterFrameRate         = stash.Setting('zSwapBetterFrameRate')
+swapHighRes                 = stash.Setting('zySwapHighRes')
+swapLongLength              = stash.Setting('zySwapLongLength')
+swapBetterBitRate           = stash.Setting('zySwapBetterBitRate')
+swapCodec                   = stash.Setting('zySwapCodec')
+swapBetterFrameRate         = stash.Setting('zySwapBetterFrameRate')
 favorLongerFileName         = stash.Setting('favorLongerFileName')
 favorLargerFileSize         = stash.Setting('favorLargerFileSize')
 favorBitRateChange          = stash.Setting('favorBitRateChange')
@@ -106,7 +149,7 @@ tagLongDurationLowRes       = stash.Setting('tagLongDurationLowRes')
 bitRateIsImporantComp       = stash.Setting('bitRateIsImporantComp')
 codecIsImporantComp         = stash.Setting('codecIsImporantComp')
 
-matchDupDistance            = int(stash.Setting('zyMatchDupDistance'))
+matchDupDistance            = int(stash.Setting('matchDupDistance'))
 matchPhaseDistance          = PhashDistance.EXACT
 matchPhaseDistanceText      = "Exact Match"
 if matchDupDistance == 1:
@@ -130,7 +173,7 @@ duplicateMarkForDeletion = stash.Setting('DupFileTag')
 if duplicateMarkForDeletion == "":
     duplicateMarkForDeletion = 'DuplicateMarkForDeletion'
 
-base1_duplicateWhitelistTag = duplicateMarkForDeletion
+base1_duplicateMarkForDeletion = duplicateMarkForDeletion
 
 duplicateWhitelistTag = stash.Setting('DupWhiteListTag')
 if duplicateWhitelistTag == "":
@@ -160,7 +203,7 @@ if stash.Setting('underscoreDupFileTag') and not duplicateMarkForDeletion.starts
 else:
     stash.Trace(f"duplicateMarkForDeletion = {duplicateMarkForDeletion}")
 
-base2_duplicateWhitelistTag = duplicateMarkForDeletion
+base2_duplicateMarkForDeletion = duplicateMarkForDeletion
 
 if stash.Setting('appendMatchDupDistance'):
     duplicateMarkForDeletion += f"_{matchDupDistance}"
@@ -168,15 +211,15 @@ if stash.Setting('appendMatchDupDistance'):
 
 stash.initMergeMetadata(excludeMergeTags)
 
-graylist = stash.Setting('zxGraylist').split(listSeparator)
+graylist = stash.Setting('zwGraylist').split(listSeparator)
 graylist = [item.lower() for item in graylist]
 if graylist == [""] : graylist = []
 stash.Trace(f"graylist = {graylist}")   
-whitelist = stash.Setting('zWhitelist').split(listSeparator)
+whitelist = stash.Setting('zvWhitelist').split(listSeparator)
 whitelist = [item.lower() for item in whitelist]
 if whitelist == [""] : whitelist = []
 stash.Trace(f"whitelist = {whitelist}")   
-blacklist = stash.Setting('zyBlacklist').split(listSeparator)
+blacklist = stash.Setting('zxBlacklist').split(listSeparator)
 blacklist = [item.lower() for item in blacklist]
 if blacklist == [""] : blacklist = []
 stash.Trace(f"blacklist = {blacklist}")
@@ -457,9 +500,12 @@ def getPath(Scene, getParent = False):
         return pathlib.Path(path).resolve().parent
     return path
 
-def getHtmlReportTableRow(qtyResults):
+def getHtmlReportTableRow(qtyResults, tagDuplicates):
     htmlReportPrefix = stash.Setting('htmlReportPrefix')
+    htmlReportPrefix = htmlReportPrefix.replace('http://127.0.0.1:9999/graphql', stash.url)
     htmlReportPrefix = htmlReportPrefix.replace('http://localhost:9999/graphql', stash.url)
+    if tagDuplicates == False:
+        htmlReportPrefix = htmlReportPrefix.replace('name="AdvanceMenu"', "hidden")
     htmlReportPrefix = htmlReportPrefix.replace('(QtyPlaceHolder)', f'{qtyResults}')
     htmlReportPrefix = htmlReportPrefix.replace('(MatchTypePlaceHolder)', f'(Match Type = {matchPhaseDistanceText})')
     htmlReportPrefix = htmlReportPrefix.replace('(DateCreatedPlaceHolder)', datetime.now().strftime("%d-%b-%Y, %H:%M:%S"))
@@ -490,7 +536,7 @@ def logReason(DupFileToKeep, Scene, reason):
 
 htmlReportName = f"{stash.PLUGINS_PATH}{os.sep}{stash.Setting('htmlReportName')}"
 
-def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
+def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False, deleteBlacklistOnly=False, deleteLowerResAndDuration=False):
     global reasonDict
     duplicateMarkForDeletion_descp = 'Tag added to duplicate scenes so-as to tag them for deletion.'
     stash.Trace(f"duplicateMarkForDeletion = {duplicateMarkForDeletion}")    
@@ -536,8 +582,9 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
     stash.Log(f"Found {qtyResults} duplicate sets...")
     fileHtmlReport = None
     if createHtmlReport:
+        deleteLocalDupReportHtmlFiles(False)
         fileHtmlReport = open(htmlReportName, "w")
-        fileHtmlReport.write(f"{getHtmlReportTableRow(qtyResults)}\n")
+        fileHtmlReport.write(f"{getHtmlReportTableRow(qtyResults, tagDuplicates)}\n")
         fileHtmlReport.write(f"{stash.Setting('htmlReportTable')}\n")
         htmlReportTableHeader   = stash.Setting('htmlReportTableHeader')
         fileHtmlReport.write(f"{htmlReportTableRow}{htmlReportTableHeader}Scene</th>{htmlReportTableHeader}Duplicate to Delete</th>{htmlReportTableHeader}Scene-ToKeep</th>{htmlReportTableHeader}Duplicate to Keep</th></tr>\n")
@@ -656,18 +703,20 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
                     else:
                         # ToDo: Add merge logic here
                         if deleteDup:
-                            QtyDeleted += 1
                             DupFileName = DupFile['files'][0]['path']
-                            DupFileNameOnly = pathlib.Path(DupFileName).stem
-                            stash.Warn(f"Deleting duplicate '{DupFileName}';QtyDup={QtyDup};Set={QtyDupSet} of {qtyResults};QtyDeleted={QtyDeleted}", toAscii=True, printTo=LOG_STASH_N_PLUGIN)
-                            if alternateTrashCanPath != "":
-                                destPath = f"{alternateTrashCanPath }{os.sep}{DupFileNameOnly}"
-                                if os.path.isfile(destPath):
-                                    destPath = f"{alternateTrashCanPath }{os.sep}_{time.time()}_{DupFileNameOnly}"
-                                shutil.move(DupFileName, destPath)
-                            elif moveToTrashCan:
-                                sendToTrash(DupFileName)
-                            stash.destroyScene(DupFile['id'], delete_file=True)
+                            if not deleteBlacklistOnly or stash.startsWithInList(blacklist, DupFile['files'][0]['path']):
+                                if not deleteLowerResAndDuration or (isBetterVideo(DupFile, DupFileToKeep) and not significantMoreTimeCompareToBetterVideo(DupFileToKeep, DupFile)) or (significantMoreTimeCompareToBetterVideo(DupFile, DupFileToKeep) and not isBetterVideo(DupFileToKeep, DupFile)):
+                                    QtyDeleted += 1
+                                    DupFileNameOnly = pathlib.Path(DupFileName).stem
+                                    stash.Warn(f"Deleting duplicate '{DupFileName}';QtyDup={QtyDup};Set={QtyDupSet} of {qtyResults};QtyDeleted={QtyDeleted}", toAscii=True, printTo=LOG_STASH_N_PLUGIN)
+                                    if alternateTrashCanPath != "":
+                                        destPath = f"{alternateTrashCanPath }{os.sep}{DupFileNameOnly}"
+                                        if os.path.isfile(destPath):
+                                            destPath = f"{alternateTrashCanPath }{os.sep}_{time.time()}_{DupFileNameOnly}"
+                                        shutil.move(DupFileName, destPath)
+                                    elif moveToTrashCan:
+                                        sendToTrash(DupFileName)
+                                    stash.destroyScene(DupFile['id'], delete_file=True)
                         elif tagDuplicates or fileHtmlReport != None:
                             QtyTagForDel+=1
                             QtyTagForDelPaginate+=1
@@ -755,7 +804,7 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
                                     fileHtmlReport.close()
                                     PaginateId+=1
                                     fileHtmlReport = open(nextHtmReport, "w")
-                                    fileHtmlReport.write(f"{getHtmlReportTableRow(qtyResults)}\n")
+                                    fileHtmlReport.write(f"{getHtmlReportTableRow(qtyResults, tagDuplicates)}\n")
                                     if PaginateId > 1:
                                         prevHtmReport = htmlReportNameHomePage.replace(".html", f"_{PaginateId-1}.html")
                                     else:
@@ -781,7 +830,7 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
                                 didAddTag = 1 if didAddTag else 0
                                 stash.Log(f"Tagging duplicate {DupFile['files'][0]['path']} for deletion;AddTag={didAddTag};Qty={QtyDup};Set={QtyDupSet} of {qtyResults};NewlyTag={QtyNewlyTag};isTag={QtyTagForDel}", toAscii=True, printTo=LOG_STASH_N_PLUGIN)
         stash.Trace(SepLine)
-        if maxDupToProcess > 0 and QtyDup > maxDupToProcess:
+        if maxDupToProcess > 0 and ((QtyTagForDel > maxDupToProcess) or (QtyTagForDel == 0 and QtyDup > maxDupToProcess)):
             break
     
     if fileHtmlReport != None:
@@ -818,14 +867,9 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
         #       Delete all DupFileManager created tags
         fileHtmlReport.write(f"{stash.Setting('htmlReportPostfix')}")
         fileHtmlReport.close()
-        # ToDo: Add a better working method to open HTML page htmlReportName
-        stash.Log(f"Opening web page {htmlReportName}")
-        import webbrowser
-        webbrowser.open(htmlReportName, new=2, autoraise=True)
-        os.system(f"start file://{htmlReportName}")
         stash.Log(f"************************************************************", printTo = stash.LogTo.STASH)
         stash.Log(f"************************************************************", printTo = stash.LogTo.STASH)
-        stash.Log(f"View Stash duplicate report using the following link:         file://{htmlReportName}", printTo = stash.LogTo.STASH)
+        stash.Log(f"View Stash duplicate report using Stash->Settings->Tools->[Duplicate File Report]", printTo = stash.LogTo.STASH)
         stash.Log(f"************************************************************", printTo = stash.LogTo.STASH)
         stash.Log(f"************************************************************", printTo = stash.LogTo.STASH)
 
@@ -843,16 +887,57 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False):
     sys.stdout.write("Report complete")
 
 def findCurrentTagId(tagNames):
-    tagNames = [i for n, i in enumerate(tagNames) if i not in tagNames[:n]]
+    # tagNames = [i for n, i in enumerate(tagNames) if i not in tagNames[:n]]
     for tagName in tagNames:
         tagId = stash.find_tags(q=tagName)
         if len(tagId) > 0 and 'id' in tagId[0]:
-            stash.Debug("Using tag name {tagName} with Tag ID {tagId[0]['id']}")
+            stash.Debug(f"Using tag name {tagName} with Tag ID {tagId[0]['id']}")
             return tagId[0]['id']
     return "-1"
 
-def manageTagggedDuplicates(deleteScenes=False, clearTag=False, setGrayListTag=False):
-    tagId = findCurrentTagId([duplicateMarkForDeletion, base1_duplicateWhitelistTag, base2_duplicateWhitelistTag, 'DuplicateMarkForDeletion', '_DuplicateMarkForDeletion'])
+def getAdvanceMenuOptionSelected():
+    isBlackList = False
+    pathToDelete = ""
+    sizeToDelete = -1
+    durationToDelete = -1
+    resolutionToDelete = -1
+    ratingToDelete = -1
+    tagToDelete = ""
+    titleToDelete = ""
+    pathStrToDelete = ""
+    compareToLess = False
+    compareToGreater = False
+    if 'Target' in stash.JSON_INPUT['args']:
+        if "Blacklist" in stash.PLUGIN_TASK_NAME:
+            isBlackList = True
+        if "Less" in stash.PLUGIN_TASK_NAME:
+            compareToLess = True
+        if "Greater" in stash.PLUGIN_TASK_NAME:
+            compareToGreater = True
+        
+        if "pathToDelete" in stash.PLUGIN_TASK_NAME:
+            pathToDelete = stash.JSON_INPUT['args']['Target'].lower()
+        elif "sizeToDelete" in stash.PLUGIN_TASK_NAME:
+            sizeToDelete = int(stash.JSON_INPUT['args']['Target'])
+        elif "durationToDelete" in stash.PLUGIN_TASK_NAME:
+            durationToDelete = int(stash.JSON_INPUT['args']['Target'])
+        elif "commonResToDelete" in stash.PLUGIN_TASK_NAME:
+            resolutionToDelete = int(stash.JSON_INPUT['args']['Target'])
+        elif "resolutionToDelete" in stash.PLUGIN_TASK_NAME:
+            resolutionToDelete = int(stash.JSON_INPUT['args']['Target'])
+        elif "ratingToDelete" in stash.PLUGIN_TASK_NAME:
+            ratingToDelete = int(stash.JSON_INPUT['args']['Target']) * 20
+        elif "tagToDelete" in stash.PLUGIN_TASK_NAME:
+            tagToDelete = stash.JSON_INPUT['args']['Target'].lower()
+        elif "titleToDelete" in stash.PLUGIN_TASK_NAME:
+            titleToDelete = stash.JSON_INPUT['args']['Target'].lower()
+        elif "pathStrToDelete" in stash.PLUGIN_TASK_NAME:
+            pathStrToDelete = stash.JSON_INPUT['args']['Target'].lower()
+    return isBlackList, pathToDelete, sizeToDelete, durationToDelete, resolutionToDelete, ratingToDelete, tagToDelete, titleToDelete, pathStrToDelete, compareToLess, compareToGreater
+
+def manageTagggedDuplicates(deleteScenes=False, clearTag=False, setGrayListTag=False, tagId=-1, advanceMenuOptionSelected=False):
+    if tagId == -1:
+        tagId = findCurrentTagId([duplicateMarkForDeletion, base1_duplicateMarkForDeletion, base2_duplicateMarkForDeletion, 'DuplicateMarkForDeletion', '_DuplicateMarkForDeletion'])
     if int(tagId) < 0:
         stash.Warn(f"Could not find tag ID for tag '{duplicateMarkForDeletion}'.")
         return
@@ -861,6 +946,20 @@ def manageTagggedDuplicates(deleteScenes=False, clearTag=False, setGrayListTag=F
     if clearAllDupfileManagerTags:
         excludedTags = [duplicateMarkForDeletion, duplicateWhitelistTag, excludeDupFileDeleteTag, graylistMarkForDeletion, longerDurationLowerResolution]
     
+    isBlackList = False
+    pathToDelete = ""
+    sizeToDelete = -1
+    durationToDelete = -1
+    resolutionToDelete = -1
+    ratingToDelete = -1
+    tagToDelete = ""
+    titleToDelete = ""
+    pathStrToDelete = ""
+    compareToLess = False
+    compareToGreater = False
+    if advanceMenuOptionSelected:
+        isBlackList, pathToDelete, sizeToDelete, durationToDelete, resolutionToDelete, ratingToDelete, tagToDelete, titleToDelete, pathStrToDelete, compareToLess, compareToGreater = getAdvanceMenuOptionSelected()
+    
     QtyDup = 0
     QtyDeleted = 0
     QtyClearedTags = 0
@@ -868,7 +967,7 @@ def manageTagggedDuplicates(deleteScenes=False, clearTag=False, setGrayListTag=F
     QtyFailedQuery = 0
     stash.Debug("#########################################################################")
     stash.startSpinningProcessBar()
-    scenes = stash.find_scenes(f={"tags": {"value":tagId, "modifier":"INCLUDES"}}, fragment='id tags {id name} files {path width height duration size video_codec bit_rate frame_rate} details')
+    scenes = stash.find_scenes(f={"tags": {"value":tagId, "modifier":"INCLUDES"}}, fragment='id tags {id name} files {path width height duration size video_codec bit_rate frame_rate} details title rating100')
     stash.stopSpinningProcessBar()
     qtyResults = len(scenes)
     stash.Log(f"Found {qtyResults} scenes with tag ({duplicateMarkForDeletion})")
@@ -915,6 +1014,80 @@ def manageTagggedDuplicates(deleteScenes=False, clearTag=False, setGrayListTag=F
         elif deleteScenes:
             DupFileName = scene['files'][0]['path']
             DupFileNameOnly = pathlib.Path(DupFileName).stem
+            if advanceMenuOptionSelected:
+                if isBlackList:
+                    if not stash.startsWithInList(blacklist, scene['files'][0]['path']):
+                        continue
+                
+                if pathToDelete != "":
+                    if not DupFileName.lower().startswith(pathToDelete):
+                        stash.Debug(f"Skipping file {DupFileName} because it does not start with {pathToDelete}.")
+                        continue
+                elif pathStrToDelete != "":
+                    if not pathStrToDelete in DupFileName.lower():
+                        stash.Debug(f"Skipping file {DupFileName} because it does not contain value {pathStrToDelete}.")
+                        continue
+                elif sizeToDelete != -1:
+                    compareTo = int(scene['files'][0]['size'])
+                    if compareToLess:
+                        if not (compareTo < sizeToDelete):
+                            continue
+                    elif compareToGreater:
+                        if not (compareTo > sizeToDelete):
+                            continue
+                    else:
+                        if not compareTo == sizeToDelete:
+                            continue
+                elif durationToDelete != -1:
+                    compareTo = int(scene['files'][0]['duration'])
+                    if compareToLess:
+                        if not (compareTo < durationToDelete):
+                            continue
+                    elif compareToGreater:
+                        if not (compareTo > durationToDelete):
+                            continue
+                    else:
+                        if not compareTo == durationToDelete:
+                            continue
+                elif resolutionToDelete != -1:
+                    compareTo = int(scene['files'][0]['width']) * int(scene['files'][0]['height'])
+                    if compareToLess:
+                        if not (compareTo < resolutionToDelete):
+                            continue
+                    elif compareToGreater:
+                        if not (compareTo > resolutionToDelete):
+                            continue
+                    else:
+                        if not compareTo == resolutionToDelete:
+                            continue
+                elif ratingToDelete != -1:
+                    if scene['rating100'] == "None":
+                        compareTo = 0
+                    else:
+                        compareTo = int(scene['rating100'])
+                    if compareToLess:
+                        if not (compareTo < resolutionToDelete):
+                            continue
+                    elif compareToGreater:
+                        if not (compareTo > resolutionToDelete):
+                            continue
+                    else:
+                        if not compareTo == resolutionToDelete:
+                            continue
+                elif titleToDelete != "":
+                    if not titleToDelete in scene['title'].lower():
+                        stash.Debug(f"Skipping file {DupFileName} because it does not contain value {titleToDelete} in title ({scene['title']}).")
+                        continue
+                elif tagToDelete != "":
+                    doProcessThis = False
+                    for tag in scene['tags']:
+                        if tag['name'].lower() == tagToDelete:
+                            doProcessThis = True
+                            break
+                    if doProcessThis == False:
+                        continue
+                else:
+                    continue
             stash.Warn(f"Deleting duplicate '{DupFileName}'", toAscii=True, printTo=LOG_STASH_N_PLUGIN)
             if alternateTrashCanPath != "":
                 destPath = f"{alternateTrashCanPath }{os.sep}{DupFileNameOnly}"
@@ -932,14 +1105,13 @@ def manageTagggedDuplicates(deleteScenes=False, clearTag=False, setGrayListTag=F
     stash.Debug("#####################################################")
     stash.Log(f"QtyDup={QtyDup}, QtyClearedTags={QtyClearedTags}, QtySetGraylistTag={QtySetGraylistTag}, QtyDeleted={QtyDeleted}, QtyFailedQuery={QtyFailedQuery}", printTo=LOG_STASH_N_PLUGIN)
     killScanningJobs()
-    if deleteScenes:
+    if deleteScenes and not advanceMenuOptionSelected:
         if cleanAfterDel:
             stash.Log("Adding clean jobs to the Task Queue", printTo=LOG_STASH_N_PLUGIN)
             stash.metadata_clean()
             stash.metadata_clean_generated()
             stash.optimise_database()
-        if doNotGeneratePhash:
-            stash.metadata_generate({"phashes": True})
+
 
 def removeDupTag():
     if 'Target' not in stash.JSON_INPUT['args']:
@@ -989,28 +1161,6 @@ def mergeTags():
     stash.Log(f"Done merging scenes for scene {scenes[0]} and scene {scenes[1]}")
     sys.stdout.write("{" + f"mergeTags : 'complete', id1: '{scene1}', id2: '{scene2}'" + "}")
 
-def openWebpage():
-    htmlReportName          = f"{stash.PLUGINS_PATH}{os.sep}{stash.Setting('htmlReportName')}"
-    stash.Log(f"Opening web page {htmlReportName}")
-    # chromePath = r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
-    chromePath = r"C:\PROGRA~2\Google\Chrome\Application\chrome.exe"
-    firefox = r"C:\PROGRA~1\MOZILL~1\firefox.exe"
-    browserPath = chromePath
-    if os.path.isfile(browserPath):
-        stash.Log(f"Opening web page {htmlReportName} with user {os.getlogin()} using {browserPath}")
-        # pw_record = pwd.getpwnam(os.getlogin())
-        # uid = pw_record.pw_uid
-        # gid = pw_record.pw_gid
-        # os.setgid(gid)
-        # os.setuid(uid)
-        # stash.Log(f"Using uid={uid} and gid={gid}")
-        # stash.executeProcess(f"\"{browserPath}\" -incognito --new-window \"file://{htmlReportName}\"", ExecDetach=True)
-        os.system(f"{browserPath} -incognito --new-window \"file://{htmlReportName}\"")
-    # else:
-    import webbrowser
-    webbrowser.open(htmlReportName, new=2, autoraise=True)
-    os.system(f"start file:///{htmlReportName}")
-
 def getLocalDupReportPath():
     htmlReportExist = "true" if os.path.isfile(htmlReportName) else "false"
     # htmlReportExist = "false"
@@ -1019,7 +1169,7 @@ def getLocalDupReportPath():
     stash.Log(f"Sending json value {jsonReturn}")
     sys.stdout.write(jsonReturn)
 
-def deleteLocalDupReportHtmlFiles():
+def deleteLocalDupReportHtmlFiles(doJsonOutput = True):
     htmlReportExist = "true" if os.path.isfile(htmlReportName) else "false"
     if os.path.isfile(htmlReportName):
         stash.Log(f"Deleting file {htmlReportName}")
@@ -1033,9 +1183,41 @@ def deleteLocalDupReportHtmlFiles():
             os.remove(fileName)
     else:
         stash.Log(f"Report file does not exist: {htmlReportName}")
-    jsonReturn = "{'LocalDupReportExist' : " + f"{htmlReportExist}" + ", 'Path': '" + f"{htmlReportName}" + "', 'qty': '" + f"{x}" + "'}"
-    stash.Log(f"Sending json value {jsonReturn}")
-    sys.stdout.write(jsonReturn)
+    if doJsonOutput:
+        jsonReturn = "{'LocalDupReportExist' : " + f"{htmlReportExist}" + ", 'Path': '" + f"{htmlReportName}" + "', 'qty': '" + f"{x}" + "'}"
+        stash.Log(f"Sending json value {jsonReturn}")
+        sys.stdout.write(jsonReturn)
+
+def removeTagFromAllScenes(tagName, deleteTags):
+    tagId = stash.find_tags(q=tagName)
+    if len(tagId) > 0 and 'id' in tagId[0]:
+        if deleteTags:
+            stash.Debug(f"Deleting tag name {tagName} with Tag ID {tagId[0]['id']} from stash.")
+            stash.destroy_tag(int(tagId[0]['id']))
+        else:
+            stash.Debug(f"Removing tag name {tagName} with Tag ID {tagId[0]['id']} from all scenes.")
+            manageTagggedDuplicates(clearTag=True, tagId=int(tagId[0]['id']))
+        return True
+    return False
+
+def removeAllDupTagsFromAllScenes(deleteTags=False):
+    tagsToClear = [duplicateMarkForDeletion, base1_duplicateMarkForDeletion, base2_duplicateMarkForDeletion, graylistMarkForDeletion, longerDurationLowerResolution, duplicateWhitelistTag]
+    for x in range(0, 3):
+        tagsToClear += [base1_duplicateMarkForDeletion + f"_{x}"] 
+    for x in range(0, 3):
+        tagsToClear += [base2_duplicateMarkForDeletion + f"_{x}"] 
+    tagsToClear = list(set(tagsToClear)) # Remove duplicates
+    validTags = []
+    for tagToClear in tagsToClear:
+        if removeTagFromAllScenes(tagToClear, deleteTags):
+            validTags +=[tagToClear]
+    if doJsonReturn:
+        jsonReturn = "{'removeAllDupTagFromAllScenes' : " + f"{duplicateMarkForDeletion}" + ", 'OtherTags': '" + f"{validTags}" + "'}"
+        stash.Log(f"Sending json value {jsonReturn}")
+        sys.stdout.write(jsonReturn)
+    else:
+        stash.Log(f"Clear tags {tagsToClear}")
+
 
 # ToDo: Add additional menu items option only for bottom of report:
 #   Remove from stash all files no longer part of stash library 
@@ -1052,7 +1234,7 @@ try:
         mangeDupFiles(deleteDup=True, merge=mergeDupFilename)
         stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
     elif stash.PLUGIN_TASK_NAME == "clear_duplicate_tags_task":
-        manageTagggedDuplicates(clearTag=True)
+        removeAllDupTagsFromAllScenes()
         stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
     elif stash.PLUGIN_TASK_NAME == "graylist_tag_task":
         manageTagggedDuplicates(setGrayListTag=True)
@@ -1081,6 +1263,18 @@ try:
     elif stash.PLUGIN_TASK_NAME == "createDuplicateReportWithoutTagging":
         mangeDupFiles(tagDuplicates=False, merge=mergeDupFilename)
         stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
+    elif stash.PLUGIN_TASK_NAME == "deleteAllDupFileManagerTags":
+        removeAllDupTagsFromAllScenes(deleteTags=True)
+        stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
+    elif stash.PLUGIN_TASK_NAME == "deleteBlackListTaggedDuplicatesTask":
+        mangeDupFiles(deleteDup=True, merge=mergeDupFilename, deleteBlacklistOnly=True)
+        stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
+    elif stash.PLUGIN_TASK_NAME == "deleteTaggedDuplicatesLwrResOrLwrDuration":
+        mangeDupFiles(deleteDup=True, merge=mergeDupFilename, deleteLowerResAndDuration=True)
+        stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
+    elif stash.PLUGIN_TASK_NAME == "deleteBlackListTaggedDuplicatesLwrResOrLwrDuration":
+        mangeDupFiles(deleteDup=True, merge=mergeDupFilename, deleteBlacklistOnly=True, deleteLowerResAndDuration=True)
+        stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
     elif parse_args.dup_tag:
         stash.PLUGIN_TASK_NAME = "dup_tag"
         mangeDupFiles(tagDuplicates=True, merge=mergeDupFilename)
@@ -1091,12 +1285,15 @@ try:
         stash.Debug(f"Delete Tagged duplicates EXIT")
     elif parse_args.clear_tag:
         stash.PLUGIN_TASK_NAME = "clear_tag"
-        manageTagggedDuplicates(clearTag=True)
+        removeAllDupTagsFromAllScenes()
         stash.Debug(f"Clear duplicate tags EXIT")
     elif parse_args.remove:
         stash.PLUGIN_TASK_NAME = "remove"
         mangeDupFiles(deleteDup=True, merge=mergeDupFilename)
         stash.Debug(f"Delete duplicate EXIT")
+    elif len(sys.argv) < 2 and stash.PLUGIN_TASK_NAME in advanceMenuOptions:
+        manageTagggedDuplicates(deleteScenes=True, advanceMenuOptionSelected=True)
+        stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
     else:
         stash.Log(f"Nothing to do!!! (PLUGIN_ARGS_MODE={stash.PLUGIN_TASK_NAME})")
 except Exception as e:
