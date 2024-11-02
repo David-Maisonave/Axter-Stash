@@ -118,7 +118,7 @@ alternateTrashCanPath       = stash.Setting('dup_path')
 whitelistDelDupInSameFolder = stash.Setting('whitelistDelDupInSameFolder')
 graylistTagging             = stash.Setting('graylistTagging')
 maxDupToProcess             = int(stash.Setting('zyMaxDupToProcess'))
-significantTimeDiff         = stash.Setting('significantTimeDiff')
+significantTimeDiff         = float(stash.Setting('significantTimeDiff'))
 toRecycleBeforeSwap         = stash.Setting('toRecycleBeforeSwap')
 cleanAfterDel               = stash.Setting('cleanAfterDel')
 
@@ -149,9 +149,25 @@ tagLongDurationLowRes       = stash.Setting('tagLongDurationLowRes')
 bitRateIsImporantComp       = stash.Setting('bitRateIsImporantComp')
 codecIsImporantComp         = stash.Setting('codecIsImporantComp')
 
+excludeFromReportIfSignificantTimeDiff = False
+
 matchDupDistance            = int(stash.Setting('matchDupDistance'))
 matchPhaseDistance          = PhashDistance.EXACT
 matchPhaseDistanceText      = "Exact Match"
+if stash.PLUGIN_TASK_NAME == "tag_duplicates_task" and 'Target' in stash.JSON_INPUT['args']:
+    if stash.JSON_INPUT['args']['Target'].startswith("0"):
+        matchDupDistance = 0
+    elif stash.JSON_INPUT['args']['Target'].startswith("1"):
+        matchDupDistance = 1
+    elif stash.JSON_INPUT['args']['Target'].startswith("2"):
+        matchDupDistance = 2
+    elif stash.JSON_INPUT['args']['Target'].startswith("3"):
+        matchDupDistance = 3
+    
+    if stash.JSON_INPUT['args']['Target'].find(":") == 1:
+        significantTimeDiff = float(stash.JSON_INPUT['args']['Target'][2:])
+        excludeFromReportIfSignificantTimeDiff = True
+
 if matchDupDistance == 1:
     matchPhaseDistance      = PhashDistance.HIGH
     matchPhaseDistanceText  = "High Match"
@@ -164,9 +180,9 @@ elif matchDupDistance == 3:
 
 # significantTimeDiff can not be higher than 1 and shouldn't be lower than .5
 if significantTimeDiff > 1:
-    significantTimeDiff = 1
-if significantTimeDiff < .5:
-    significantTimeDiff = .5
+    significantTimeDiff = float(1.00)
+if significantTimeDiff < .25:
+    significantTimeDiff = float(0.25)
 
 
 duplicateMarkForDeletion = stash.Setting('DupFileTag')
@@ -718,6 +734,9 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False, deleteBlack
                                         sendToTrash(DupFileName)
                                     stash.destroyScene(DupFile['id'], delete_file=True)
                         elif tagDuplicates or fileHtmlReport != None:
+                            if excludeFromReportIfSignificantTimeDiff and significantTimeDiffCheck(DupFile, DupFileToKeep, True):
+                                stash.Log(f"Skipping duplicate {DupFile['files'][0]['path']} (ID={DupFile['id']}), because of time difference greater than {significantTimeDiff} for file {DupFileToKeep['files'][0]['path']}.")
+                                continue
                             QtyTagForDel+=1
                             QtyTagForDelPaginate+=1
                             didAddTag = False

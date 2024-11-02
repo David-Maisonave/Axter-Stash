@@ -21,6 +21,7 @@ config = {
         
         # The following tasks are scheduled weekly
         # Optional field for task "Scan", "Auto Tag", and "Clean" is 'paths'. For detail usage, see examples #A3: in filemonitor_task_examples.py
+        {"task" : "Backup",                 "weekday" : "saturday",   "time" : "01:00"}, # Backup -> [Backup] (Weekly) (Every saturday at 1AM)
         {"task" : "Scan",                   "weekday" : "saturday",   "time" : "02:30"}, # Library -> [Scan] (Weekly) (Every saturday at 2:30AM)
         {"task" : "Auto Tag",               "weekday" : "saturday",   "time" : "03:00"}, # Auto Tag -> [Auto Tag] (Weekly) (Every saturday at 3AM)
         {"task" : "Generate",               "weekday" : "saturday",   "time" : "03:30"}, # Generated Content-> [Generate] (Every saturday at 3:30AM)
@@ -43,7 +44,7 @@ config = {
                 # 4 = 4th specified weekday of the month.
         # The Backup task is scheduled monthly
         # Optional field for task "Backup" is maxBackup. For detail usage, see example #A5 in filemonitor_task_examples.py
-        {"task" : "Backup",                 "weekday" : "sunday",  "time" : "01:00", "monthly" : 2}, # Backup -> [Backup] 2nd sunday of the month at 1AM (01:00)        
+        # {"task" : "Backup",                 "weekday" : "saturday",  "time" : "01:00", "monthly" : 2}, # Backup -> [Backup] 2nd sunday of the month at 1AM (01:00)        
         
         # The [CheckStashIsRunning] task checks if Stash is running. If not running, it will start up stash. 
         # This task only works if FileMonitor is started as a service or in command line mode.
