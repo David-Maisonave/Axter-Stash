@@ -2,8 +2,14 @@
 # By David Maisonave (aka Axter) Jul-2024 (https://www.axter.com/)
 # Get the latest developers version from following link: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/RenameFile
 # Based on source code from  https://github.com/Serechops/Serechops-Stash/tree/main/plugins/Renamer
-import ModulesValidate
-ModulesValidate.modulesInstalled(["stashapp-tools", "requests"])
+try:
+    import ModulesValidate
+    ModulesValidate.modulesInstalled(["stashapp-tools", "requests"])
+except Exception as e:
+    import traceback, sys
+    tb = traceback.format_exc()
+    print(f"ModulesValidate Exception. Error: {e}\nTraceBack={tb}", file=sys.stderr)
+    
 import os, sys, shutil, json, hashlib, pathlib, logging, time, traceback
 from pathlib import Path
 import stashapi.log as log # Importing stashapi.log as log for critical events ONLY

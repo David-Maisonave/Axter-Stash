@@ -3,8 +3,13 @@
 # Get the latest developers version from following link: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/DupFileManager
 # Note: To call this script outside of Stash, pass argument --url 
 #       Example:    python DupFileManager.py --url http://localhost:9999 -a
-import ModulesValidate
-ModulesValidate.modulesInstalled(["send2trash", "requests"], silent=True)
+try:
+    import ModulesValidate
+    ModulesValidate.modulesInstalled(["send2trash", "requests"], silent=True)
+except Exception as e:
+    import traceback, sys
+    tb = traceback.format_exc()
+    print(f"ModulesValidate Exception. Error: {e}\nTraceBack={tb}", file=sys.stderr)
 import os, sys, time, pathlib, argparse, platform, shutil, traceback, logging, requests
 from datetime import datetime
 from StashPluginHelper import StashPluginHelper
@@ -60,7 +65,7 @@ stash = StashPluginHelper(
         )
 stash.convertToAscii = True
 
-advanceMenuOptions = [  "pathToDelete", "pathToDeleteBlacklist", "sizeToDeleteLess", "sizeToDeleteGreater", "sizeToDeleteBlacklistLess", "sizeToDeleteBlacklistGreater", "durationToDeleteLess", "durationToDeleteGreater", "durationToDeleteBlacklistLess", "durationToDeleteBlacklistGreater", 
+advanceMenuOptions = [  "applyCombo", "applyComboBlacklist", "pathToDelete", "pathToDeleteBlacklist", "sizeToDeleteLess", "sizeToDeleteGreater", "sizeToDeleteBlacklistLess", "sizeToDeleteBlacklistGreater", "durationToDeleteLess", "durationToDeleteGreater", "durationToDeleteBlacklistLess", "durationToDeleteBlacklistGreater", 
                         "commonResToDeleteLess", "commonResToDeleteEq", "commonResToDeleteGreater", "commonResToDeleteBlacklistLess", "commonResToDeleteBlacklistEq", "commonResToDeleteBlacklistGreater", "resolutionToDeleteLess", "resolutionToDeleteEq", "resolutionToDeleteGreater", 
                         "resolutionToDeleteBlacklistLess", "resolutionToDeleteBlacklistEq", "resolutionToDeleteBlacklistGreater", "ratingToDeleteLess", "ratingToDeleteEq", "ratingToDeleteGreater", "ratingToDeleteBlacklistLess", "ratingToDeleteBlacklistEq", "ratingToDeleteBlacklistGreater", 
                         "tagToDelete", "tagToDeleteBlacklist", "titleToDelete", "titleToDeleteBlacklist", "pathStrToDelete", "pathStrToDeleteBlacklist"]
@@ -503,7 +508,7 @@ def isWorseKeepCandidate(DupFileToKeep, Scene):
 def killScanningJobs():
     try:
         if killScanningPostProcess:
-            stash.stopJobs(0, "Scanning...")
+            stash.stopJobs(1, "Scanning...")
     except Exception as e:
         tb = traceback.format_exc()
         stash.Error(f"Exception while trying to kill scan jobs; Error: {e}\nTraceBack={tb}")
@@ -914,7 +919,45 @@ def findCurrentTagId(tagNames):
             return tagId[0]['id']
     return "-1"
 
-def getAdvanceMenuOptionSelected():
+def toJson(data):
+    import json
+    # data = data.replace("'", '"')
+    data = data.replace("\\", "\\\\")
+    data = data.replace("\\\\\\\\", "\\\\")
+    return json.loads(data)
+
+def getAnAdvanceMenuOptionSelected(taskName, target, isBlackList, pathToDelete, sizeToDelete, durationToDelete, resolutionToDelete, ratingToDelete, tagToDelete, titleToDelete, pathStrToDelete, fileNotExistToDelete, compareToLess, compareToGreater):
+    stash.Log(f"Processing taskName = {taskName}, target = {target}")
+    if "Blacklist" in taskName:
+        isBlackList = True
+    if "Less" in taskName:
+        compareToLess = True
+    if "Greater" in taskName:
+        compareToGreater = True
+    
+    if "pathToDelete" in taskName:
+        pathToDelete = target.lower()
+    elif "sizeToDelete" in taskName:
+        sizeToDelete = int(target)
+    elif "durationToDelete" in taskName:
+        durationToDelete = int(target)
+    elif "commonResToDelete" in taskName:
+        resolutionToDelete = int(target)
+    elif "resolutionToDelete" in taskName:
+        resolutionToDelete = int(target)
+    elif "ratingToDelete" in taskName:
+        ratingToDelete = int(target) * 20
+    elif "tagToDelete" in taskName:
+        tagToDelete = target.lower()
+    elif "titleToDelete" in taskName:
+        titleToDelete = target.lower()
+    elif "pathStrToDelete" in taskName:
+        pathStrToDelete = target.lower()
+    elif "fileNotExistToDelete" in taskName:
+        fileNotExistToDelete = True
+    return isBlackList, pathToDelete, sizeToDelete, durationToDelete, resolutionToDelete, ratingToDelete, tagToDelete, titleToDelete, pathStrToDelete, fileNotExistToDelete, compareToLess, compareToGreater
+
+def getAdvanceMenuOptionSelected(advanceMenuOptionSelected):
     isBlackList = False
     pathToDelete = ""
     sizeToDelete = -1
@@ -924,35 +967,18 @@ def getAdvanceMenuOptionSelected():
     tagToDelete = ""
     titleToDelete = ""
     pathStrToDelete = ""
+    fileNotExistToDelete = False
     compareToLess = False
     compareToGreater = False
-    if 'Target' in stash.JSON_INPUT['args']:
-        if "Blacklist" in stash.PLUGIN_TASK_NAME:
-            isBlackList = True
-        if "Less" in stash.PLUGIN_TASK_NAME:
-            compareToLess = True
-        if "Greater" in stash.PLUGIN_TASK_NAME:
-            compareToGreater = True
-        
-        if "pathToDelete" in stash.PLUGIN_TASK_NAME:
-            pathToDelete = stash.JSON_INPUT['args']['Target'].lower()
-        elif "sizeToDelete" in stash.PLUGIN_TASK_NAME:
-            sizeToDelete = int(stash.JSON_INPUT['args']['Target'])
-        elif "durationToDelete" in stash.PLUGIN_TASK_NAME:
-            durationToDelete = int(stash.JSON_INPUT['args']['Target'])
-        elif "commonResToDelete" in stash.PLUGIN_TASK_NAME:
-            resolutionToDelete = int(stash.JSON_INPUT['args']['Target'])
-        elif "resolutionToDelete" in stash.PLUGIN_TASK_NAME:
-            resolutionToDelete = int(stash.JSON_INPUT['args']['Target'])
-        elif "ratingToDelete" in stash.PLUGIN_TASK_NAME:
-            ratingToDelete = int(stash.JSON_INPUT['args']['Target']) * 20
-        elif "tagToDelete" in stash.PLUGIN_TASK_NAME:
-            tagToDelete = stash.JSON_INPUT['args']['Target'].lower()
-        elif "titleToDelete" in stash.PLUGIN_TASK_NAME:
-            titleToDelete = stash.JSON_INPUT['args']['Target'].lower()
-        elif "pathStrToDelete" in stash.PLUGIN_TASK_NAME:
-            pathStrToDelete = stash.JSON_INPUT['args']['Target'].lower()
-    return isBlackList, pathToDelete, sizeToDelete, durationToDelete, resolutionToDelete, ratingToDelete, tagToDelete, titleToDelete, pathStrToDelete, compareToLess, compareToGreater
+    if advanceMenuOptionSelected:
+        if 'Target' in stash.JSON_INPUT['args']:
+            if "applyCombo" in stash.PLUGIN_TASK_NAME:
+                jsonObject = toJson(stash.JSON_INPUT['args']['Target'])
+                for taskName in jsonObject:
+                    isBlackList, pathToDelete, sizeToDelete, durationToDelete, resolutionToDelete, ratingToDelete, tagToDelete, titleToDelete, pathStrToDelete, fileNotExistToDelete, compareToLess, compareToGreater = getAnAdvanceMenuOptionSelected(taskName, jsonObject[taskName], isBlackList, pathToDelete, sizeToDelete, durationToDelete, resolutionToDelete, ratingToDelete, tagToDelete, titleToDelete, pathStrToDelete, compareToLess, compareToGreater)
+            else:
+                return getAnAdvanceMenuOptionSelected(stash.PLUGIN_TASK_NAME, stash.JSON_INPUT['args']['Target'], isBlackList, pathToDelete, sizeToDelete, durationToDelete, resolutionToDelete, ratingToDelete, tagToDelete, titleToDelete, pathStrToDelete, compareToLess, compareToGreater)
+    return isBlackList, pathToDelete, sizeToDelete, durationToDelete, resolutionToDelete, ratingToDelete, tagToDelete, titleToDelete, pathStrToDelete, fileNotExistToDelete, compareToLess, compareToGreater
 
 def manageTagggedDuplicates(deleteScenes=False, clearTag=False, setGrayListTag=False, tagId=-1, advanceMenuOptionSelected=False):
     if tagId == -1:
@@ -965,19 +991,10 @@ def manageTagggedDuplicates(deleteScenes=False, clearTag=False, setGrayListTag=F
     if clearAllDupfileManagerTags:
         excludedTags = [duplicateMarkForDeletion, duplicateWhitelistTag, excludeDupFileDeleteTag, graylistMarkForDeletion, longerDurationLowerResolution]
     
-    isBlackList = False
-    pathToDelete = ""
-    sizeToDelete = -1
-    durationToDelete = -1
-    resolutionToDelete = -1
-    ratingToDelete = -1
-    tagToDelete = ""
-    titleToDelete = ""
-    pathStrToDelete = ""
-    compareToLess = False
-    compareToGreater = False
-    if advanceMenuOptionSelected:
-        isBlackList, pathToDelete, sizeToDelete, durationToDelete, resolutionToDelete, ratingToDelete, tagToDelete, titleToDelete, pathStrToDelete, compareToLess, compareToGreater = getAdvanceMenuOptionSelected()
+    isBlackList, pathToDelete, sizeToDelete, durationToDelete, resolutionToDelete, ratingToDelete, tagToDelete, titleToDelete, pathStrToDelete, fileNotExistToDelete, compareToLess, compareToGreater = getAdvanceMenuOptionSelected(advanceMenuOptionSelected)
+    if advanceMenuOptionSelected and deleteScenes and pathToDelete == "" and tagToDelete == "" and titleToDelete == "" and pathStrToDelete == "" and sizeToDelete == -1 and durationToDelete == -1 and resolutionToDelete == -1 and ratingToDelete == -1 and fileNotExistToDelete == False:
+        stash.Error("Running advance menu option with no options enabled.")
+        return
     
     QtyDup = 0
     QtyDeleted = 0
@@ -1037,16 +1054,15 @@ def manageTagggedDuplicates(deleteScenes=False, clearTag=False, setGrayListTag=F
                 if isBlackList:
                     if not stash.startsWithInList(blacklist, scene['files'][0]['path']):
                         continue
-                
                 if pathToDelete != "":
                     if not DupFileName.lower().startswith(pathToDelete):
                         stash.Debug(f"Skipping file {DupFileName} because it does not start with {pathToDelete}.")
                         continue
-                elif pathStrToDelete != "":
+                if pathStrToDelete != "":
                     if not pathStrToDelete in DupFileName.lower():
                         stash.Debug(f"Skipping file {DupFileName} because it does not contain value {pathStrToDelete}.")
                         continue
-                elif sizeToDelete != -1:
+                if sizeToDelete != -1:
                     compareTo = int(scene['files'][0]['size'])
                     if compareToLess:
                         if not (compareTo < sizeToDelete):
@@ -1057,7 +1073,7 @@ def manageTagggedDuplicates(deleteScenes=False, clearTag=False, setGrayListTag=F
                     else:
                         if not compareTo == sizeToDelete:
                             continue
-                elif durationToDelete != -1:
+                if durationToDelete != -1:
                     compareTo = int(scene['files'][0]['duration'])
                     if compareToLess:
                         if not (compareTo < durationToDelete):
@@ -1068,7 +1084,7 @@ def manageTagggedDuplicates(deleteScenes=False, clearTag=False, setGrayListTag=F
                     else:
                         if not compareTo == durationToDelete:
                             continue
-                elif resolutionToDelete != -1:
+                if resolutionToDelete != -1:
                     compareTo = int(scene['files'][0]['width']) * int(scene['files'][0]['height'])
                     if compareToLess:
                         if not (compareTo < resolutionToDelete):
@@ -1079,7 +1095,7 @@ def manageTagggedDuplicates(deleteScenes=False, clearTag=False, setGrayListTag=F
                     else:
                         if not compareTo == resolutionToDelete:
                             continue
-                elif ratingToDelete != -1:
+                if ratingToDelete != -1:
                     if scene['rating100'] == "None":
                         compareTo = 0
                     else:
@@ -1093,11 +1109,11 @@ def manageTagggedDuplicates(deleteScenes=False, clearTag=False, setGrayListTag=F
                     else:
                         if not compareTo == resolutionToDelete:
                             continue
-                elif titleToDelete != "":
+                if titleToDelete != "":
                     if not titleToDelete in scene['title'].lower():
                         stash.Debug(f"Skipping file {DupFileName} because it does not contain value {titleToDelete} in title ({scene['title']}).")
                         continue
-                elif tagToDelete != "":
+                if tagToDelete != "":
                     doProcessThis = False
                     for tag in scene['tags']:
                         if tag['name'].lower() == tagToDelete:
@@ -1105,8 +1121,9 @@ def manageTagggedDuplicates(deleteScenes=False, clearTag=False, setGrayListTag=F
                             break
                     if doProcessThis == False:
                         continue
-                else:
-                    continue
+                if fileNotExistToDelete:
+                    if os.path.isfile(scene['files'][0]['path']):
+                        continue
             stash.Warn(f"Deleting duplicate '{DupFileName}'", toAscii=True, printTo=LOG_STASH_N_PLUGIN)
             if alternateTrashCanPath != "":
                 destPath = f"{alternateTrashCanPath }{os.sep}{DupFileNameOnly}"

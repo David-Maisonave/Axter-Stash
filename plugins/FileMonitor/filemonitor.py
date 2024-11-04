@@ -3,8 +3,13 @@
 # Get the latest developers version from following link: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor
 # Note: To call this script outside of Stash, pass argument --url and the Stash URL.
 #       Example:    python filemonitor.py --url http://localhost:9999
-import ModulesValidate
-ModulesValidate.modulesInstalled(["stashapp-tools", "watchdog", "schedule", "requests"])
+try:
+    import ModulesValidate
+    ModulesValidate.modulesInstalled(["stashapp-tools", "watchdog", "schedule", "requests"])
+except Exception as e:
+    import traceback, sys
+    tb = traceback.format_exc()
+    print(f"ModulesValidate Exception. Error: {e}\nTraceBack={tb}", file=sys.stderr)
 from StashPluginHelper import StashPluginHelper
 import os, sys, time, pathlib, argparse, platform, traceback, logging
 from StashPluginHelper import taskQueue
