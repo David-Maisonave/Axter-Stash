@@ -802,6 +802,36 @@ class StashPluginHelper(StashInterface):
                 else:
                     self.Log(f"Skipping Job ID({jobDetails['id']}); description={jobDetails['description']}; {jobDetails})")
     
+    def toJson(self, data, replaceSingleQuote=False):
+        if replaceSingleQuote:
+            data = data.replace("'", '"')
+        data = data.replace("\\", "\\\\")
+        data = data.replace("\\\\\\\\", "\\\\")
+        return json.loads(data)
+    
+    def isCorrectDbVersion(self, verNumber = 68):
+        results = self.sql_query("select version from schema_migrations")
+        # self.Log(results)
+        if len(results['rows']) == 0 or len(results['rows'][0]) == 0:
+            return False
+        return int(results['rows'][0][0]) == verNumber
+    
+    def renameFileNameInDB(self, fileId, oldName, newName):
+        if self.isCorrectDbVersion():
+            query = f'update files set basename = "{newName}" where basename = "{oldName}" and id = {fileId};'
+            self.Trace(f"Executing query ({query})")
+            results = self.sql_commit(query)
+            if 'rows_affected' in results and results['rows_affected'] == 1:
+                return True
+        return False
+    
+    def getFileNameFromDB(self, id):
+        results = self.sql_query(f'select basename from files where id = {id};')
+        self.Trace(f"results = ({results})")
+        if len(results['rows']) == 0 or len(results['rows'][0]) == 0:
+            return None
+        return results['rows'][0][0]
+    
     # ############################################################################################################
     # Functions which are candidates to be added to parent class use snake_case naming convention.
     # ############################################################################################################
@@ -926,7 +956,7 @@ class mergeMetadata: # A class to merge scene metadata from source scene to dest
         self.mergeItems('tags', 'tag_ids', [], excludeName=self.excludeMergeTags)
         self.mergeItems('performers', 'performer_ids', [])
         self.mergeItems('galleries', 'gallery_ids', [])
-        # ToDo: Need to find out why the following line no longer works in new Stash version
+        # Looks like movies has been removed from new Stash version
         # self.mergeItems('movies', 'movies', [])
         self.mergeItems('urls', listToAdd=self.destData['urls'], NotStartWith=self.stash.STASH_URL)
         self.mergeItem('studio', 'studio_id', 'id')

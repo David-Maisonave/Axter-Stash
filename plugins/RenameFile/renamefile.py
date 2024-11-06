@@ -143,14 +143,57 @@ def should_exclude_path(scene_details):
             return True
     return False
 
+include_keyField_if_in_name = stash.pluginSettings["z_keyFIeldsIncludeInFileName"]
+excludeIgnoreAutoTags = config["excludeIgnoreAutoTags"]
+
+def getPerformers(scene, title):
+    title = title.lower()
+    results = ""
+    for performer in scene['performers']:
+        name = stash.find_performer(performer['id'])['name']
+        stash.Trace(f"performer = {name}")
+        if not include_keyField_if_in_name:
+            if name.lower() in title:
+                stash.Trace(f"Skipping performer name '{name}' because already in title: '{title}'")
+                continue
+        results += f"{name}, "
+    return results.strip(", ")
+
+def getGalleries(scene, title):
+    results = ""
+    for gallery in scene['galleries']:
+        name = stash.find_gallery(gallery['id'])['title']
+        stash.Trace(f"gallery = {name}")
+        if not include_keyField_if_in_name:
+            if name.lower() in title:
+                stash.Trace(f"Skipping gallery name '{name}' because already in title: '{title}'")
+                continue
+        results += f"{name}, "
+    return results.strip(", ")
+
+def getTags(scene, title):
+    title = title.lower()
+    results = ""
+    for tag in scene['tags']:
+        tag_details = stash.find_tag(int(tag['id']))
+        name = tag_details['name']
+        stash.Trace(f"tag = {name}")
+        if excludeIgnoreAutoTags == True and tag_details['ignore_auto_tag'] == True:
+            stash.Trace(f"Skipping tag name '{name}' because ignore_auto_tag is True.")
+            continue
+        if not include_keyField_if_in_name:
+            if name.lower() in title:
+                stash.Trace(f"Skipping tag name '{name}' because already in title: '{title}'")
+                continue
+        results += f"{name}, "
+    return results.strip(", ")
+
 # Function to form the new filename based on scene details and user settings
 def form_filename(original_file_stem, scene_details):  
     filename_parts = []
     tag_keys_added = 0
     default_title = ''
     if_notitle_use_org_filename = config["if_notitle_use_org_filename"]
-    excludeIgnoreAutoTags = config["excludeIgnoreAutoTags"]
-    include_keyField_if_in_name = stash.pluginSettings["z_keyFIeldsIncludeInFileName"]
     if if_notitle_use_org_filename:
         default_title = original_file_stem
     # ...................
@@ -209,16 +252,14 @@ def form_filename(original_file_stem, scene_details):
                     filename_parts.append(title)
         elif key == 'performers':
             if stash.pluginSettings["performerAppend"]:
-                performers = '-'.join([performer.get('name', '') for performer in scene_details.get('performers', [])])
-                if performers:
+                performers = getPerformers(scene_details, title)
+                if performers != "":
                     performers += POSTFIX_STYLES.get('performers')
-                    stash.Trace(f"(include_keyField_if_in_name={include_keyField_if_in_name})")
-                    if include_keyField_if_in_name or performers.lower() not in title.lower():
-                        stash.Trace(f"(performers={performers})")
-                        if WRAPPER_STYLES.get('performers'):
-                            filename_parts.append(f"{WRAPPER_STYLES['performers'][0]}{performers}{WRAPPER_STYLES['performers'][1]}")
-                        else:
-                            filename_parts.append(performers)
+                    stash.Trace(f"(performers={performers})")
+                    if WRAPPER_STYLES.get('performers'):
+                        filename_parts.append(f"{WRAPPER_STYLES['performers'][0]}{performers}{WRAPPER_STYLES['performers'][1]}")
+                    else:
+                        filename_parts.append(performers)
         elif key == 'date':
             scene_date = scene_details.get('date', '')
             if scene_date:
@@ -269,23 +310,24 @@ def form_filename(original_file_stem, scene_details):
                 if frame_rate not in title:
                     filename_parts.append(frame_rate)
         elif key == 'galleries':
-            galleries = [gallery.get('title', '') for gallery in scene_details.get('galleries', [])]
-            for gallery_name in galleries:
-                stash.Trace(f"(include_keyField_if_in_name={include_keyField_if_in_name}) (gallery_name={gallery_name})")
-                if include_keyField_if_in_name or gallery_name.lower() not in title.lower():
-                    gallery_name += POSTFIX_STYLES.get('galleries')
-                    if WRAPPER_STYLES.get('galleries'):
-                        filename_parts.append(f"{WRAPPER_STYLES['galleries'][0]}{gallery_name}{WRAPPER_STYLES['galleries'][1]}")
-                    else:
-                        filename_parts.append(gallery_name)
-                    stash.Trace(f"(gallery_name={gallery_name})")
+            galleries = getGalleries(scene_details, title)
+            if galleries != "":
+                galleries += POSTFIX_STYLES.get('galleries')
+                if WRAPPER_STYLES.get('galleries'):
+                    filename_parts.append(f"{WRAPPER_STYLES['galleries'][0]}{galleries}{WRAPPER_STYLES['galleries'][1]}")
+                else:
+                    filename_parts.append(galleries)
+                stash.Trace(f"(galleries={galleries})")
         elif key == 'tags':
             if stash.pluginSettings["tagAppend"]:
-                for tag in scene_details['tags']:
-                    stash.Trace(f"(include_keyField_if_in_name={include_keyField_if_in_name}) (tag_name={tag['name']}; ignore_auto_tag={tag['ignore_auto_tag']})")
-                    if (excludeIgnoreAutoTags == False or tag['ignore_auto_tag'] == False) and (include_keyField_if_in_name or tag['name'].lower() not in title.lower()):
-                        add_tag(tag['name'] + POSTFIX_STYLES.get('tag'))
-                        stash.Trace(f"(tag_name={tag['name']})")
+                tags = getTags(scene_details, title)
+                if tags != "":
+                    tags += POSTFIX_STYLES.get('tag')
+                    if WRAPPER_STYLES.get('tag'):
+                        filename_parts.append(f"{WRAPPER_STYLES['tag'][0]}{tags}{WRAPPER_STYLES['tag'][1]}")
+                    else:
+                        filename_parts.append(tags)
+                    stash.Trace(f"(tags={tags})")
     
     stash.Trace(f"(filename_parts={filename_parts})")
     new_filename = separator.join(filename_parts).replace(double_separator, separator)
