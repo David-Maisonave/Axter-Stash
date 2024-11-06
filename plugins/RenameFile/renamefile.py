@@ -2,13 +2,15 @@
 # By David Maisonave (aka Axter) Jul-2024 (https://www.axter.com/)
 # Get the latest developers version from following link: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/RenameFile
 # Based on source code from  https://github.com/Serechops/Serechops-Stash/tree/main/plugins/Renamer
-try:
-    import ModulesValidate
-    ModulesValidate.modulesInstalled(["stashapp-tools", "requests"])
-except Exception as e:
-    import traceback, sys
-    tb = traceback.format_exc()
-    print(f"ModulesValidate Exception. Error: {e}\nTraceBack={tb}", file=sys.stderr)
+
+# To automatically install missing modules, uncomment the following lines of code.
+# try:
+    # import ModulesValidate
+    # ModulesValidate.modulesInstalled(["stashapp-tools", "requests"])
+# except Exception as e:
+    # import traceback, sys
+    # tb = traceback.format_exc()
+    # print(f"ModulesValidate Exception. Error: {e}\nTraceBack={tb}", file=sys.stderr)
     
 import os, sys, shutil, json, hashlib, pathlib, logging, time, traceback
 from pathlib import Path
@@ -100,7 +102,7 @@ if len(tag_whitelist) > 0:
 handleExe = stash.pluginConfig['handleExe']
 openedfile = None
 if handleExe != None and handleExe != "" and os.path.isfile(handleExe):
-    ModulesValidate.modulesInstalled(["psutil"], silent=True)
+    # ModulesValidate.modulesInstalled(["psutil"], silent=True)
     from openedFile import openedFile
     openedfile = openedFile(handleExe, stash)
 

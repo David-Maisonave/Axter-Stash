@@ -27,26 +27,36 @@
 		return JSON.parse(AjaxData.responseJSON.data.runPluginOperation.replaceAll("'", "\""));
 	}
 	var LocalDupReportExist = false;
+	var AdvanceMenuOptionUrl  = "";
 	function GetLocalDuplicateReportPath(){
 		var LocalDuplicateReport = RunPluginDupFileManager("getLocalDupReportPath", "json");
 		var LocalDuplicateReportPath = "file://" + LocalDuplicateReport.Path;
 		console.log(LocalDuplicateReportPath);
+		AdvanceMenuOptionUrl = LocalDuplicateReportPath.replace("DuplicateTagScenes.html", "DupFileManager/advance_options.html");
 		LocalDupReportExist = LocalDuplicateReport.LocalDupReportExist;
 		return LocalDuplicateReportPath;
 	}
+
 	const PluginApi = window.PluginApi;
     const React = PluginApi.React;
     const GQL = PluginApi.GQL;
     const { Button } = PluginApi.libraries.Bootstrap;
     const { faEthernet } = PluginApi.libraries.FontAwesomeSolid;
     const { Link, NavLink, } = PluginApi.libraries.ReactRouterDOM;
-	const ToolsMenuToolTip = "Show DupFileManager advance menu, which list additional tools and utilities.";
-	const ToolsMenuOptionButton = React.createElement(Link, { to: "/plugin/DupFileManager_ToolsAndUtilities", title: ToolsMenuToolTip }, React.createElement(Button, null, "DupFileManager Tools and Utilities"));
-	const ReportMenuButtonToolTip = "Main report menu for DupFileManager. Create and show duplicate files on an HTML report.";
-	const DupFileManagerReportMenuButton = React.createElement(Link, { to: "/plugin/DupFileManager", title: ReportMenuButtonToolTip }, React.createElement(Button, null, "DupFileManager Report Menu"));
+	// ToolTip text
 	const CreateReportButtonToolTip = "Tag duplicate files, and create a new duplicate file report listing all duplicate files and using existing DupFileManager plugin options selected.";
 	const CreateReportNoTagButtonToolTip = "Create a new duplicate file report listing all duplicate files and using existing DupFileManager plugin options selected. Do NOT tag files.";
+	const ToolsMenuToolTip = "Show DupFileManager advance menu, which list additional tools and utilities.";
 	const ShowReportButtonToolTip = "Open link to the duplicate file (HTML) report created in local path.";
+	const ReportMenuButtonToolTip = "Main report menu for DupFileManager. Create and show duplicate files on an HTML report.";
+	// Buttons
+	const DupFileManagerReportMenuButton 	= React.createElement(Link, { to: "/plugin/DupFileManager", title: ReportMenuButtonToolTip }, React.createElement(Button, null, "DupFileManager Report Menu"));
+	const ToolsMenuOptionButton 			= React.createElement(Link, { to: "/plugin/DupFileManager_ToolsAndUtilities", title: ToolsMenuToolTip }, React.createElement(Button, null, "DupFileManager Tools and Utilities"));
+	function GetShowReportButton(LocalDuplicateReportPath, ButtonText){return React.createElement("a", { href: LocalDuplicateReportPath, title: ShowReportButtonToolTip}, React.createElement(Button, null, ButtonText));}
+	function GetAdvanceMenuButton(){return React.createElement("a", { href: AdvanceMenuOptionUrl, title: "Open link to the advance duplicate tagged menu."}, React.createElement(Button, null, "Show Advance Duplicate Tagged Menu"));}
+	function GetCreateReportNoTagButton(ButtonText){return React.createElement(Link, { to: "/plugin/DupFileManager_CreateReportWithNoTagging", title: CreateReportNoTagButtonToolTip }, React.createElement(Button, null, ButtonText));}
+	function GetCreateReportButton(ButtonText){return React.createElement(Link, { to: "/plugin/DupFileManager_CreateReport", title: CreateReportButtonToolTip }, React.createElement(Button, null, ButtonText));}
+	
 	const { LoadingIndicator, } = PluginApi.components;
     const HomePage = () => {
 		var LocalDuplicateReportPath = GetLocalDuplicateReportPath();
@@ -55,19 +65,21 @@
 		if (LocalDupReportExist)
 			return (React.createElement("center", null,
 					MyHeader,
-					React.createElement("a", { href: LocalDuplicateReportPath, title: ShowReportButtonToolTip}, React.createElement(Button, null, "Show Duplicate-File Report")),
+					GetShowReportButton(LocalDuplicateReportPath, "Show Duplicate-File Report"),
 					React.createElement("p", null),
-					React.createElement(Link, { to: "/plugin/DupFileManager_CreateReportWithNoTagging", title: CreateReportNoTagButtonToolTip }, React.createElement(Button, null, "Create New Report (NO Tagging)")),
+					GetAdvanceMenuButton(),
 					React.createElement("p", null),
-					React.createElement(Link, { to: "/plugin/DupFileManager_CreateReport", title: CreateReportButtonToolTip }, React.createElement(Button, null, "Create New Report with Tagging")),
+					GetCreateReportNoTagButton("Create New Report (NO Tagging)"),
+					React.createElement("p", null),
+					GetCreateReportButton("Create New Report with Tagging"),
 					React.createElement("p", null),
 					ToolsMenuOptionButton
 				));
 		return (React.createElement("center", null,
 				MyHeader,
-				React.createElement(Link, { to: "/plugin/DupFileManager_CreateReportWithNoTagging", title: CreateReportNoTagButtonToolTip }, React.createElement(Button, null, "Create Duplicate-File Report (NO Tagging)")),
+				GetCreateReportNoTagButton("Create Duplicate-File Report (NO Tagging)"),
 				React.createElement("p", null),
-				React.createElement(Link, { to: "/plugin/DupFileManager_CreateReport", title: CreateReportButtonToolTip }, React.createElement(Button, null, "Create Duplicate-File Report with Tagging")),
+				GetCreateReportButton("Create Duplicate-File Report with Tagging"),
 				React.createElement("p", null),
 				ToolsMenuOptionButton
 			));
@@ -77,10 +89,11 @@
 		if (componentsLoading)
 			return (React.createElement(LoadingIndicator, {message: "Running task to create report. This may take a while. Please standby."}));
 		RunPluginDupFileManager("tag_duplicates_task");
-		var LocalDuplicateReportPath = GetLocalDuplicateReportPath();
 		return (React.createElement("center", null,
 			React.createElement("h1", null, "Report complete. Click [Show Report] to view report."),
-			React.createElement("a", { href: LocalDuplicateReportPath, title: ShowReportButtonToolTip}, React.createElement(Button, null, "Show Report")),
+			GetShowReportButton(GetLocalDuplicateReportPath(), "Show Report"),
+			React.createElement("p", null),
+			GetAdvanceMenuButton(),
 			React.createElement("p", null), DupFileManagerReportMenuButton, React.createElement("p", null), ToolsMenuOptionButton
 			));
     };	
@@ -89,10 +102,11 @@
 		if (componentsLoading)
 			return (React.createElement(LoadingIndicator, {message: "Running task to create report. Please standby."}));
 		RunPluginDupFileManager("createDuplicateReportWithoutTagging");
-		var LocalDuplicateReportPath = GetLocalDuplicateReportPath();
 		return (React.createElement("center", null,
 			React.createElement("h1", null, "Created HTML report without tagging. Click [Show Report] to view report."),
-			React.createElement("a", { href: LocalDuplicateReportPath, title: ShowReportButtonToolTip}, React.createElement(Button, null, "Show Report")),
+			GetShowReportButton(GetLocalDuplicateReportPath(), "Show Report"),
+			React.createElement("p", null),
+			GetAdvanceMenuButton(),
 			React.createElement("p", null), DupFileManagerReportMenuButton, React.createElement("p", null), ToolsMenuOptionButton
 			));
     };	
@@ -103,16 +117,20 @@
 			
 			React.createElement("h3", {class:"submenu"}, "Report Options"),
 			React.createElement("p", null),
-			React.createElement(Link, { to: "/plugin/DupFileManager_CreateReportWithNoTagging", title: CreateReportNoTagButtonToolTip }, React.createElement(Button, null, "Create Report (NO Tagging)")),
+			GetCreateReportNoTagButton("Create Report (NO Tagging)"),
 			React.createElement("p", null),
-			React.createElement(Link, { to: "/plugin/DupFileManager_CreateReport", title: CreateReportButtonToolTip }, React.createElement(Button, null, "Create Report (Tagging)")),
+			GetCreateReportButton("Create Report (Tagging)"),
 			React.createElement("p", null),
 			DupFileManagerReportMenuButton,
+			React.createElement("p", null),
+			GetShowReportButton(GetLocalDuplicateReportPath(), "Show Duplicate-File Report"),
 			React.createElement("p", null),
 			React.createElement(Link, { to: "/plugin/DupFileManager_deleteLocalDupReportHtmlFiles", title: "Delete local HTML duplicate file report." }, React.createElement(Button, null, "Delete Duplicate-File Report HTML Files")),
 			React.createElement("hr", {class:"dotted"}),
 
 			React.createElement("h3", {class:"submenu"}, "Tagged Duplicates Options"),
+			React.createElement("p", null),
+			GetAdvanceMenuButton(),
 			React.createElement("p", null),
 			React.createElement(Link, { to: "/plugin/DupFileManager_deleteTaggedDuplicatesTask", title: "Delete scenes previously given duplicate tag (_DuplicateMarkForDeletion)." }, React.createElement(Button, null, "Delete Tagged Duplicates")),
 			React.createElement("p", null),

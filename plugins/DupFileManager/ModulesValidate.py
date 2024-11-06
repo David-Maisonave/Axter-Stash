@@ -62,17 +62,17 @@ def installModule(moduleName):
             # Note: Linux may first need : sudo apt install python3-pip
             #       if error starts with "Command 'pip' not found"
             #       or includes "No module named pip"
-            results = os.popen(f"pip --version").read()
+            results = os.popen(f"pip --disable-pip-version-check --version").read()
             if results.find("Command 'pip' not found") != -1 or results.find("No module named pip") != -1:
                 results = os.popen(f"sudo apt install python3-pip").read()
-                results = os.popen(f"pip --version").read()
+                results = os.popen(f"pip --disable-pip-version-check --version").read()
                 if results.find("Command 'pip' not found") != -1 or results.find("No module named pip") != -1:
                     return -1
         if isFreeBSD():
             print("Warning: installModule may NOT work on freebsd")
-        pipArg = ""
+        pipArg = " --disable-pip-version-check"
         if isDocker():
-            pipArg = " --break-system-packages"
+            pipArg += " --break-system-packages"
         results = os.popen(f"{sys.executable} -m pip install {moduleName}{pipArg}").read() # May need to be f"{sys.executable} -m pip install {moduleName}"
         results = results.strip("\n")
         if results.find("Requirement already satisfied:") > -1:
