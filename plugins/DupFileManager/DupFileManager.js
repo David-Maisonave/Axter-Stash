@@ -32,7 +32,8 @@
 		var LocalDuplicateReport = RunPluginDupFileManager("getLocalDupReportPath", "json");
 		var LocalDuplicateReportPath = "file://" + LocalDuplicateReport.Path;
 		console.log(LocalDuplicateReportPath);
-		AdvanceMenuOptionUrl = LocalDuplicateReportPath.replace("DuplicateTagScenes.html", "DupFileManager/advance_options.html");
+		AdvanceMenuOptionUrl = LocalDuplicateReportPath.replace("report\\DuplicateTagScenes.html", "advance_options.html");
+		console.log(AdvanceMenuOptionUrl);
 		LocalDupReportExist = LocalDuplicateReport.LocalDupReportExist;
 		return LocalDuplicateReportPath;
 	}

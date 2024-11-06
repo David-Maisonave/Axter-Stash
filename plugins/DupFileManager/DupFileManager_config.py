@@ -82,7 +82,7 @@ config = {
     "createHtmlReport" : True,
     # If enabled, report displays stream instead of preview for video
     "streamOverPreview" : False, # This option works in Chrome, but does not work very well on firefox.
-    # If enabled, create an HTML report when tagging duplicate files
+    # Name of the HTML file to create
     "htmlReportName" : "DuplicateTagScenes.html",
     # HTML report prefix, before table listing
     "htmlReportPrefix" : """<!DOCTYPE html>
@@ -126,7 +126,7 @@ function RunPluginDupFileManager(Mode, ActionID, chkBxRemoveValid, button) {
 		}), success: function(result){
 			console.log(result);
 			button.style.visibility = 'hidden';
-			if (!chkBxRemoveValid.checked) alert("Action " + Mode + " for scene(s) ID# " + ActionID + " complete.")	
+			if (!chkBxRemoveValid.checked) alert("Action " + Mode + " for scene(s) ID# " + ActionID + " complete.");
 	}});
 }    
 $(document).ready(function(){
@@ -145,14 +145,14 @@ $(document).ready(function(){
 				variables: {"input":{"delete_file":true,"id":SceneId}},
 			}), success: function(result){
                 console.log(result);
-                if (!chkBxRemoveValid.checked) alert("Delete request received for scene ID# " + SceneId)
+                if (!chkBxRemoveValid.checked) alert("Delete request received for scene ID# " + SceneId);
 		}});
 		this.style.visibility = 'hidden';
 	}
     else if (this.id === "AdvanceMenu")
     {
 		var newUrl = window.location.href;
-		newUrl = newUrl.replace(/DuplicateTagScenes[_0-9]*.html/g, "DupFileManager/advance_options.html?GQL=http://localhost:9999/graphql");
+		newUrl = newUrl.replace(/report\/DuplicateTagScenes[_0-9]*.html/g, "advance_options.html?GQL=http://localhost:9999/graphql");
 		window.open(newUrl, "_blank");
     }
 	else

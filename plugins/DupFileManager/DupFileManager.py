@@ -526,7 +526,7 @@ def getHtmlReportTableRow(qtyResults, tagDuplicates):
     htmlReportPrefix = htmlReportPrefix.replace('http://127.0.0.1:9999/graphql', stash.url)
     htmlReportPrefix = htmlReportPrefix.replace('http://localhost:9999/graphql', stash.url)
     if tagDuplicates == False:
-        htmlReportPrefix = htmlReportPrefix.replace('name="AdvanceMenu"', "hidden")
+        htmlReportPrefix = htmlReportPrefix.replace('<td><button id="AdvanceMenu"', '<td hidden><button id="AdvanceMenu"')
     htmlReportPrefix = htmlReportPrefix.replace('(QtyPlaceHolder)', f'{qtyResults}')
     htmlReportPrefix = htmlReportPrefix.replace('(MatchTypePlaceHolder)', f'(Match Type = {matchPhaseDistanceText})')
     htmlReportPrefix = htmlReportPrefix.replace('(DateCreatedPlaceHolder)', datetime.now().strftime("%d-%b-%Y, %H:%M:%S"))
@@ -555,7 +555,8 @@ def logReason(DupFileToKeep, Scene, reason):
     reasonDict[DupFileToKeep['id']] = reason
     stash.Debug(f"Replacing {DupFileToKeep['files'][0]['path']} with {Scene['files'][0]['path']} for candidate to keep. Reason={reason}")
 
-htmlReportName = f"{stash.PLUGINS_PATH}{os.sep}{stash.Setting('htmlReportName')}"
+htmlReportNameFolder = f"{stash.PLUGINS_PATH}{os.sep}DupFileManager{os.sep}report"
+htmlReportName = f"{htmlReportNameFolder}{os.sep}{stash.Setting('htmlReportName')}"
 
 def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False, deleteBlacklistOnly=False, deleteLowerResAndDuration=False):
     global reasonDict
@@ -603,6 +604,11 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False, deleteBlack
     stash.Log(f"Found {qtyResults} duplicate sets...")
     fileHtmlReport = None
     if createHtmlReport:
+        if not os.path.isdir(htmlReportNameFolder):
+            os.mkdir(htmlReportNameFolder)
+            if not os.path.isdir(htmlReportNameFolder):
+                stash.Error(f"Failed to create report directory {htmlReportNameFolder}.")
+                return
         deleteLocalDupReportHtmlFiles(False)
         fileHtmlReport = open(htmlReportName, "w")
         fileHtmlReport.write(f"{getHtmlReportTableRow(qtyResults, tagDuplicates)}\n")
