@@ -956,7 +956,7 @@ class mergeMetadata: # A class to merge scene metadata from source scene to dest
         self.mergeItems('tags', 'tag_ids', [], excludeName=self.excludeMergeTags)
         self.mergeItems('performers', 'performer_ids', [])
         self.mergeItems('galleries', 'gallery_ids', [])
-        # ToDo: Need to find out why the following line no longer works in new Stash version
+        # Looks like movies has been removed from new Stash version
         # self.mergeItems('movies', 'movies', [])
         self.mergeItems('urls', listToAdd=self.destData['urls'], NotStartWith=self.stash.STASH_URL)
         self.mergeItem('studio', 'studio_id', 'id')
