@@ -78,10 +78,12 @@ try:
     if stash.JSON_INPUT['args']['hookContext']['input']:
         if stash.JSON_INPUT['args']['hookContext']['input'] == None:
             doNothing = True
+            stash.Log("input = None")
         else:
             inputToUpdateScenePost = True # This avoids calling rename logic twice
 except:
     pass
+    stash.Warn("Exception thrown")
 
 if dry_run:
     stash.Log("Dry run mode is enabled.")
@@ -182,21 +184,22 @@ def form_filename(original_file_stem, scene_details):
             stash.Log(f"Skipping tag not in whitelist: {tag_name}")
         stash.Trace(f"(tag_keys_added={tag_keys_added})")
     
+    stash.Trace(f"scene_details = {scene_details}")
+    
     for key in fieldKeyList:
         if key == 'studio':
             if stash.pluginSettings["studioAppend"]:
-                studio_name = scene_details.get('studio', {})
+                studio_name = scene_details.get('code', {})
                 stash.Trace(f"(studio_name={studio_name})")
                 if studio_name:
-                    studio_name = scene_details.get('studio', {}).get('name', '')
-                    stash.Trace(f"(studio_name={studio_name})")
-                    if studio_name:
-                        studio_name += POSTFIX_STYLES.get('studio')
-                        if include_keyField_if_in_name or studio_name.lower() not in title.lower():
-                            if WRAPPER_STYLES.get('studio'):
-                                filename_parts.append(f"{WRAPPER_STYLES['studio'][0]}{studio_name}{WRAPPER_STYLES['studio'][1]}")
-                            else:
-                                filename_parts.append(studio_name)
+                    studio_name += POSTFIX_STYLES.get('studio')
+                    if include_keyField_if_in_name or studio_name.lower() not in title.lower():
+                        if WRAPPER_STYLES.get('studio'):
+                            filename_parts.append(f"{WRAPPER_STYLES['studio'][0]}{studio_name}{WRAPPER_STYLES['studio'][1]}")
+                        else:
+                            filename_parts.append(studio_name)
+            else:
+                stash.Trace("Skipping studio because of user setting studioAppend disabled.")
         elif key == 'title':
             if title:  # This value has already been fetch in start of function because it needs to be defined before tags and performers
                 title += POSTFIX_STYLES.get('title')
@@ -310,7 +313,9 @@ def rename_scene(scene_id):
     maxScanCountForUpdate = 10
     if scene_details['title'] == None or scene_details['title'] == "":
         if renameEvenIfTitleEmpty == False:
+            stash.Log("Nothing to do because title is empty.")
             return None
+        stash.Warn("Title is empty.")
         maxScanCountDefault = 1
         maxScanCountForUpdate = 1
     if not os.path.isfile(original_file_path) and not taskqueue.clearDupTagsJobOnTaskQueue() and not taskqueue.deleteTaggedScenesJobOnTaskQueue() and not taskqueue.tooManyScanOnTaskQueue(maxScanCountDefault):
@@ -340,7 +345,7 @@ def rename_scene(scene_id):
         new_filename = truncated_filename + '_' + hash_suffix + Path(original_file_path).suffix
     newFilenameWithExt  = new_filename + Path(original_file_path).suffix
     new_file_path       = f"{original_parent_directory}{os.sep}{new_filename}{Path(original_file_name).suffix}"
-    stash.Trace(f"(original_file_name={original_file_name})(new_file_path={new_file_path})")
+    stash.Trace(f"(original_file_name={original_file_name}) (newFilenameWithExt={newFilenameWithExt})(new_file_path={new_file_path}) (FileID={scene_details['files'][0]['id']})")
     if original_file_name == newFilenameWithExt or original_file_name == new_filename:
         stash.Log(f"Nothing to do, because new file name matches original file name: (newFilenameWithExt={newFilenameWithExt})")
         return None
@@ -375,7 +380,9 @@ def rename_scene(scene_id):
             # ToDo: Add delay rename here
             raise
     
-    if not taskqueue.tooManyScanOnTaskQueue(maxScanCountForUpdate):
+    if stash.renameFileNameInDB(scene_details['files'][0]['id'], original_file_name, newFilenameWithExt):
+        stash.Trace("DB rename success")
+    elif not taskqueue.tooManyScanOnTaskQueue(maxScanCountForUpdate):
         stash.Trace(f"Calling [metadata_scan] for path {original_parent_directory.resolve().as_posix()}")
         stash.metadata_scan(paths=[original_parent_directory.resolve().as_posix()])
         time.sleep(POST_SCAN_DELAY) # After a scan, need a few seconds delay before fetching data.
