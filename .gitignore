@@ -528,3 +528,10 @@ gitignore.txt
 
 GTranslate/obj/
 report/
+report/*.*
+plugins/DupFileManager/report/*.*
+plugins\DupFileManager\report\*.*
+DupFileManager/report/*.*
+DupFileManager\report\*.*
+DuplicateTagScenes.html
+DuplicateTagScenes*.html
