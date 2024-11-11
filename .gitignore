@@ -527,3 +527,4 @@ obj/
 gitignore.txt
 
 GTranslate/obj/
+report/
