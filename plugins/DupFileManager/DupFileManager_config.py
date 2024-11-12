@@ -82,6 +82,9 @@ config = {
     "createHtmlReport" : True,
     # If enabled, report displays stream instead of preview for video
     "streamOverPreview" : False, # This option works in Chrome, but does not work very well on firefox.
+    # If enabled, report displays an image preview similar to sceneDuplicateChecker
+    "htmlIncludeImagePreview" : False,
+    "htmlImagePreviewPopupSize" : 600,
     # Name of the HTML file to create
     "htmlReportName" : "DuplicateTagScenes.html",
     # HTML report prefix, before table listing
@@ -114,6 +117,27 @@ table, th, td {border:1px solid black;}
 }
 .link-button:active {
   color:red;
+}
+ul {
+  display: flex;
+}
+
+li {
+  list-style-type: none;
+  padding: 10px;
+  position: relative;
+}
+.large {
+  position: absolute;
+  left: -9999px;
+}
+li:hover .large {
+  left: 20px;
+  top: -150px;
+}
+.large-image {
+  border-radius: 4px;
+   box-shadow: 1px 1px 3px 3px rgba(127, 127, 127, 0.15);;
 }
 </style>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>

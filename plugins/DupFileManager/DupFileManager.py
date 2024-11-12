@@ -564,14 +564,16 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False, deleteBlack
     stash.Trace(f"duplicateMarkForDeletion = {duplicateMarkForDeletion}")    
     dupTagId = stash.createTagId(duplicateMarkForDeletion, duplicateMarkForDeletion_descp, ignoreAutoTag=True)
     stash.Trace(f"dupTagId={dupTagId} name={duplicateMarkForDeletion}")
-    createHtmlReport        = stash.Setting('createHtmlReport')
-    previewOrStream         = "stream" if stash.Setting('streamOverPreview') else "preview"
-    htmlReportNameHomePage  = htmlReportName
-    htmlReportTableRow      = stash.Setting('htmlReportTableRow')
-    htmlReportTableData     = stash.Setting('htmlReportTableData')
-    htmlReportVideoPreview  = stash.Setting('htmlReportVideoPreview')
-    htmlHighlightTimeDiff   = stash.Setting('htmlHighlightTimeDiff')
-    htmlReportPaginate      = stash.Setting('htmlReportPaginate')
+    createHtmlReport            = stash.Setting('createHtmlReport')
+    previewOrStream             = "stream" if stash.Setting('streamOverPreview') else "preview"
+    htmlIncludeImagePreview     = stash.Setting('htmlIncludeImagePreview')
+    htmlImagePreviewPopupSize   = stash.Setting('htmlImagePreviewPopupSize')
+    htmlReportNameHomePage      = htmlReportName
+    htmlReportTableRow          = stash.Setting('htmlReportTableRow')
+    htmlReportTableData         = stash.Setting('htmlReportTableData')
+    htmlReportVideoPreview      = stash.Setting('htmlReportVideoPreview')
+    htmlHighlightTimeDiff       = stash.Setting('htmlHighlightTimeDiff')
+    htmlReportPaginate          = stash.Setting('htmlReportPaginate')
     
     addDupWhitelistTag()
     addExcludeDupTag()
@@ -594,7 +596,7 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False, deleteBlack
     stash.Trace("#########################################################################")
     stash.Log(f"Waiting for find_duplicate_scenes_diff to return results; matchDupDistance={matchPhaseDistanceText}; significantTimeDiff={significantTimeDiff}", printTo=LOG_STASH_N_PLUGIN)
     stash.startSpinningProcessBar()
-    htmlFileData = " paths {screenshot " + previewOrStream + "} " if createHtmlReport else ""
+    htmlFileData = " paths {screenshot sprite " + previewOrStream + "} " if createHtmlReport else ""
     mergeFieldData = " code director title rating100 date studio {id} movies {movie {id} } galleries {id} performers {id} urls " if merge else ""
     DupFileSets = stash.find_duplicate_scenes(matchPhaseDistance, fragment='id tags {id name} files {path width height duration size video_codec bit_rate frame_rate} details ' + mergeFieldData + htmlFileData)
     stash.stopSpinningProcessBar()
@@ -759,8 +761,12 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False, deleteBlack
                                 toKeepFileExist = True if os.path.isfile(DupFileToKeep['files'][0]['path']) else False
                                 
                                 fileHtmlReport.write(f"{htmlReportTableRow}")
-                                
-                                fileHtmlReport.write(f"{htmlReportTableData}<video {htmlReportVideoPreview} poster=\"{DupFile['paths']['screenshot']}\"><source src=\"{DupFile['paths'][previewOrStream]}\" type=\"video/mp4\"></video></td>")
+                                videoPreview = f"<video {htmlReportVideoPreview} poster=\"{DupFile['paths']['screenshot']}\"><source src=\"{DupFile['paths'][previewOrStream]}\" type=\"video/mp4\"></video>"
+                                if htmlIncludeImagePreview:
+                                    imagePreview = f"<ul><li><img src=\"{DupFile['paths']['sprite']}\" alt=\"\" width=\"140\"><span class=\"large\"><img src=\"{DupFile['paths']['sprite']}\" class=\"large-image\" alt=\"\" width=\"{htmlImagePreviewPopupSize}\"></span></li></ul>"
+                                    fileHtmlReport.write(f"{htmlReportTableData}<table><tr><td>{videoPreview}</td><td>{imagePreview}</td></tr></table></td>")
+                                else:
+                                    fileHtmlReport.write(f"{htmlReportTableData}{videoPreview}</td>")
                                 fileHtmlReport.write(f"{htmlReportTableData}<a href=\"{stash.STASH_URL}/scenes/{DupFile['id']}\" target=\"_blank\" rel=\"noopener noreferrer\">{getPath(DupFile)}</a>")
                                 fileHtmlReport.write(f"<p><table><tr class=\"scene-details\"><th>Res</th><th>Durration</th><th>BitRate</th><th>Codec</th><th>FrameRate</th><th>size</th><th>ID</th><th>index</th></tr>")
                                 fileHtmlReport.write(f"<tr class=\"scene-details\"><td {getColor(getRes(DupFile), getRes(DupFileToKeep), True)}>{DupFile['files'][0]['width']}x{DupFile['files'][0]['height']}</td><td {getColor(DupFile['files'][0]['duration'], DupFileToKeep['files'][0]['duration'], True, True, htmlHighlightTimeDiff)}>{DupFile['files'][0]['duration']}</td><td {getColor(DupFile['files'][0]['bit_rate'], DupFileToKeep['files'][0]['bit_rate'])}>{DupFile['files'][0]['bit_rate']}</td><td {getColor(DupFile['files'][0]['video_codec'], DupFileToKeep['files'][0]['video_codec'])}>{DupFile['files'][0]['video_codec']}</td><td {getColor(DupFile['files'][0]['frame_rate'], DupFileToKeep['files'][0]['frame_rate'])}>{DupFile['files'][0]['frame_rate']}</td><td {getColor(DupFile['files'][0]['size'], DupFileToKeep['files'][0]['size'])}>{DupFile['files'][0]['size']}</td><td>{DupFile['id']}</td><td>{QtyTagForDel}</td></tr>")
@@ -800,7 +806,12 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False, deleteBlack
                                 #       Copy *file* from duplicate to ToKeep
                                 fileHtmlReport.write("</p></td>")
                                 
-                                fileHtmlReport.write(f"{htmlReportTableData}<video {htmlReportVideoPreview} poster=\"{DupFileToKeep['paths']['screenshot']}\"><source src=\"{DupFileToKeep['paths'][previewOrStream]}\" type=\"video/mp4\"></video></td>")
+                                videoPreview = f"<video {htmlReportVideoPreview} poster=\"{DupFileToKeep['paths']['screenshot']}\"><source src=\"{DupFileToKeep['paths'][previewOrStream]}\" type=\"video/mp4\"></video>"
+                                if htmlIncludeImagePreview:
+                                    imagePreview = f"<ul><li><img src=\"{DupFileToKeep['paths']['sprite']}\" alt=\"\" width=\"140\"><span class=\"large\"><img src=\"{DupFileToKeep['paths']['sprite']}\" class=\"large-image\" alt=\"\" width=\"{htmlImagePreviewPopupSize}\"></span></li></ul>"
+                                    fileHtmlReport.write(f"{htmlReportTableData}<table><tr><td>{videoPreview}</td><td>{imagePreview}</td></tr></table></td>")
+                                else:
+                                    fileHtmlReport.write(f"{htmlReportTableData}{videoPreview}</td>")
                                 fileHtmlReport.write(f"{htmlReportTableData}<a href=\"{stash.STASH_URL}/scenes/{DupFileToKeep['id']}\" target=\"_blank\" rel=\"noopener noreferrer\">{getPath(DupFileToKeep)}</a>")
                                 fileHtmlReport.write(f"<p><table><tr class=\"scene-details\"><th>Res</th><th>Durration</th><th>BitRate</th><th>Codec</th><th>FrameRate</th><th>size</th><th>ID</th></tr>")
                                 fileHtmlReport.write(f"<tr class=\"scene-details\"><td>{DupFileToKeep['files'][0]['width']}x{DupFileToKeep['files'][0]['height']}</td><td>{DupFileToKeep['files'][0]['duration']}</td><td>{DupFileToKeep['files'][0]['bit_rate']}</td><td>{DupFileToKeep['files'][0]['video_codec']}</td><td>{DupFileToKeep['files'][0]['frame_rate']}</td><td>{DupFileToKeep['files'][0]['size']}</td><td>{DupFileToKeep['id']}</td></tr></table>")
