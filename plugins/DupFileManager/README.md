@@ -1,6 +1,6 @@
 # DupFileManager: Ver 0.1.6 (By David Maisonave)
 
-DupFileManager is a [Stash](https://github.com/stashapp/stash) plugin which manages duplicate file in the Stash system.
+DupFileManager is a [Stash](https://github.com/stashapp/stash) plugin which manages duplicate files in the Stash system.
 
 ### Features
 
