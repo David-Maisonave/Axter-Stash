@@ -13,6 +13,11 @@ RenameFile is a [Stash](https://github.com/stashapp/stash) plugin. Starting vers
 - The plugin can optionally append the following fields if they do not already exist in the file name:
   - title, performers, tags, studio, galleries, resolution, width, height, video_codec, frame_rate, date
 
+- The newly added UI options allows user to perform the following actions when clicking on the fixed title heading.
+  - Mouse-click: Append the title heading to the input title field.
+  - Ctrl-click: Replace content of input title field with title heading.
+ 
+
 ### RenameFile vs RenameOnUpdate
 - Although RenameFile has a similar name to other plugins (RenameOnUpdate, Renamer, etc..), it's main purpose is entirely different.
   - The main purpose of RenameFile is to rename one scene at a time, which is the scene being displayed on the web browser. The scene is renamed by using the Title field, which is used to rename the base (stem) of the file name.
