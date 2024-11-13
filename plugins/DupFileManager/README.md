@@ -8,6 +8,10 @@ It has both **task** and **tools-UI** components.
 - Creates a report which can be accessed from the settings->tools menu.
 - Can merge potential source in the duplicate file names for tag names, performers, and studios.
   - Normally when Stash searches the file name for tag names, performers, and studios, it only does so using the primary file.
+- Advance menu (for specially tagged duplicates)
+  - Delete only specially tagged duplicates in blacklist path.
+  - Delete duplicates with specific string in File name.
+  - Delete duplicates
 - Delete duplicate file task with the following options:
   - Tasks (Settings->Task->[Plugin Tasks]->DupFileManager)
     - **Tag Duplicates** - Set tag DuplicateMarkForDeletion to the duplicates with lower resolution, duration, file name length, and/or black list path.
