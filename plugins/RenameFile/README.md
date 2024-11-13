@@ -15,8 +15,9 @@ RenameFile is a [Stash](https://github.com/stashapp/stash) plugin. Starting vers
 
 - The newly added UI options allows user to perform the following actions when clicking on the fixed title heading.
   - Mouse-click: Append the title heading to the input title field.
-  - Ctrl-click: Replace content of input title field with title heading.
- 
+  - Ctrl-click: Copy title heading to clipboard.
+  - Shift-click: Replace content of input title field with title heading.
+  - Alt-click: Copy URI (local file path) to clipboard.
 
 ### RenameFile vs RenameOnUpdate
 - Although RenameFile has a similar name to other plugins (RenameOnUpdate, Renamer, etc..), it's main purpose is entirely different.
