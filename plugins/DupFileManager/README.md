@@ -16,7 +16,7 @@ It has both **task** and **tools-UI** components.
   - Delete with resolution range.
   - Delete duplicates having specified tags.
   - Delete duplicates with specified rating.
-  - Delete duplicates with any of the above combination.
+  - Delete duplicates with any of the above combinations.
 - Delete duplicate file task with the following options:
   - Tasks (Settings->Task->[Plugin Tasks]->DupFileManager)
     - **Tag Duplicates** - Set tag DuplicateMarkForDeletion to the duplicates with lower resolution, duration, file name length, and/or black list path.
