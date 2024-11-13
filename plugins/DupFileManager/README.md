@@ -11,7 +11,12 @@ It has both **task** and **tools-UI** components.
 - Advance menu (for specially tagged duplicates)
   - Delete only specially tagged duplicates in blacklist path.
   - Delete duplicates with specific string in File name.
-  - Delete duplicates
+  - Delete duplicates with specified file size range.
+  - Delete with specified duration range.
+  - Delete with resolution range.
+  - Delete duplicates having specified tags.
+  - Delete duplicates with specified rating.
+  - Delete duplicates with any of the above combination.
 - Delete duplicate file task with the following options:
   - Tasks (Settings->Task->[Plugin Tasks]->DupFileManager)
     - **Tag Duplicates** - Set tag DuplicateMarkForDeletion to the duplicates with lower resolution, duration, file name length, and/or black list path.
