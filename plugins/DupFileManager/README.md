@@ -10,6 +10,7 @@ It has both **task** and **tools-UI** components.
   - Normally when Stash searches the file name for tag names, performers, and studios, it only does so using the primary file.
 - Advance menu (for specially tagged duplicates)
   - Delete only specially tagged duplicates in blacklist path.
+  - Delete duplicates with specified file path.
   - Delete duplicates with specific string in File name.
   - Delete duplicates with specified file size range.
   - Delete with specified duration range.
