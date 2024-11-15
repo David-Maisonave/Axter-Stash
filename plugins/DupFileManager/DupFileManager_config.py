@@ -172,6 +172,7 @@ $(document).ready(function(){
                 if (!chkBxRemoveValid.checked) alert("Delete request received for scene ID# " + SceneId);
 		}});
 		this.style.visibility = 'hidden';
+                $('.ID_' + this.id).css('display','none');
 	}
     else if (this.id === "AdvanceMenu")
     {
