@@ -5,7 +5,15 @@ It has both **task** and **tools-UI** components.
 
 ### Features
 
-- Creates a report which can be accessed from the settings->tools menu.
+- Creates a report which can be accessed from the settings->tools menu.The report has the following options:
+  - Delete: Delete file and remove from Stash library.
+  - Remove: Remove from Stash library.
+  - Rename: Rename file.
+  - Copy: Copy file from left (source) to right (to-keep).
+  - Move: Copy file and metadata left to right.
+  - Cpy-Name: Copy file name left to right.
+  - Add-Exclude: Add exclude tag to scene,so that scene is excluded from deletion.
+  - Remove-Tag: Remove duplicate tag from scene.
 - Can merge potential source in the duplicate file names for tag names, performers, and studios.
   - Normally when Stash searches the file name for tag names, performers, and studios, it only does so using the primary file.
 - Advance menu (for specially tagged duplicates)
