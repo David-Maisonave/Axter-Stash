@@ -10,7 +10,7 @@ It has both **task** and **tools-UI** components.
 
 ### Features
 
-- Creates a duplicate file report which can be accessed from the settings->tools menu options.The report is created as an HTML file and stored in local path under plugins\DupFileManager \report\\*.html.
+- Creates a duplicate file report which can be accessed from the settings->tools menu options.The report is created as an HTML file and stored in local path under plugins\DupFileManager\report\\*.html.
   - Items on the left side of the report are the primary duplicates designated for deletion. By default, these duplicates are given a special _duplicate tag.
   - Items on the right side of the report are designated as primary duplicates to keep. They usually have higher resolution, duration and/or preferred paths.
   - The report has the following options:
