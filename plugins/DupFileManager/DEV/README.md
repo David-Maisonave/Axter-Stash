@@ -76,4 +76,3 @@ That's it!!!
 - Options are accessible in the GUI via Settings->Plugins->Plugins->[DupFileManager].
 - More options available in DupFileManager_config.py.
 
-* Development not yet started, or not tested.
