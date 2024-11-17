@@ -1,4 +1,9 @@
-# DupFileManager: Ver 0.1.6 (By David Maisonave)
+# Under Development!!!
+
+Warning: Items in this folder are under development and have NOT been tested. 
+Development on some items listed on this page have not been started.
+
+# DupFileManager: Ver 0.2.0 (By David Maisonave)
 
 DupFileManager is a [Stash](https://github.com/stashapp/stash) plugin which manages duplicate files in the Stash system.
 It has both **task** and **tools-UI** components.
@@ -70,3 +75,5 @@ That's it!!!
 
 - Options are accessible in the GUI via Settings->Plugins->Plugins->[DupFileManager].
 - More options available in DupFileManager_config.py.
+
+* Development not yet started, or not tested.
