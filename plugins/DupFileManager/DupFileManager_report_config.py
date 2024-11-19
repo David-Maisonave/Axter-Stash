@@ -3,6 +3,11 @@
 # Get the latest developers version from following link:
 # https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/DupFileManager
 
+#_ToDo:__ Add jquery.prompt.js reference to this code by downloading it to axter.com site, and referencing it from the report remotely.
+#    Use it to have a prompt with a don't ask me again checkbox.
+#    Get it from following link: https://github.com/MrSwitch/jquery.prompt.js 
+#    See test code in following link: http://adodson.com/jquery.prompt.js/#function-callback
+
 # HTML Report Options **************************************************
 report_config = {    
     # If enabled, create an HTML report when tagging duplicate files
@@ -70,6 +75,14 @@ li:hover .large {
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script>
 function RunPluginDupFileManager(Mode, ActionID, button) {
+	if (ActionID === "AdvanceMenu")
+    {
+		var newUrl = window.location.href;
+		newUrl = newUrl.replace(/report\/DuplicateTagScenes[_0-9]*.html/g, "advance_options.html?GQL=http://localhost:9999/graphql");
+		window.open(newUrl, "_blank");
+		return;
+    }
+    asyncAjax = true;
 	chkBxRemoveValid = document.getElementById("RemoveValidatePrompt");
 	if (Mode === "deleteScene"){
 		chkBxDisableDeleteConfirm = document.getElementById("RemoveToKeepConfirm");
@@ -84,6 +97,25 @@ function RunPluginDupFileManager(Mode, ActionID, button) {
 	    ActionID = myArray[0] + ":" + newName;
 	    Mode = "renameFile";
     }
+	else if (Mode === "flagScene"){
+	    flagType = "yellow highlight";
+	    // var flagType=jqPrompt("Select desire marker type", "yellow highlight,  green highlight, orange highlight, strike-through, hide-scene");
+	    if (flagType == null)
+	        retun;
+	    if (flagType == "yellow highlight")
+	        $('.ID_' + ActionID).css('background','yellow');
+	    else if (flagType == "green highlight")
+	        $('.ID_' + ActionID).css('background','green');
+	    else if (flagType == "orange highlight")
+	        $('.ID_' + ActionID).css('background','orange');
+	    else if (flagType == "strike-through")
+	        $('.ID_' + ActionID).css('enhanced display', 'strike-through');
+	    else if (flagType == "hide-scene")
+	        $('.ID_' + ActionID).css('display','none');
+	    ActionID = ActionID + ":" + flagType;
+	    // ToDo: Add logic to run asynchronous ajax call
+	    asyncAjax = false;
+    }
 	$.ajax({method: "POST", url: "http://localhost:9999/graphql", contentType: "application/json", dataType: "text",
 	data: JSON.stringify({
 			query: `mutation RunPluginOperation($plugin_id:ID!,$args:Map!){runPluginOperation(plugin_id:$plugin_id,args:$args)}`,
@@ -96,18 +128,8 @@ function RunPluginDupFileManager(Mode, ActionID, button) {
 			if (!chkBxRemoveValid.checked) alert("Action " + Mode + " for scene(s) ID# " + ActionID + " complete.");
 	}});
 }    
-$(document).ready(function(){
-  $("button").click(function(){
-	if (this.id === "AdvanceMenu")
-    {
-		var newUrl = window.location.href;
-		newUrl = newUrl.replace(/report\/DuplicateTagScenes[_0-9]*.html/g, "advance_options.html?GQL=http://localhost:9999/graphql");
-		window.open(newUrl, "_blank");
-    }
-	else
-		RunPluginDupFileManager(this.value, this.id, this)
-  });
-});
+// ToDo: move code in function RunPluginDupFileManager down to below function.
+$(document).ready(function(){ $("button").click(function(){RunPluginDupFileManager(this.value, this.id, this); });});
 </script>
 </head>
 <body>
