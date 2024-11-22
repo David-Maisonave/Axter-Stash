@@ -115,6 +115,7 @@ class StashPluginHelper(StashInterface):
     _mergeMetadata = None
     encodeToUtf8 = False
     convertToAscii = False # If set True, it takes precedence over encodeToUtf8
+    progressBarIsEnabled = True
     
     # Prefix message value
     class Level(EnumValue):
@@ -544,23 +545,28 @@ class StashPluginHelper(StashInterface):
           return 2
         return 1
     
+    def enableProgressBar(self, enable=True):
+        self.progressBarIsEnabled = enable
+    
     # Use setProgressBarIter to reduce traffic to the server by only updating the progressBar every X(updateProgressbarOnIter) iteration.
     def setProgressBarIter(self, qtyResults):
-        self.updateProgressbarOnIter = self.getUpdateProgressBarIter(qtyResults)
-        self.currentProgressbarIteration = 0
+        if self.progressBarIsEnabled:
+            self.updateProgressbarOnIter = self.getUpdateProgressBarIter(qtyResults)
+            self.currentProgressbarIteration = 0
     
     def progressBar(self, currentIndex, maxCount):
-        if self.updateProgressbarOnIter > 0:
-            self.currentProgressbarIteration+=1
-            if self.currentProgressbarIteration > self.updateProgressbarOnIter:
-                self.currentProgressbarIteration = 0
-            else:
-                return
-        progress = (currentIndex / maxCount) if currentIndex < maxCount else (maxCount / currentIndex)
-        try:
-            self.log.progress(progress)
-        except Exception as e:
-            pass
+        if self.progressBarIsEnabled:
+            if self.updateProgressbarOnIter > 0:
+                self.currentProgressbarIteration+=1
+                if self.currentProgressbarIteration > self.updateProgressbarOnIter:
+                    self.currentProgressbarIteration = 0
+                else:
+                    return
+            progress = (currentIndex / maxCount) if currentIndex < maxCount else (maxCount / currentIndex)
+            try:
+                self.log.progress(progress)
+            except Exception as e:
+                pass
     
     def isDocker(self):
         cgroup = pathlib.Path('/proc/self/cgroup')
@@ -752,6 +758,12 @@ class StashPluginHelper(StashInterface):
             try:
                 if errMsg != None:
                     self.Warn(errMsg)
+                if i > 0:
+                    # Check if file still exist
+                    scene = self.find_scene(scene_id)
+                    if scene == None or len(scene) == 0:
+                        self.Warn(f"Scene {scene_id} not found in Stash.")
+                        return False
                 return self.destroy_scene(scene_id, delete_file)
             except (ConnectionResetError):
                 tb = traceback.format_exc()
@@ -816,9 +828,11 @@ class StashPluginHelper(StashInterface):
             return False
         return int(results['rows'][0][0]) == verNumber
     
-    def renameFileNameInDB(self, fileId, oldName, newName):
+    def renameFileNameInDB(self, fileId, oldName, newName, UpdateUsingIdOnly = False):
         if self.isCorrectDbVersion():
             query = f'update files set basename = "{newName}" where basename = "{oldName}" and id = {fileId};'
+            if UpdateUsingIdOnly:
+                query = f'update files set basename = "{newName}" where id = {fileId};'
             self.Trace(f"Executing query ({query})")
             results = self.sql_commit(query)
             if 'rows_affected' in results and results['rows_affected'] == 1:

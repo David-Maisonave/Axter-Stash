@@ -1,11 +1,24 @@
-# DupFileManager: Ver 0.1.7 (By David Maisonave)
+# DupFileManager: Ver 0.1.8 (By David Maisonave)
 
 DupFileManager is a [Stash](https://github.com/stashapp/stash) plugin which manages duplicate files in the Stash system.
 It has both **task** and **tools-UI** components.
 
 ### Features
 
-- Creates a report which can be accessed from the settings->tools menu.
+- Creates a duplicate file report which can be accessed from the settings->tools menu options.The report is created as an HTML file and stored in local path under plugins\DupFileManager\report\DuplicateTagScenes.html.
+  - Items on the left side of the report are the primary duplicates designated for deletion. By default, these duplicates are given a special _duplicate tag.
+  - Items on the right side of the report are designated as primary duplicates to keep. They usually have higher resolution, duration and/or preferred paths.
+  - The report has the following options:
+    - Delete: Delete file and remove from Stash library.
+    - Remove: Remove from Stash library.
+    - Rename: Rename file.
+    - Copy: Copy file from left (source) to right (to-keep).
+    - Move: Copy file and metadata left to right.
+    - Cpy-Name: Copy file name left to right.
+    - Add-Exclude: Add exclude tag to scene,so that scene is excluded from deletion.
+    - Remove-Tag: Remove duplicate tag from scene.
+    - *Flag-Scene: Flag (mark) scene in report as reviewed (or as requiring further review). Optional flags (red, blue, green, black, & hide-item)
+    - Merge: Copy Metadata (tags, performers,& studios) from left to right.
 - Can merge potential source in the duplicate file names for tag names, performers, and studios.
   - Normally when Stash searches the file name for tag names, performers, and studios, it only does so using the primary file.
 - Advance menu (for specially tagged duplicates)

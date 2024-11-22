@@ -73,63 +73,102 @@ li:hover .large {
 }
 </style>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://www.axter.com/js/jquery.prompt.js"></script>
+<link rel="stylesheet" href="https://www.axter.com/js/jquery.prompt.css"/>
 <script>
-function RunPluginDupFileManager(Mode, ActionID, button) {
+function trim(str, ch) {
+    var start = 0, end = str.length;
+    while(start < end && str[start] === ch) ++start;
+    while(end > start && str[end - 1] === ch) --end;
+    return (start > 0 || end < str.length) ? str.substring(start, end) : str;
+}
+function RunPluginOperation(Mode, ActionID, button, asyncAjax){
+	var chkBxRemoveValid = document.getElementById("RemoveValidatePrompt");
+    $.ajax({method: "POST", url: "http://localhost:9999/graphql", contentType: "application/json", dataType: "text", cache: asyncAjax, async: asyncAjax,
+	data: JSON.stringify({
+			query: `mutation RunPluginOperation($plugin_id:ID!,$args:Map!){runPluginOperation(plugin_id:$plugin_id,args:$args)}`,
+			variables: {"plugin_id": "DupFileManager", "args": { "Target" : ActionID, "mode":Mode}},
+		}), success: function(result){
+			console.log(result);
+            // if (Mode !== "flagScene") button.style.visibility = 'hidden';
+            if (Mode === "renameFile"){
+                var myArray = ActionID.split(":");
+                $('.FN_ID_' + myArray[0]).text(trim(myArray[1],"'"));
+            }
+			if (!chkBxRemoveValid.checked) alert("Action " + Mode + " for scene(s) ID# " + ActionID + " complete.");
+	}});
+}
+function selectMarker(Mode, ActionID, button){
+	$('<p>Select desire marker type <select><option>yellow highlight</option><option>green highlight</option><option>orange highlight</option><option>strike-through</option><option>disable-scene</option><option>remove all flags</option></select></p>').confirm(function(answer){
+		if(answer.response){
+            console.log("Selected " + $('select',this).val());
+            var flagType = $('select',this).val();
+            if (flagType == null){
+                console.log("Invalid flagType");
+                return;
+            }
+            if (flagType === "yellow highlight")
+                $('.ID_' + ActionID).css('background','yellow');
+            else if (flagType === "green highlight")
+                $('.ID_' + ActionID).css('background','#00FF00');
+            else if (flagType === "orange highlight")
+                $('.ID_' + ActionID).css('background','orange');
+            else if (flagType === "strike-through")
+                $('.ID_' + ActionID).css('text-decoration', 'line-through');
+            else if (flagType === "disable-scene")
+                $('.ID_' + ActionID).css({ 'background' : 'gray', 'pointer-events' : 'none' });
+            else if (flagType === "remove all flags")
+                $('.ID_' + ActionID).removeAttr('style'); //.css({ 'background' : '', 'text-decoration' : '', 'pointer-events' : '' });
+            else {
+                flagType = "none";
+                $('.ID_' + ActionID).css("target-property", "");
+                return;
+            }
+            ActionID = ActionID + ":" + flagType;
+            console.log("ActionID = " + ActionID);
+            RunPluginOperation(Mode, ActionID, button, false);
+        }
+        else console.log("Not valid response");
+	});
+}
+$(document).ready(function(){
+  $("button").click(function(){
+    var Mode = this.value;
+    var ActionID = this.id;
 	if (ActionID === "AdvanceMenu")
     {
 		var newUrl = window.location.href;
 		newUrl = newUrl.replace(/report\/DuplicateTagScenes[_0-9]*.html/g, "advance_options.html?GQL=http://localhost:9999/graphql");
 		window.open(newUrl, "_blank");
-		return;
+        return;
     }
-    asyncAjax = true;
-	chkBxRemoveValid = document.getElementById("RemoveValidatePrompt");
-	if (Mode === "deleteScene"){
-		chkBxDisableDeleteConfirm = document.getElementById("RemoveToKeepConfirm");
-		if (!chkBxDisableDeleteConfirm.checked && !confirm("Are you sure you want to delete this file and remove scene from stash?")) {
-				return;
+	if (Mode === "deleteScene" || Mode === "removeScene"){
+		var chkBxDisableDeleteConfirm = document.getElementById("RemoveToKeepConfirm");
+        question = "Are you sure you want to delete this file and remove scene from stash?";
+        if (Mode === "removeScene") question = "Are you sure you want to remove scene from stash?";
+		if (!chkBxDisableDeleteConfirm.checked && !confirm(question))
+			return;
+        $('.ID_' + ActionID).css('background-color','gray');
+        $('.ID_' + ActionID).css('pointer-events','none');
 	}
-	else if (Mode === "newName"){
+	else if (Mode === "newName" || Mode === "renameFile"){
 	    var myArray = ActionID.split(":");
-	    var newName=prompt("Enter new name, or press escape to cancel.",myArray[1]);
+		var promptStr = "Enter new name for scene ID " + myArray[0] + ", or press escape to cancel.";
+		if (Mode === "renameFile") 
+			promptStr = "Press enter to rename scene ID " + myArray[0] + ", or press escape to cancel.";
+	    var newName=prompt(promptStr,trim(myArray[1], "'"));
 	    if (newName === null)
 	        return;
 	    ActionID = myArray[0] + ":" + newName;
 	    Mode = "renameFile";
     }
 	else if (Mode === "flagScene"){
-	    flagType = "yellow highlight";
-	    // var flagType=jqPrompt("Select desire marker type", "yellow highlight,  green highlight, orange highlight, strike-through, hide-scene");
-	    if (flagType == null)
-	        retun;
-	    if (flagType == "yellow highlight")
-	        $('.ID_' + ActionID).css('background','yellow');
-	    else if (flagType == "green highlight")
-	        $('.ID_' + ActionID).css('background','green');
-	    else if (flagType == "orange highlight")
-	        $('.ID_' + ActionID).css('background','orange');
-	    else if (flagType == "strike-through")
-	        $('.ID_' + ActionID).css('enhanced display', 'strike-through');
-	    else if (flagType == "hide-scene")
-	        $('.ID_' + ActionID).css('display','none');
-	    ActionID = ActionID + ":" + flagType;
-	    // ToDo: Add logic to run asynchronous ajax call
-	    asyncAjax = false;
+	    selectMarker(Mode, ActionID, this);
+        return;
     }
-	$.ajax({method: "POST", url: "http://localhost:9999/graphql", contentType: "application/json", dataType: "text",
-	data: JSON.stringify({
-			query: `mutation RunPluginOperation($plugin_id:ID!,$args:Map!){runPluginOperation(plugin_id:$plugin_id,args:$args)}`,
-			variables: {"plugin_id": "DupFileManager", "args": { "Target" : ActionID, "mode":Mode}},
-		}), success: function(result){
-			console.log(result);
-			button.style.visibility = 'hidden';
-			if (Mode === "deleteScene" || Mode === "removeScene")
-			    $('.ID_' + ActionID).css('display','none');
-			if (!chkBxRemoveValid.checked) alert("Action " + Mode + " for scene(s) ID# " + ActionID + " complete.");
-	}});
-}    
-// ToDo: move code in function RunPluginDupFileManager down to below function.
-$(document).ready(function(){ $("button").click(function(){RunPluginDupFileManager(this.value, this.id, this); });});
+    RunPluginOperation(Mode, ActionID, this, true);
+  });
+});
 </script>
 </head>
 <body>
@@ -141,7 +180,7 @@ $(document).ready(function(){ $("button").click(function(){RunPluginDupFileManag
 <td>Date Created: (DateCreatedPlaceHolder)</td>
 </tr></table></td>
 <td><table><tr>
-<td><input type="checkbox" id="RemoveValidatePrompt" name="RemoveValidatePrompt"><label for="RemoveValidatePrompt" title="Disable Validate Prompts (Popups)">Disable Task Prompt</label><br></td>
+<td><input type="checkbox" id="RemoveValidatePrompt" name="RemoveValidatePrompt"><label for="RemoveValidatePrompt" title="Disable notice for task completion (Popup).">Disable Complete Confirmation</label><br></td>
 <td><input type="checkbox" id="RemoveToKeepConfirm" name="RemoveToKeepConfirm"><label for="RemoveToKeepConfirm" title="Disable confirmation prompts for delete scenes">Disable Delete Confirmation</label><br></td>
 <td><button id="AdvanceMenu" title="View advance menu for tagged duplicates." name="AdvanceMenu">Advance Tag Menu</button></td>
 </tr></table></td>

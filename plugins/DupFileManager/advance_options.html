@@ -75,6 +75,10 @@ $(document).ready(function(){
 	{
 		RunPluginDupFileManager("tag_duplicates_task", this.value + ":" + $("#significantTimeDiff").val(), true);
 	}
+	else if (this.id.startsWith("create_duplicate_report_task"))
+	{
+		RunPluginDupFileManager("create_duplicate_report_task", this.value + ":" + $("#significantTimeDiff").val(), true);
+	}
 	else if (this.id === "viewreport")
 	{
 		var reportUrl = window.location.href;
@@ -1794,26 +1798,46 @@ function DeleteDupInPath(){
 <br>
 
 <center><table style="color:darkgreen;background-color:powderblue;">
-	<tr><th>Create report with different <b style="color:red;">[Match Duplicate Distance]</b> options
+	<tr><th colspan="2">Create report with different <b style="color:red;">[Match Duplicate Distance]</b> options
 			<br><div style="font-size: 12px;">Overrides user [Match Duplicate Distance] and [significantTimeDiff] settings</div>
 		<form id="significantTimeDiffForm" action="javascript:DeleteDupInPath();"  target="_self">
 			<label for="significantTimeDiff" title="Significant time difference setting, where 1 equals 100% and (.9) equals 90%.">Time Difference%:</label>
 			<input type="number" min="0.25" max="1.00" step="0.01" id="significantTimeDiff" name="significantTimeDiff" title="Significant time difference setting, where 1 equals 100% and (.9) equals 90%." value="0.90">
 		</form>
 	</th></tr>
-	<tr><td><center>
-		<button type="button" id="tag_duplicates_task0" value="0" title="Create report which tags duplicates with tag name _DuplicateMarkForDeletion_0 and using [Match Duplicate Distance]=0 (Exact Match).">Create Duplicate Tagging Report [Exact Match]</button>
-	</center></td></tr>
-	<tr><td><center>
-		<button type="button" id="tag_duplicates_task1" value="1" title="Create report which tags duplicates with tag name _DuplicateMarkForDeletion_1 and using [Match Duplicate Distance]=1 (High Match).">Create Duplicate Tagging Report [High Match]</button>
-	</center></td></tr>
-	<tr><td><center>
-		<button type="button" id="tag_duplicates_task2" value="2" title="Create report which tags duplicates with tag name _DuplicateMarkForDeletion_2 and using [Match Duplicate Distance]=2 (Medium Match).">Create Duplicate Tagging Report [Medium Match]</button>
-	</center></td></tr>
-	<tr><td><center>
-		<button type="button" id="tag_duplicates_task3" value="3" title="Create report which tags duplicates with tag name _DuplicateMarkForDeletion_3 and using [Match Duplicate Distance]=3 (Low Match).">Create Duplicate Tagging Report [Low Match]</button>
-	</center></td></tr>
-	<tr><td style="font-size: 12px;">
+	<tr>
+		<td><table style="color:darkgreen;background-color:powderblue;">
+			<tr><th title="Create report with tagging (_DuplicateMarkForDeletion_)">Create Report with Tagging</th></tr>
+			<tr><td><center>
+				<button type="button" id="tag_duplicates_task0" value="0" title="Create report which tags duplicates with tag name _DuplicateMarkForDeletion_0 and using [Match Duplicate Distance]=0 (Exact Match).">Create Duplicate Tagging Report [Exact Match]</button>
+			</center></td></tr>
+			<tr><td><center>
+				<button type="button" id="tag_duplicates_task1" value="1" title="Create report which tags duplicates with tag name _DuplicateMarkForDeletion_1 and using [Match Duplicate Distance]=1 (High Match).">Create Duplicate Tagging Report [High Match]</button>
+			</center></td></tr>
+			<tr><td><center>
+				<button type="button" id="tag_duplicates_task2" value="2" title="Create report which tags duplicates with tag name _DuplicateMarkForDeletion_2 and using [Match Duplicate Distance]=2 (Medium Match).">Create Duplicate Tagging Report [Medium Match]</button>
+			</center></td></tr>
+			<tr><td><center>
+				<button type="button" id="tag_duplicates_task3" value="3" title="Create report which tags duplicates with tag name _DuplicateMarkForDeletion_3 and using [Match Duplicate Distance]=3 (Low Match).">Create Duplicate Tagging Report [Low Match]</button>
+			</center></td></tr>
+		</table></td>
+		<td><table style="color:darkgreen;background-color:powderblue;">
+			<tr><th title="Create report with NO tagging (NO Dup Tag)">Create Report without Tagging</th></tr>
+			<tr><td><center>
+				<button type="button" id="create_duplicate_report_task0" value="0" title="Create report using [Match Duplicate Distance]=0 (Exact Match). NO tagging.">Create Duplicate Report [Exact Match]</button>
+			</center></td></tr>
+			<tr><td><center>
+				<button type="button" id="create_duplicate_report_task1" value="1" title="Create report using [Match Duplicate Distance]=1 (High Match). NO tagging.">Create Duplicate Report [High Match]</button>
+			</center></td></tr>
+			<tr><td><center>
+				<button type="button" id="create_duplicate_report_task2" value="2" title="Create report using [Match Duplicate Distance]=2 (Medium Match). NO tagging.">Create Duplicate Report [Medium Match]</button>
+			</center></td></tr>
+			<tr><td><center>
+				<button type="button" id="create_duplicate_report_task3" value="3" title="Create report using [Match Duplicate Distance]=3 (Low Match). NO tagging.">Create Duplicate Report [Low Match]</button>
+			</center></td></tr>
+		</table></td>
+	</tr>
+	<tr><td style="font-size: 12px;" colspan="2">
 		<b>Details:</b>
 		<ol type="I" style="padding-left: 16px;">
 			<li>Match Duplicate Distance Number Details</li>
@@ -1822,7 +1846,7 @@ function DeleteDupInPath(){
 						<ol type="a" style="padding-left: 16px;">
 							<li>Safest and most reliable option</li>
 							<li>Uses tag name _DuplicateMarkForDeletion<b>_0</b></li>
-							<li>Has the fewest results</li>
+							<li>Has the fewest results, and it's very rare to have false matches.</li>
 						</ol>
 					<li><b style="color:red;">High Match</b></li>
 						<ol type="a" style="padding-left: 16px;">
@@ -1844,9 +1868,31 @@ function DeleteDupInPath(){
 							<li>To reduce false matches use a time difference of .98 or higher.</li>
 							<li>Uses tag name _DuplicateMarkForDeletion<b>_3</b></li>
 							<li>Scenes tagged by 0, 1, and 2 will have four tags.</li>
-							<li>Has the most results, but with many false matches</li>
+							<li>Has the most results, but with many false matches.</li>
 						</ol>
 				</ol> 
+			<li>Time Difference</li>
+				<ol type="1" style="padding-left: 16px;">
+					<li>Significant time difference setting, where 1 equals 100% and (.9) equals 90%.</li>
+					<li>This setting overrides the setting in DupFileManager_config.py.</li>
+						<ol type="a" style="padding-left: 16px;">
+							<li>See setting <b style="color:red;">significantTimeDiff</b> in DupFileManager_config.py</li>
+						</ol>
+					<li>This setting is generally not useful for <b style="color:red;">[Exact Match]</b> reports.</li>
+					<li>This is an important setting when creating Low or Medium match reports. It will reduce false matches.</li>
+				</ol>
+			<li>Report with tagging</li>
+				<ol type="1" style="padding-left: 16px;">
+					<li>Reports with tagging will work with above <b>DupFileManager Advance Menu</b>.</li>
+					<li>The report can take serveral minutes to complete.</li>
+					<li>It takes much more time to produce a report with tagging compare to creating a report without tagging.</li>
+				</ol>
+			<li>Report WITHOUT tagging</li>
+				<ol type="1" style="padding-left: 16px;">
+					<li>Reports with no tagging can <b style="color:red;">NOT</b> be used with above <b>DupFileManager Advance Menu</b>.</li>
+					<li>The report is created much faster. It usually takes a few seconds to complete.</li>
+					<li>This is the recommended report type to create if the <b>DupFileManager Advance Menu</b> is not needed or desired.</li>
+				</ol>
 		</ol> 
 	</td></tr>
 </table></center>
