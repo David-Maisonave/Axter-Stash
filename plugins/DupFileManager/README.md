@@ -54,9 +54,13 @@ It has both **task** and **tools-UI** components.
     - **dup_path** - Alternate path to move deleted files to. Example: "C:\TempDeleteFolder"
     - **toRecycleBeforeSwap** - When enabled, moves destination file to recycle bin before swapping files.
     - **addPrimaryDupPathToDetails** - If enabled, adds the primary duplicate path to the scene detail.
-- New Tools UI Menu
+- Tools UI Menu
 ![Screenshot 2024-11-22 145512](https://github.com/user-attachments/assets/03e166eb-ddaa-4eb8-8160-4c9180ca1323)
-  - Can access both **Duplicate File Report (DupFileManager)** and **DupFileManager Tools and Utilities** menu options.
+  - Can access either **Duplicate File Report (DupFileManager)** or **DupFileManager Tools and Utilities** menu options.
+- DupFileManager Report Menu
+  - ![Screenshot 2024-11-22 151630](https://github.com/user-attachments/assets/834ee60f-1a4a-4a3e-bbf7-23aeca2bda1f)
+- DupFileManager Tools and Utilities
+  - ![Screenshot 2024-11-22 152023](https://github.com/user-attachments/assets/4daaea9e-f603-4619-b536-e6609135bab1)
 
 ### Requirements
 
