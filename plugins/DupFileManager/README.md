@@ -17,7 +17,7 @@ It has both **task** and **tools-UI** components.
     - Cpy-Name: Copy file name left to right.
     - Add-Exclude: Add exclude tag to scene,so that scene is excluded from deletion.
     - Remove-Tag: Remove duplicate tag from scene.
-    - *Flag-Scene: Flag (mark) scene in report as reviewed (or as requiring further review). Optional flags (red, blue, green, black, & hide-item)
+    - Flag-Scene: Flag (mark) scene in report as reviewed (or as requiring further review). Optional flags (yellow, green, orange, strike-through, & disable-scene)
     - Merge: Copy Metadata (tags, performers,& studios) from left to right.
 - Can merge potential source in the duplicate file names for tag names, performers, and studios.
   - Normally when Stash searches the file name for tag names, performers, and studios, it only does so using the primary file.
