@@ -22,6 +22,7 @@ It has both **task** and **tools-UI** components.
 - Can merge potential source in the duplicate file names for tag names, performers, and studios.
   - Normally when Stash searches the file name for tag names, performers, and studios, it only does so using the primary file.
 - Advance menu (for specially tagged duplicates)
+  ![Screenshot 2024-11-22 145139](https://github.com/user-attachments/assets/d76646f0-c5a8-4069-ad0f-a6e5e96e7ed0)
   - Delete only specially tagged duplicates in blacklist path.
   - Delete duplicates with specified file path.
   - Delete duplicates with specific string in File name.
@@ -53,6 +54,9 @@ It has both **task** and **tools-UI** components.
     - **dup_path** - Alternate path to move deleted files to. Example: "C:\TempDeleteFolder"
     - **toRecycleBeforeSwap** - When enabled, moves destination file to recycle bin before swapping files.
     - **addPrimaryDupPathToDetails** - If enabled, adds the primary duplicate path to the scene detail.
+- New Tools UI Menu
+![Screenshot 2024-11-22 145512](https://github.com/user-attachments/assets/03e166eb-ddaa-4eb8-8160-4c9180ca1323)
+  - Can access both **Duplicate File Report (DupFileManager)** and **DupFileManager Tools and Utilities** menu options.
 
 ### Requirements
 
