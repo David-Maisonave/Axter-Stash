@@ -1,1 +1,3 @@
-0.2.0
+##### This page was added starting on version 0.2.0 to keep track of changes between versions.
+### 0.2.0
+- For report, added logic to transfer option settings **[Disable Complete Confirmation]** and **[Disable Delete Confirmation]** when paginating.
