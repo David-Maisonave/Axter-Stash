@@ -84,5 +84,8 @@ That's it!!!
 
 ### Screenshots
 - Example DupFileManager duplicate report. (file names have been edited to PG).
+  - The report displays preview video that is playable. It plays a few seconds sample of the video. This requires scan setting **[Generate animated image previews]** to be enabled when scanning all files.
   - ![Screenshot 2024-11-22 225359](https://github.com/user-attachments/assets/dc705b24-e2d7-4663-92fd-1516aa7aacf5)
+  - There's an optional setting that allows both preview video and preview image to be displayed on the report. See settings **htmlIncludeImagePreview** in the **DupFileManager_report_config.py** file.
+  - There are many more options available for how the report is created, which are targeted for more advanced users.  These options are all available in the **DupFileManager_report_config.py** file, and the settings have commented descriptions preceeding them. See the **DupFileManager_report_config.py** file in the DupFileManager plugin folder for more details.
 
