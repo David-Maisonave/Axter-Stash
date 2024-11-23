@@ -3,22 +3,15 @@
 # Get the latest developers version from following link:
 # https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/DupFileManager
 
-#_ToDo:__ Add jquery.prompt.js reference to this code by downloading it to axter.com site, and referencing it from the report remotely.
-#    Use it to have a prompt with a don't ask me again checkbox.
-#    Get it from following link: https://github.com/MrSwitch/jquery.prompt.js 
-#    See test code in following link: http://adodson.com/jquery.prompt.js/#function-callback
-
 # HTML Report Options **************************************************
 report_config = {    
-    # If enabled, create an HTML report when tagging duplicate files
-    "createHtmlReport" : True,
-    # If enabled, report displays stream instead of preview for video
-    "streamOverPreview" : False, # This option works in Chrome, but does not work very well on firefox.
+    # Paginate HTML report. Maximum number of results to display on one page, before adding (paginating) an additional page.
+    "htmlReportPaginate" : 100,
+    # Name of the HTML file to create
+    "htmlReportName" : "DuplicateTagScenes.html",
     # If enabled, report displays an image preview similar to sceneDuplicateChecker
     "htmlIncludeImagePreview" : False,
     "htmlImagePreviewPopupSize" : 600,
-    # Name of the HTML file to create
-    "htmlReportName" : "DuplicateTagScenes.html",
     # HTML report prefix, before table listing
     "htmlReportPrefix" : """<!DOCTYPE html>
 <html>
@@ -212,6 +205,8 @@ $(document).ready(function(){
     "htmlLowerHighlight" : "nyanza",
     # Text color for details with different resolution, duration, size, bitrate,codec, or framerate
     "htmlDetailDiffTextColor" : "red",
-    # Paginate HTML report. Maximum number of results to display on one page, before adding (paginating) an additional page.
-    "htmlReportPaginate" : 100,
+    # If enabled, create an HTML report when tagging duplicate files
+    "createHtmlReport" : True,
+    # If enabled, report displays stream instead of preview for video
+    "streamOverPreview" : False, # This option works in Chrome, but does not work very well on firefox.
 }
