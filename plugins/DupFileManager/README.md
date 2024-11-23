@@ -81,3 +81,8 @@ That's it!!!
 
 - Options are accessible in the GUI via Settings->Plugins->Plugins->[DupFileManager].
 - More options available in DupFileManager_config.py.
+
+### Screenshots
+- Example DupFileManager duplicate report. (file names have been edited to PG).
+  - ![Screenshot 2024-11-22 225359](https://github.com/user-attachments/assets/dc705b24-e2d7-4663-92fd-1516aa7aacf5)
+
