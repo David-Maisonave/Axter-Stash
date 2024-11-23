@@ -99,13 +99,13 @@ That's it!!!
   - ![Screenshot 2024-11-22 232208](https://github.com/user-attachments/assets/bf1f3021-3a8c-4875-9737-60ee3d7fe675)
 
 ### Future Planned Features
-- Currently, the report and advanced menu do not work with Stash settings requiring a password. Additional logic will be added to have them use the API Key. This is planned for 1.0.0 Version.
-- Add an advanced menu that will work with non-tagged reports. It will iterated through the existing report file(s) to aplly deletions, instead of searching Stash DB for tagged files. This is planned for 1.1.0 Version.
-- Greylist deletion option will be added to the advanced menu. This is planned for 1.0.5 Version.
-- Add advanced menu directly to the Settings->Tools menu. This is planned for 1.5.0 Version.
-- Add report directly to the Settings->Tools menu. This is planned for 1.5.0 Version.
-- Remove all flags from all scenes option. This is planned for 1.0.5 Version.
-- Transfer option settings **[Disable Complete Confirmation]** and **[Disable Delete Confirmation]** when paginating.
+- Currently, the report and advanced menu do not work with Stash settings requiring a password. Additional logic will be added to have them use the API Key. Planned for 1.0.0 Version.
+- Add an advanced menu that will work with non-tagged reports. It will iterated through the existing report file(s) to aplly deletions, instead of searching Stash DB for tagged files. Planned for 1.1.0 Version.
+- Greylist deletion option will be added to the advanced menu. Planned for 1.0.5 Version.
+- Add advanced menu directly to the Settings->Tools menu. Planned for 1.5.0 Version.
+- Add report directly to the Settings->Tools menu. Planned for 1.5.0 Version.
+- Remove all flags from all scenes option. Planned for 1.0.5 Version.
+- Transfer option settings **[Disable Complete Confirmation]** and **[Disable Delete Confirmation]** when paginating. Planned for 1.0.5 Version.
 
 
 
