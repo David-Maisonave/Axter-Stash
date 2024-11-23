@@ -1,4 +1,4 @@
-# DupFileManager: Ver 0.1.9 (By David Maisonave)
+# DupFileManager: Ver 0.2.0 (By David Maisonave)
 
 DupFileManager is a [Stash](https://github.com/stashapp/stash) plugin which manages duplicate files in the Stash system.
 It has both **task** and **tools-UI** components.
@@ -105,7 +105,5 @@ That's it!!!
 - Add advanced menu directly to the Settings->Tools menu. Planned for 1.5.0 Version.
 - Add report directly to the Settings->Tools menu. Planned for 1.5.0 Version.
 - Remove all flags from all scenes option. Planned for 1.0.5 Version.
-- Transfer option settings **[Disable Complete Confirmation]** and **[Disable Delete Confirmation]** when paginating. Planned for 1.0.5 Version.
-
 
 

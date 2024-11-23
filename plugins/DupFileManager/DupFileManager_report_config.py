@@ -69,6 +69,30 @@ li:hover .large {
 <script src="https://www.axter.com/js/jquery.prompt.js"></script>
 <link rel="stylesheet" href="https://www.axter.com/js/jquery.prompt.css"/>
 <script>
+var OrgPrevPage = null;
+var OrgNextPage = null;
+var OrgHomePage = null;
+var RemoveToKeepConfirmValue = null;
+var RemoveValidatePromptValue = null;
+function SetPaginateButton(){
+    $("#NextPage").attr("href", OrgNextPage + "?" + RemoveToKeepConfirmValue + "&" + RemoveValidatePromptValue);
+    $("#PrevPage").attr("href", OrgPrevPage + "?" + RemoveToKeepConfirmValue + "&" + RemoveValidatePromptValue);
+    $("#HomePage").attr("href", OrgHomePage + "?" + RemoveToKeepConfirmValue + "&" + RemoveValidatePromptValue);
+    $("#NextPage_Top").attr("href", OrgNextPage + "?" + RemoveToKeepConfirmValue + "&" + RemoveValidatePromptValue);
+    $("#PrevPage_Top").attr("href", OrgPrevPage + "?" + RemoveToKeepConfirmValue + "&" + RemoveValidatePromptValue);
+    $("#HomePage_Top").attr("href", OrgHomePage + "?" + RemoveToKeepConfirmValue + "&" + RemoveValidatePromptValue);
+}
+function SetPaginateButtonChange(){
+    var chkBxRemoveValid = document.getElementById("RemoveValidatePrompt");
+    var chkBxDisableDeleteConfirm = document.getElementById("RemoveToKeepConfirm");
+    RemoveToKeepConfirmValue = "RemoveToKeepConfirm=false";
+    RemoveValidatePromptValue = "RemoveValidatePrompt=false";
+    if (chkBxRemoveValid.checked)
+        RemoveToKeepConfirmValue = "RemoveToKeepConfirm=true";
+    if (chkBxDisableDeleteConfirm.checked)
+        RemoveValidatePromptValue = "RemoveValidatePrompt=true";   
+    SetPaginateButton();
+}
 function trim(str, ch) {
     var start = 0, end = str.length;
     while(start < end && str[start] === ch) ++start;
@@ -131,6 +155,32 @@ function selectMarker(Mode, ActionID, button){
 	});
 }
 $(document).ready(function(){
+    OrgPrevPage = $("#PrevPage").attr('href');
+    OrgNextPage = $("#NextPage").attr('href');
+    OrgHomePage = $("#HomePage").attr('href');
+    console.log("OrgNextPage = " + OrgNextPage);
+
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    console.log("urlParams = " + urlParams);
+    RemoveToKeepConfirmValue = "RemoveToKeepConfirm=false";
+    RemoveValidatePromptValue = "RemoveValidatePrompt=false";
+    if (urlParams.get('RemoveToKeepConfirm') != null && urlParams.get('RemoveToKeepConfirm') !== ""){
+        RemoveToKeepConfirmValue = "RemoveToKeepConfirm=" + urlParams.get('RemoveToKeepConfirm');
+        if (urlParams.get('RemoveToKeepConfirm') === "true")
+            $( "#RemoveToKeepConfirm" ).prop("checked", true);
+        else
+            $( "#RemoveToKeepConfirm" ).prop("checked", false);
+    }
+    if (urlParams.get('RemoveValidatePrompt') != null && urlParams.get('RemoveValidatePrompt') !== ""){
+        RemoveValidatePromptValue = "RemoveValidatePrompt=" + urlParams.get('RemoveValidatePrompt');
+        console.log("RemoveValidatePromptValue = " + RemoveValidatePromptValue);
+        if (urlParams.get('RemoveValidatePrompt') === "true")
+            $( "#RemoveValidatePrompt" ).prop("checked", true);
+        else
+            $( "#RemoveValidatePrompt" ).prop("checked", false);
+    }
+    SetPaginateButton();
   $("button").click(function(){
     var Mode = this.value;
     var ActionID = this.id;
@@ -166,6 +216,13 @@ $(document).ready(function(){
         return;
     }
     RunPluginOperation(Mode, ActionID, this, true);
+  });
+  $("#RemoveValidatePrompt").change(function() {
+    console.log("checkbox clicked");
+    SetPaginateButtonChange();
+  });
+  $("#RemoveToKeepConfirm").change(function() {
+    SetPaginateButtonChange();
   });
 });
 </script>

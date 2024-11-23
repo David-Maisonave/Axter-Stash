@@ -37,9 +37,10 @@ const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 console.log(urlParams);
 var GraphQl_URL = "http://localhost:9999/graphql";
-if (urlParams.get('GQL') != null && urlParams.get('GQL') === "")
+if (urlParams.get('GQL') != null && urlParams.get('GQL') !== ""){
 	GraphQl_URL = urlParams.get('GQL');
 	GqlFromParam = true;
+}
 console.log("GQL = " + GraphQl_URL);
 
 function RunPluginDupFileManager(Mode, Param = 0, Async = false) {

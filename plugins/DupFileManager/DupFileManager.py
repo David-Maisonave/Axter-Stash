@@ -838,16 +838,16 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False, deleteBlack
                                 if QtyTagForDelPaginate >= htmlReportPaginate:
                                     QtyTagForDelPaginate = 0
                                     fileHtmlReport.write("</table>\n")
-                                    homeHtmReportLink = f"<a class=\"link-items\" title=\"Home Page\" href=\"file://{htmlReportNameHomePage}\">[Home]</a>"
+                                    homeHtmReportLink = f"<a id=\"HomePage\" class=\"link-items\" title=\"Home Page\" href=\"file://{htmlReportNameHomePage}\">[Home]</a>"
                                     prevHtmReportLink = ""
                                     if PaginateId > 0:
                                         if PaginateId > 1:
                                             prevHtmReport = htmlReportNameHomePage.replace(".html", f"_{PaginateId-1}.html")
                                         else:
                                             prevHtmReport = htmlReportNameHomePage
-                                        prevHtmReportLink = f"<a class=\"link-items\" title=\"Previous Page\" href=\"file://{prevHtmReport}\">[Prev]</a>"
+                                        prevHtmReportLink = f"<a id=\"PrevPage\" class=\"link-items\" title=\"Previous Page\" href=\"file://{prevHtmReport}\">[Prev]</a>"
                                     nextHtmReport = htmlReportNameHomePage.replace(".html", f"_{PaginateId+1}.html")
-                                    nextHtmReportLink = f"<a class=\"link-items\" title=\"Next Page\" href=\"file://{nextHtmReport}\">[Next]</a>"
+                                    nextHtmReportLink = f"<a id=\"NextPage\" class=\"link-items\" title=\"Next Page\" href=\"file://{nextHtmReport}\">[Next]</a>"
                                     fileHtmlReport.write(f"<center><table><tr><td>{homeHtmReportLink}</td><td>{prevHtmReportLink}</td><td>{nextHtmReportLink}</td></tr></table></center>")
                                     fileHtmlReport.write(f"{stash.Setting('htmlReportPostfix')}")
                                     fileHtmlReport.close()
@@ -858,10 +858,10 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False, deleteBlack
                                         prevHtmReport = htmlReportNameHomePage.replace(".html", f"_{PaginateId-1}.html")
                                     else:
                                         prevHtmReport = htmlReportNameHomePage
-                                    prevHtmReportLink = f"<a class=\"link-items\" title=\"Previous Page\" href=\"file://{prevHtmReport}\">[Prev]</a>"
+                                    prevHtmReportLink = f"<a id=\"PrevPage_Top\" class=\"link-items\" title=\"Previous Page\" href=\"file://{prevHtmReport}\">[Prev]</a>"
                                     if len(DupFileSets) > (QtyTagForDel + htmlReportPaginate):
                                         nextHtmReport = htmlReportNameHomePage.replace(".html", f"_{PaginateId+1}.html")
-                                        nextHtmReportLink = f"<a class=\"link-items\" title=\"Next Page\" href=\"file://{nextHtmReport}\">[Next]</a>"
+                                        nextHtmReportLink = f"<a id=\"NextPage_Top\" class=\"link-items\" title=\"Next Page\" href=\"file://{nextHtmReport}\">[Next]</a>"
                                         fileHtmlReport.write(f"<center><table><tr><td>{homeHtmReportLink}</td><td>{prevHtmReportLink}</td><td>{nextHtmReportLink}</td></tr></table></center>")
                                     else:
                                         stash.Debug(f"DupFileSets Qty = {len(DupFileSets)}; DupFileDetailList Qty = {len(DupFileDetailList)}; QtyTagForDel = {QtyTagForDel}; htmlReportPaginate = {htmlReportPaginate}; QtyTagForDel + htmlReportPaginate = {QtyTagForDel+htmlReportPaginate}")
@@ -885,7 +885,7 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False, deleteBlack
     if fileHtmlReport != None:
         fileHtmlReport.write("</table>\n")
         if PaginateId > 0:
-            homeHtmReportLink = f"<a class=\"link-items\" title=\"Home Page\" href=\"file://{htmlReportNameHomePage}\">[Home]</a>"
+            homeHtmReportLink = f"<a id=\"HomePage_Top\" class=\"link-items\" title=\"Home Page\" href=\"file://{htmlReportNameHomePage}\">[Home]</a>"
             if PaginateId > 1:
                 prevHtmReport = htmlReportNameHomePage.replace(".html", f"_{PaginateId-1}.html")
             else:
