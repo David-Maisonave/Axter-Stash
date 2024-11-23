@@ -104,6 +104,7 @@ That's it!!!
 - Greylist deletion option will be added to the advanced menu. This is planned for 1.0.5 Version.
 - Add advanced menu directly to the Settings->Tools menu. This is planned for 1.5.0 Version.
 - Add report directly to the Settings->Tools menu. This is planned for 1.5.0 Version.
+- Remove all flags from all scenes option. This is planned for 1.0.5 Version.
 
 
 
