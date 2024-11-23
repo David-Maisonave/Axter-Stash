@@ -99,7 +99,7 @@ function RunPluginOperation(Mode, ActionID, button, asyncAjax){
 	}});
 }
 function selectMarker(Mode, ActionID, button){
-	$('<p>Select desire marker type <select><option>yellow highlight</option><option>green highlight</option><option>orange highlight</option><option>strike-through</option><option>disable-scene</option><option>remove all flags</option></select></p>').confirm(function(answer){
+	$('<p>Select desire marker type <select><option>yellow highlight</option><option>green highlight</option><option>orange highlight</option><option>cyan highlight</option><option>pink highlight</option><option>red highlight</option><option>strike-through</option><option>disable-scene</option><option>remove all flags</option></select></p>').confirm(function(answer){
 		if(answer.response){
             console.log("Selected " + $('select',this).val());
             var flagType = $('select',this).val();
@@ -113,6 +113,12 @@ function selectMarker(Mode, ActionID, button){
                 $('.ID_' + ActionID).css('background','#00FF00');
             else if (flagType === "orange highlight")
                 $('.ID_' + ActionID).css('background','orange');
+            else if (flagType === "cyan highlight")
+                $('.ID_' + ActionID).css('background','cyan');
+            else if (flagType === "pink highlight")
+                $('.ID_' + ActionID).css('background','pink');
+            else if (flagType === "red highlight")
+                $('.ID_' + ActionID).css('background','red');
             else if (flagType === "strike-through")
                 $('.ID_' + ActionID).css('text-decoration', 'line-through');
             else if (flagType === "disable-scene")
