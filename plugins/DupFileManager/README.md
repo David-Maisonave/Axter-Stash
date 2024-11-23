@@ -6,6 +6,7 @@ It has both **task** and **tools-UI** components.
 ### Features
 
 - Creates a duplicate file report which can be accessed from the settings->tools menu options.The report is created as an HTML file and stored in local path under plugins\DupFileManager\report\DuplicateTagScenes.html.
+  - See screenshot at the bottom of this page for example report.
   - Items on the left side of the report are the primary duplicates designated for deletion. By default, these duplicates are given a special _duplicate tag.
   - Items on the right side of the report are designated as primary duplicates to keep. They usually have higher resolution, duration and/or preferred paths.
   - The report has the following options:
@@ -84,6 +85,7 @@ That's it!!!
 - Example DupFileManager duplicate report. (file names have been edited to PG).
   - The report displays preview videos that are playable. Will play a few seconds sample of the video. This requires scan setting **[Generate animated image previews]** to be enabled when scanning all files.
   - ![Screenshot 2024-11-22 225359](https://github.com/user-attachments/assets/dc705b24-e2d7-4663-92fd-1516aa7aacf5)
+  - If there's a scene on the left side that has a higher resolution or duration, it gets a yellow highlight on the report.
   - There's an optional setting that allows both preview videos and preview images to be displayed on the report. See settings **htmlIncludeImagePreview** in the **DupFileManager_report_config.py** file.
   - There are many more options available for how the report is created. These options are targeted for more advanced users.  The options are all available in the **DupFileManager_report_config.py** file, and the settings have commented descriptions preceeding them. See the **DupFileManager_report_config.py** file in the DupFileManager plugin folder for more details.
 - Tools UI Menu
