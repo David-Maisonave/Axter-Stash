@@ -95,7 +95,7 @@ if len(sys.argv) > 1:
 else:
     stash.Debug(f"No command line arguments. JSON_INPUT['args'] = {stash.JSON_INPUT['args']}; PLUGIN_TASK_NAME = {stash.PLUGIN_TASK_NAME}; argv = {sys.argv}")
 stash.status(logLevel=logging.DEBUG)
-
+               
 obsoleteSettingsToConvert = {"zWhitelist" : "zvWhitelist", "zxGraylist" : "zwGraylist", "zyBlacklist" : "zxBlacklist", "zyMatchDupDistance" : "matchDupDistance", "zSwapHighRes" : "zySwapHighRes", "zSwapLongLength" : "zySwapLongLength", "zSwapBetterBitRate" : "zySwapBetterBitRate", "zSwapCodec" : "zySwapCodec", "zSwapBetterFrameRate" : "zySwapBetterFrameRate"}
 stash.replaceObsoleteSettings(obsoleteSettingsToConvert, "zzObsoleteSettingsCheckVer2")
 
@@ -511,6 +511,8 @@ def getHtmlReportTableRow(qtyResults, tagDuplicates):
     htmlReportPrefix = stash.Setting('htmlReportPrefix')
     htmlReportPrefix = htmlReportPrefix.replace('http://127.0.0.1:9999/graphql', stash.url)
     htmlReportPrefix = htmlReportPrefix.replace('http://localhost:9999/graphql', stash.url)
+    if 'apiKey' in stash.STASH_CONFIGURATION and stash.STASH_CONFIGURATION['apiKey'] != "":
+        htmlReportPrefix = htmlReportPrefix.replace('var apiKey = "";', f"var apiKey = \"{stash.STASH_CONFIGURATION['apiKey']}\";")
     if tagDuplicates == False:
         htmlReportPrefix = htmlReportPrefix.replace('<td><button id="AdvanceMenu"', '<td hidden><button id="AdvanceMenu"')
     htmlReportPrefix = htmlReportPrefix.replace('(QtyPlaceHolder)', f'{qtyResults}')

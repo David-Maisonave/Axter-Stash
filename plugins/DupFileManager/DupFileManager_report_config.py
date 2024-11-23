@@ -69,6 +69,8 @@ li:hover .large {
 <script src="https://www.axter.com/js/jquery.prompt.js"></script>
 <link rel="stylesheet" href="https://www.axter.com/js/jquery.prompt.css"/>
 <script>
+var apiKey = "";
+var GraphQl_URL = "http://localhost:9999/graphql";
 var OrgPrevPage = null;
 var OrgNextPage = null;
 var OrgHomePage = null;
@@ -101,7 +103,9 @@ function trim(str, ch) {
 }
 function RunPluginOperation(Mode, ActionID, button, asyncAjax){
 	var chkBxRemoveValid = document.getElementById("RemoveValidatePrompt");
-    $.ajax({method: "POST", url: "http://localhost:9999/graphql", contentType: "application/json", dataType: "text", cache: asyncAjax, async: asyncAjax,
+    if (apiKey !== "")
+        $.ajaxSetup({beforeSend: function(xhr) {xhr.setRequestHeader('apiKey', apiKey);}});    
+    $.ajax({method: "POST", url: GraphQl_URL, contentType: "application/json", dataType: "text", cache: asyncAjax, async: asyncAjax,
 	data: JSON.stringify({
 			query: `mutation RunPluginOperation($plugin_id:ID!,$args:Map!){runPluginOperation(plugin_id:$plugin_id,args:$args)}`,
 			variables: {"plugin_id": "DupFileManager", "args": { "Target" : ActionID, "mode":Mode}},
@@ -113,7 +117,10 @@ function RunPluginOperation(Mode, ActionID, button, asyncAjax){
                 $('.FN_ID_' + myArray[0]).text(trim(myArray[1],"'"));
             }
 			if (!chkBxRemoveValid.checked) alert("Action " + Mode + " for scene(s) ID# " + ActionID + " complete.");
-	}});
+		}, error: function(XMLHttpRequest, textStatus, errorThrown) { 
+			console.log("Ajax failed with Status: " + textStatus + "; Error: " + errorThrown); 
+		}  
+	});
 }
 function selectMarker(Mode, ActionID, button){
 	$('<p>Select desire marker type <select><option>yellow highlight</option><option>green highlight</option><option>orange highlight</option><option>cyan highlight</option><option>pink highlight</option><option>red highlight</option><option>strike-through</option><option>disable-scene</option><option>remove all flags</option></select></p>').confirm(function(answer){
@@ -187,7 +194,7 @@ $(document).ready(function(){
 	if (ActionID === "AdvanceMenu")
     {
 		var newUrl = window.location.href;
-		newUrl = newUrl.replace(/report\/DuplicateTagScenes[_0-9]*.html/g, "advance_options.html?GQL=http://localhost:9999/graphql");
+		newUrl = newUrl.replace(/report\/DuplicateTagScenes[_0-9]*.html/g, "advance_options.html?GQL=" + GraphQl_URL + "&apiKey=" + apiKey);
 		window.open(newUrl, "_blank");
         return;
     }

@@ -32,30 +32,34 @@ html.wait, html.wait * { cursor: wait !important; }
 </style>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script>
-var GqlFromParam = false;
-const queryString = window.location.search;
-const urlParams = new URLSearchParams(queryString);
-console.log(urlParams);
-var GraphQl_URL = "http://localhost:9999/graphql";
-if (urlParams.get('GQL') != null && urlParams.get('GQL') !== ""){
+var apiKey = ""; // For Stash installations with a password setup, populate this variable with the apiKey found in Stash->Settings->Security->[API Key];   	----- Or pass in the apiKey at the URL command line. Example: advance_options.html?apiKey=12345G4igiJdgssdgiwqInh5cCI6IkprewJ9hgdsfhgfdhd&GQL=http://localhost:9999/graphql
+var GraphQl_URL = "http://localhost:9999/graphql";// For Stash installations with non-standard ports or URL's, populate this variable with actual URL;   	----- Or pass in the URL at the command line using GQL param. Example: advance_options.html?GQL=http://localhost:9900/graphql
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('apiKey') != null && urlParams.get('apiKey') !== "")
+	apiKey = urlParams.get('apiKey');
+if (urlParams.get('GQL') != null && urlParams.get('GQL') !== "")
 	GraphQl_URL = urlParams.get('GQL');
-	GqlFromParam = true;
-}
+console.log(urlParams);
 console.log("GQL = " + GraphQl_URL);
 
 function RunPluginDupFileManager(Mode, Param = 0, Async = false) {
 	$('html').addClass('wait');
 	$("body").css("cursor", "progress");
 	console.log("GraphQl_URL = " + GraphQl_URL + "; Mode = " + Mode + "; Param = " + Param);
+	if (apiKey !== "")
+		$.ajaxSetup({beforeSend: function(xhr) {xhr.setRequestHeader('apiKey', apiKey);}});
 	$.ajax({method: "POST", url: GraphQl_URL, contentType: "application/json", dataType: "text", cache: Async, async: Async,
 	data: JSON.stringify({
 			query: `mutation RunPluginOperation($plugin_id:ID!,$args:Map!){runPluginOperation(plugin_id:$plugin_id,args:$args)}`,
 			variables: {"plugin_id": "DupFileManager", "args": { "Target" : Param, "mode":Mode}},
 		}), success: function(result){
-			console.log(result);
+			console.log("Ajax success with result = " + result);
 			$('html').removeClass('wait');
 			$("body").css("cursor", "default");
-	}});
+		}, error: function(XMLHttpRequest, textStatus, errorThrown) { 
+			console.log("Ajax failed with Status: " + textStatus + "; Error: " + errorThrown); 
+		}
+	});
 	console.log("Setting default cursor");
 }    
 $(document).ready(function(){
