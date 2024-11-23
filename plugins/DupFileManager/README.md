@@ -32,6 +32,8 @@ It has both **task** and **tools-UI** components.
   - Delete duplicates having specified tags.
   - Delete duplicates with specified rating.
   - Delete duplicates with any of the above combinations.
+- Bottom extended portion of the Advanced Menu screen.
+  - ![Screenshot 2024-11-22 232005](https://github.com/user-attachments/assets/9a0d2e9d-783b-4ea2-8fa5-3805b40af4eb)
 - Delete duplicate file task with the following options:
   - Tasks (Settings->Task->[Plugin Tasks]->DupFileManager)
     - **Tag Duplicates** - Set tag DuplicateMarkForDeletion to the duplicates with lower resolution, duration, file name length, and/or black list path.
@@ -57,11 +59,6 @@ It has both **task** and **tools-UI** components.
 - Tools UI Menu
 ![Screenshot 2024-11-22 145512](https://github.com/user-attachments/assets/03e166eb-ddaa-4eb8-8160-4c9180ca1323)
   - Can access either **Duplicate File Report (DupFileManager)** or **DupFileManager Tools and Utilities** menu options.
-- DupFileManager Report Menu
-  - ![Screenshot 2024-11-22 151630](https://github.com/user-attachments/assets/834ee60f-1a4a-4a3e-bbf7-23aeca2bda1f)
-- DupFileManager Tools and Utilities
-  - ![Screenshot 2024-11-22 152023](https://github.com/user-attachments/assets/4daaea9e-f603-4619-b536-e6609135bab1)
-
 ### Requirements
 
 - `pip install --upgrade stashapp-tools`
@@ -83,9 +80,28 @@ That's it!!!
 - More options available in DupFileManager_config.py.
 
 ### Screenshots
+
 - Example DupFileManager duplicate report. (file names have been edited to PG).
   - The report displays preview videos that are playable. Will play a few seconds sample of the video. This requires scan setting **[Generate animated image previews]** to be enabled when scanning all files.
   - ![Screenshot 2024-11-22 225359](https://github.com/user-attachments/assets/dc705b24-e2d7-4663-92fd-1516aa7aacf5)
   - There's an optional setting that allows both preview videos and preview images to be displayed on the report. See settings **htmlIncludeImagePreview** in the **DupFileManager_report_config.py** file.
   - There are many more options available for how the report is created. These options are targeted for more advanced users.  The options are all available in the **DupFileManager_report_config.py** file, and the settings have commented descriptions preceeding them. See the **DupFileManager_report_config.py** file in the DupFileManager plugin folder for more details.
+- Tools UI Menu
+![Screenshot 2024-11-22 145512](https://github.com/user-attachments/assets/03e166eb-ddaa-4eb8-8160-4c9180ca1323)
+  - Can access either **Duplicate File Report (DupFileManager)** or **DupFileManager Tools and Utilities** menu options.
+- DupFileManager Report Menu
+  - ![Screenshot 2024-11-22 151630](https://github.com/user-attachments/assets/834ee60f-1a4a-4a3e-bbf7-23aeca2bda1f)
+- DupFileManager Tools and Utilities
+  - ![Screenshot 2024-11-22 152023](https://github.com/user-attachments/assets/4daaea9e-f603-4619-b536-e6609135bab1)
+- Full bottom extended portion of the Advanced Menu screen.
+  - ![Screenshot 2024-11-22 232208](https://github.com/user-attachments/assets/bf1f3021-3a8c-4875-9737-60ee3d7fe675)
+
+### Future Planned Features
+- Currently, the report and advanced menu do not work with Stash settings requiring a password. Additional logic will be added to have them use the API Key. This is planned for 1.0.0 Version.
+- Add an advanced menu that will work with non-tagged reports. It will iterated through the existing report file(s) to aplly deletions, instead of searching Stash DB for tagged files. This is planned for 1.1.0 Version.
+- Greylist deletion option will be added to the advanced menu. This is planned for 1.0.5 Version.
+- Add advanced menu directly to the Settings->Tools menu. This is planned for 1.5.0 Version.
+- Add report directly to the Settings->Tools menu. This is planned for 1.5.0 Version.
+
+
 
