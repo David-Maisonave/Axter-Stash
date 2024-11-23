@@ -24,15 +24,18 @@ It has both **task** and **tools-UI** components.
   - Normally when Stash searches the file name for tag names, performers, and studios, it only does so using the primary file.
 - Advance menu (for specially tagged duplicates)
   ![Screenshot 2024-11-22 145139](https://github.com/user-attachments/assets/d76646f0-c5a8-4069-ad0f-a6e5e96e7ed0)
-  - Delete only specially tagged duplicates in blacklist path.
-  - Delete duplicates with specified file path.
-  - Delete duplicates with specific string in File name.
-  - Delete duplicates with specified file size range.
-  - Delete with specified duration range.
-  - Delete with resolution range.
-  - Delete duplicates having specified tags.
-  - Delete duplicates with specified rating.
-  - Delete duplicates with any of the above combinations.
+  - Advance menu can be access from the Settings->Tools->**[DupFileManager Tools and Utilities]** menu or from the **reports**.
+    - Only access Advance Menu from the report when using Stash setup requiring a password.
+  - Here are **some** of the options available in the **Advance Menu**.
+    - Delete only specially tagged duplicates in blacklist path.
+    - Delete duplicates with specified file path.
+    - Delete duplicates with specific string in File name.
+    - Delete duplicates with specified file size range.
+    - Delete with specified duration range.
+    - Delete with resolution range.
+    - Delete duplicates having specified tags.
+    - Delete duplicates with specified rating.
+    - Delete duplicates with any of the above combinations.
 - Bottom extended portion of the Advanced Menu screen.
   - ![Screenshot 2024-11-22 232005](https://github.com/user-attachments/assets/9a0d2e9d-783b-4ea2-8fa5-3805b40af4eb)
 - Delete duplicate file task with the following options:
