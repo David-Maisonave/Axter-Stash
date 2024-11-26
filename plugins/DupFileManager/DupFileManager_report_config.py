@@ -64,8 +64,93 @@ li:hover .large {
   border-radius: 4px;
    box-shadow: 1px 1px 3px 3px rgba(127, 127, 127, 0.15);;
 }
+/******** Dropdown buttons *********/
+.dropdown .dropdown_tag .dropdown_performer .dropdown_gallery .dropbtn {
+  font-size: 14px;
+  border: none;
+  outline: none;
+  color: white;
+  padding: 6px 10px;
+  background-color: transparent;
+  font-family: inherit; /* Important for vertical align on mobile phones */
+  margin: 0; /* Important for vertical align on mobile phones */
+}
+.dropdown-content{
+  display: none;
+  position: absolute;
+  background-color: inherit;
+  min-width: 80px;
+  box-shadow: 0px 4px 12px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+.dropdown-content a {
+  float: none;
+  color: black;
+  padding: 6px 10px;
+  text-decoration: none;
+  display: block;
+  text-align: left;
+}
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+/*************-- Dropdown Icons --*************/
+.dropdown_icon {
+	height:22px;
+	width:30px;
+	float:left;
+}
+/*** Dropdown Tag ***/
+.dropdown_tag-content{
+  display: none;
+  position: absolute;
+  background-color: LightCoral;
+  min-width: 80px;
+  box-shadow: 0px 4px 12px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+.dropdown_icon:hover .dropdown_tag-content {
+  display: block;
+} 
+/*** Dropdown Performer ***/
+.dropdown_performer-content{
+  display: none;
+  position: absolute;
+  background-color: LightBlue;
+  min-width: 80px;
+  box-shadow: 0px 4px 12px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+.dropdown_icon:hover .dropdown_performer-content {
+  display: block;
+}
+/*** Dropdown Gallery ***/
+.dropdown_gallery-content{
+  display: none;
+  position: absolute;
+  background-color: AntiqueWhite;
+  min-width: 80px;
+  box-shadow: 0px 4px 12px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+.dropdown_icon:hover .dropdown_gallery-content {
+  display: block;
+}
+/*** Dropdown Group ***/
+.dropdown_group-content{
+  display: none;
+  position: absolute;
+  background-color: BurlyWood;
+  min-width: 80px;
+  box-shadow: 0px 4px 12px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+.dropdown_icon:hover .dropdown_group-content {
+  display: block;
+}
 </style>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script src="https://www.axter.com/js/jquery-3.7.1.min.js"></script>
 <script src="https://www.axter.com/js/jquery.prompt.js"></script>
 <link rel="stylesheet" href="https://www.axter.com/js/jquery.prompt.css"/>
 <script>
@@ -111,11 +196,8 @@ function RunPluginOperation(Mode, ActionID, button, asyncAjax){
 			variables: {"plugin_id": "DupFileManager", "args": { "Target" : ActionID, "mode":Mode}},
 		}), success: function(result){
 			console.log(result);
-            // if (Mode !== "flagScene") button.style.visibility = 'hidden';
-            if (Mode === "renameFile"){
-                var myArray = ActionID.split(":");
-                $('.FN_ID_' + myArray[0]).text(trim(myArray[1],"'"));
-            }
+            if (Mode === "renameFile" || Mode === "clearAllSceneFlags" || Mode === "mergeTags")
+                location.replace(location.href); 
 			if (!chkBxRemoveValid.checked) alert("Action " + Mode + " for scene(s) ID# " + ActionID + " complete.");
 		}, error: function(XMLHttpRequest, textStatus, errorThrown) { 
 			console.log("Ajax failed with Status: " + textStatus + "; Error: " + errorThrown); 
@@ -191,7 +273,7 @@ $(document).ready(function(){
   $("button").click(function(){
     var Mode = this.value;
     var ActionID = this.id;
-	if (ActionID === "AdvanceMenu")
+	if (ActionID === "AdvanceMenu" || ActionID === "AdvanceMenu_")
     {
 		var newUrl = window.location.href;
 		newUrl = newUrl.replace(/report\/DuplicateTagScenes[_0-9]*.html/g, "advance_options.html?GQL=" + GraphQl_URL + "&apiKey=" + apiKey);
@@ -245,7 +327,16 @@ $(document).ready(function(){
 <td><table><tr>
 <td><input type="checkbox" id="RemoveValidatePrompt" name="RemoveValidatePrompt"><label for="RemoveValidatePrompt" title="Disable notice for task completion (Popup).">Disable Complete Confirmation</label><br></td>
 <td><input type="checkbox" id="RemoveToKeepConfirm" name="RemoveToKeepConfirm"><label for="RemoveToKeepConfirm" title="Disable confirmation prompts for delete scenes">Disable Delete Confirmation</label><br></td>
-<td><button id="AdvanceMenu" title="View advance menu for tagged duplicates." name="AdvanceMenu">Advance Tag Menu</button></td>
+<td>
+    <div class="dropdown">
+        <button id="AdvanceMenu" title="View advance menu for tagged duplicates." name="AdvanceMenu">Advance Tag Menu <i class="fa fa-caret-down"></i></button>
+        <div class="dropdown-content">
+          <div><button type="button" id="clearAllSceneFlags" value="clearAllSceneFlags" title="Remove flags from report for all scenes, except for deletion flag.">Clear All Scene Flags</button></div>
+          <div><button type="button" id="clear_duplicate_tags_task" value="clear_duplicate_tags_task" title="Remove duplicate (_DuplicateMarkForDeletion_?) tag from all scenes. This action make take a few minutes to complete.">Remove All Scenes Tags</button></div>
+          <div><button type="button" id="fileNotExistToDelete" value="fileNotExistToDelete" title="Delete tagged duplicates for which file does NOT exist.">Delete Files That do Not Exist</button></div>
+        </div>
+    </div>
+</td>
 </tr></table></td>
 </tr></table></center>
 <h2>Stash Duplicate Scenes Report (MatchTypePlaceHolder)</h2>\n""",

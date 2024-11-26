@@ -49,6 +49,14 @@ config = {
     "max_filename_length": 255,
     # Exclude tags with ignore_auto_tag set to True
     "excludeIgnoreAutoTags": True,
+    # Enable to append performers name to file name when renaming a file. Requires performers to be included in [Key Fields] list, which by default it is included.
+    "performerAppendEnable": True,
+    # Enable to append studio name to file name when renaming a file. Requires studio to be included in [Key Fields] list, which by default it is included.
+    "studioAppendEnable": True,
+    # Enable to append tag names to file name when renaming a file. Requires tags to be included in [Key Fields] list, which by default it is included.
+    "tagAppendEnable": True,
+    # Enable to move file instead of rename file. (Not recommended for Windows OS)
+    "fileRenameViaMove": False,
     
     # handleExe is for Windows only.
     # In Windows, a file can't be renamed if the file is opened by another process.

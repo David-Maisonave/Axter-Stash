@@ -10,7 +10,7 @@ except Exception as e:
     import traceback, sys
     tb = traceback.format_exc()
     print(f"ModulesValidate Exception. Error: {e}\nTraceBack={tb}", file=sys.stderr)
-import os, sys, time, pathlib, argparse, platform, shutil, traceback, logging, requests
+import os, sys, time, pathlib, argparse, platform, shutil, traceback, logging, requests, json
 from datetime import datetime
 from StashPluginHelper import StashPluginHelper
 from stashapi.stash_types import PhashDistance
@@ -36,6 +36,7 @@ settings = {
     "zvWhitelist": "",
     "zwGraylist": "",
     "zxBlacklist": "",
+    "zxPinklist": "",
     "zyMaxDupToProcess": 0,
     "zySwapHighRes": False,
     "zySwapLongLength": False,
@@ -69,7 +70,7 @@ stash = StashPluginHelper(
         )
 stash.convertToAscii = True
 
-advanceMenuOptions = [  "applyCombo", "applyComboBlacklist", "pathToDelete", "pathToDeleteBlacklist", "sizeToDeleteLess", "sizeToDeleteGreater", "sizeToDeleteBlacklistLess", "sizeToDeleteBlacklistGreater", "durationToDeleteLess", "durationToDeleteGreater", "durationToDeleteBlacklistLess", "durationToDeleteBlacklistGreater", 
+advanceMenuOptions = [  "applyCombo", "applyComboPinklist", "applyComboGraylist", "applyComboBlacklist", "pathToDelete", "pathToDeleteBlacklist", "sizeToDeleteLess", "sizeToDeleteGreater", "sizeToDeleteBlacklistLess", "sizeToDeleteBlacklistGreater", "durationToDeleteLess", "durationToDeleteGreater", "durationToDeleteBlacklistLess", "durationToDeleteBlacklistGreater", 
                         "commonResToDeleteLess", "commonResToDeleteEq", "commonResToDeleteGreater", "commonResToDeleteBlacklistLess", "commonResToDeleteBlacklistEq", "commonResToDeleteBlacklistGreater", "resolutionToDeleteLess", "resolutionToDeleteEq", "resolutionToDeleteGreater", 
                         "resolutionToDeleteBlacklistLess", "resolutionToDeleteBlacklistEq", "resolutionToDeleteBlacklistGreater", "ratingToDeleteLess", "ratingToDeleteEq", "ratingToDeleteGreater", "ratingToDeleteBlacklistLess", "ratingToDeleteBlacklistEq", "ratingToDeleteBlacklistGreater", 
                         "tagToDelete", "tagToDeleteBlacklist", "titleToDelete", "titleToDeleteBlacklist", "pathStrToDelete", "pathStrToDeleteBlacklist"]
@@ -232,7 +233,10 @@ stash.Trace(f"whitelist = {whitelist}")
 blacklist = stash.Setting('zxBlacklist').split(listSeparator)
 blacklist = [item.lower() for item in blacklist]
 if blacklist == [""] : blacklist = []
-stash.Trace(f"blacklist = {blacklist}")
+pinklist = stash.Setting('zxPinklist').split(listSeparator)
+pinklist = [item.lower() for item in pinklist]
+if pinklist == [""] : pinklist = []
+stash.Trace(f"pinklist = {pinklist}")
     
 def realpath(path):
     """
@@ -561,6 +565,10 @@ htmlHighlightTimeDiff       = stash.Setting('htmlHighlightTimeDiff')
 htmlPreviewOrStream         = "stream" if stash.Setting('streamOverPreview') else "preview"
 
 def writeRowToHtmlReport(fileHtmlReport, DupFile, DupFileToKeep, QtyTagForDel = "?", tagDuplicates = False):
+    htmlTagPrefix = '<div class="dropdown_icon"><img src="https://www.axter.com/images/stash/tag.png" alt="Tags" style="width:20px;height:20px;"><i class="fa fa-caret-down"></i><div class="dropdown_tag-content">'
+    htmlPerformerPrefix = '<div class="dropdown_icon"><img src="https://www.axter.com/images/stash/performer.png" alt="Performers" title="Performers" style="width:20px;height:20px;"><i class="fa fa-caret-down"></i><div class="dropdown_performer-content">'
+    htmlGalleryPrefix = '<div class="dropdown_icon"><img src="https://www.axter.com/images/stash/galleries.png" alt="Galleries" title="Galleries" style="width:20px;height:20px;"><i class="fa fa-caret-down"></i><div class="dropdown_gallery-content">'
+    htmlGroupPrefix = '<div class="dropdown_icon"><img src="https://www.axter.com/images/stash/group.png" alt="Groups" title="Groups" style="width:20px;height:20px;"><i class="fa fa-caret-down"></i><div class="dropdown_group-content">'
     dupFileExist = True if os.path.isfile(DupFile['files'][0]['path']) else False
     toKeepFileExist = True if os.path.isfile(DupFileToKeep['files'][0]['path']) else False
     fileHtmlReport.write(f"{htmlReportTableRow}")
@@ -611,6 +619,29 @@ def writeRowToHtmlReport(fileHtmlReport, DupFile, DupFileToKeep, QtyTagForDel = 
         fileHtmlReport.write(f"<a class=\"link-items\" title=\"Play file locally\" href=\"file://{getPath(DupFile)}\">[Play]</a>")
     else:
         fileHtmlReport.write("<b style='color:red;'>[File NOT Exist]<b>")
+    if len(DupFile['tags']) > 0:
+        fileHtmlReport.write(htmlTagPrefix)
+        for tag in DupFile['tags']:
+            # if not tag['ignore_auto_tag']:
+            fileHtmlReport.write(f"<div style='color:black;font-size: 12px;'>{tag['name']}</div>")
+        fileHtmlReport.write("</div></div>")
+    if len(DupFile['performers']) > 0:
+        fileHtmlReport.write(htmlPerformerPrefix)
+        for performer in DupFile['performers']:
+            fileHtmlReport.write(f"<div style='color:black;font-size: 12px;'>{performer['name']}</div>")
+        fileHtmlReport.write("</div></div>")
+    if len(DupFile['galleries']) > 0:
+        fileHtmlReport.write(htmlGalleryPrefix)
+        for gallery in DupFile['galleries']:
+            gallery = stash.find_gallery(gallery['id'])
+            fileHtmlReport.write(f"<div style='color:black;font-size: 12px;'>{gallery['title']}</div>")
+        fileHtmlReport.write("</div></div>")
+    if len(DupFile['groups']) > 0:
+        fileHtmlReport.write(htmlGroupPrefix)
+        for group in DupFile['groups']:
+            fileHtmlReport.write(f"<div style='color:black;font-size: 12px;'>{group['group']['name']}</div>")
+        fileHtmlReport.write("</div></div>")
+    
     fileHtmlReport.write("</p></td>")
     
     videoPreview = f"<video {htmlReportVideoPreview} poster=\"{DupFileToKeep['paths']['screenshot']}\"><source src=\"{DupFileToKeep['paths'][htmlPreviewOrStream]}\" type=\"video/mp4\"></video>"
@@ -633,14 +664,41 @@ def writeRowToHtmlReport(fileHtmlReport, DupFile, DupFileToKeep, QtyTagForDel = 
     else:
         fileHtmlReport.write("<b style='color:red;'>[File NOT Exist]<b>")
     fileHtmlReport.write(f"<button class=\"link-button\" title=\"Flag scene as reviewed or as awaiting review.\" value=\"flagScene\" id=\"{DupFileToKeep['id']}\">[Flag]</button>")
+    if len(DupFileToKeep['tags']) > 0:
+        fileHtmlReport.write(htmlTagPrefix)
+        for tag in DupFileToKeep['tags']:
+            # if not tag['ignore_auto_tag']:
+            fileHtmlReport.write(f"<div style='color:black;font-size: 12px;'>{tag['name']}</div>")
+        fileHtmlReport.write("</div></div>")
+    if len(DupFileToKeep['performers']) > 0:
+        fileHtmlReport.write(htmlPerformerPrefix)
+        for performer in DupFileToKeep['performers']:
+            fileHtmlReport.write(f"<div style='color:black;font-size: 12px;'>{performer['name']}</div>")
+        fileHtmlReport.write("</div></div>")
+    if len(DupFileToKeep['galleries']) > 0:
+        fileHtmlReport.write(htmlGalleryPrefix)
+        for gallery in DupFileToKeep['galleries']:
+            gallery = stash.find_gallery(gallery['id'])
+            fileHtmlReport.write(f"<div style='color:black;font-size: 12px;'>{gallery['title']}</div>")
+        fileHtmlReport.write("</div></div>")
+    if len(DupFileToKeep['groups']) > 0:
+        fileHtmlReport.write(htmlGroupPrefix)
+        for group in DupFileToKeep['groups']:
+            fileHtmlReport.write(f"<div style='color:black;font-size: 12px;'>{group['group']['name']}</div>")
+        fileHtmlReport.write("</div></div>")
     # ToDo: Add following buttons:
     #       rename file
     fileHtmlReport.write(f"</p></td>")
     
     fileHtmlReport.write("</tr>\n")
 
+fragmentForSceneDetails = 'id tags {id name ignore_auto_tag} groups {group {name} } performers {name} galleries {id} files {path width height duration size video_codec bit_rate frame_rate} details '
+htmlFileData = " paths {screenshot sprite " + htmlPreviewOrStream + "} "
+DuplicateCandidateForDeletionList = f"{htmlReportNameFolder}{os.sep}DuplicateCandidateForDeletionList.txt"
+
 def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False, deleteBlacklistOnly=False, deleteLowerResAndDuration=False):
     global reasonDict
+    global htmlFileData
     duplicateMarkForDeletion_descp = 'Tag added to duplicate scenes so-as to tag them for deletion.'
     stash.Trace(f"duplicateMarkForDeletion = {duplicateMarkForDeletion}")    
     dupTagId = stash.createTagId(duplicateMarkForDeletion, duplicateMarkForDeletion_descp, ignoreAutoTag=True)
@@ -671,27 +729,29 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False, deleteBlack
     stash.Trace("#########################################################################")
     stash.Log(f"Waiting for find_duplicate_scenes_diff to return results; matchDupDistance={matchPhaseDistanceText}; significantTimeDiff={significantTimeDiff}", printTo=LOG_STASH_N_PLUGIN)
     stash.startSpinningProcessBar()
-    htmlFileData = " paths {screenshot sprite " + htmlPreviewOrStream + "} " if createHtmlReport else ""
-    mergeFieldData = " code director title rating100 date studio {id} movies {movie {id} } galleries {id} performers {id} urls " if merge else ""
-    DupFileSets = stash.find_duplicate_scenes(matchPhaseDistance, fragment='id tags {id name} files {path width height duration size video_codec bit_rate frame_rate} details ' + mergeFieldData + htmlFileData)
+    mergeFieldData = " code director title rating100 date studio {id name} movies {movie {id} } urls " if merge else ""
+    if not createHtmlReport:
+        htmlFileData = ""
+    DupFileSets = stash.find_duplicate_scenes(matchPhaseDistance, fragment= fragmentForSceneDetails + mergeFieldData + htmlFileData)
     stash.stopSpinningProcessBar()
     qtyResults = len(DupFileSets)
     stash.setProgressBarIter(qtyResults)
     stash.Trace("#########################################################################")
     stash.Log(f"Found {qtyResults} duplicate sets...")
     fileHtmlReport = None
-    if createHtmlReport:
+    if not os.path.isdir(htmlReportNameFolder):
+        os.mkdir(htmlReportNameFolder)
         if not os.path.isdir(htmlReportNameFolder):
-            os.mkdir(htmlReportNameFolder)
-            if not os.path.isdir(htmlReportNameFolder):
-                stash.Error(f"Failed to create report directory {htmlReportNameFolder}.")
-                return
+            stash.Error(f"Failed to create report directory {htmlReportNameFolder}.")
+            return
+    if createHtmlReport:
         deleteLocalDupReportHtmlFiles(False)
         fileHtmlReport = open(htmlReportName, "w")
         fileHtmlReport.write(f"{getHtmlReportTableRow(qtyResults, tagDuplicates)}\n")
         fileHtmlReport.write(f"{stash.Setting('htmlReportTable')}\n")
         htmlReportTableHeader   = stash.Setting('htmlReportTableHeader')
         fileHtmlReport.write(f"{htmlReportTableRow}{htmlReportTableHeader}Scene</th>{htmlReportTableHeader}Duplicate to Delete</th>{htmlReportTableHeader}Scene-ToKeep</th>{htmlReportTableHeader}Duplicate to Keep</th></tr>\n")
+    fileDuplicateCandidateForDeletionList = open(DuplicateCandidateForDeletionList, "w")
     
     for DupFileSet in DupFileSets:
         # stash.Trace(f"DupFileSet={DupFileSet}", toAscii=True)
@@ -819,6 +879,7 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False, deleteBlack
                                     elif moveToTrashCan:
                                         sendToTrash(DupFileName)
                                     stash.destroyScene(DupFile['id'], delete_file=True)
+                                    updateDuplicateCandidateForDeletionList(DupFile['id'], removeScene = True)
                         elif tagDuplicates or fileHtmlReport != None:
                             if excludeFromReportIfSignificantTimeDiff and significantTimeDiffCheck(DupFile, DupFileToKeep, True):
                                 stash.Log(f"Skipping duplicate {DupFile['files'][0]['path']} (ID={DupFile['id']}), because of time difference greater than {significantTimeDiff} for file {DupFileToKeep['files'][0]['path']}.")
@@ -837,6 +898,7 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False, deleteBlack
                                 #    add delete only from stash db code and button using DB delete icon
                                 stash.Debug(f"Adding scene {DupFile['id']} to HTML report.")
                                 writeRowToHtmlReport(fileHtmlReport, DupFile, DupFileToKeep, QtyTagForDel, tagDuplicates)
+                                fileDuplicateCandidateForDeletionList.write(json.dumps(DupFile) + "\n")
                                 if QtyTagForDelPaginate >= htmlReportPaginate:
                                     QtyTagForDelPaginate = 0
                                     fileHtmlReport.write("</table>\n")
@@ -884,6 +946,7 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False, deleteBlack
         if maxDupToProcess > 0 and ((QtyTagForDel > maxDupToProcess) or (QtyTagForDel == 0 and QtyDup > maxDupToProcess)):
             break
     
+    fileDuplicateCandidateForDeletionList.close()
     if fileHtmlReport != None:
         fileHtmlReport.write("</table>\n")
         if PaginateId > 0:
@@ -921,25 +984,31 @@ def findCurrentTagId(tagNames):
     for tagName in tagNames:
         tagId = stash.find_tags(q=tagName)
         if len(tagId) > 0 and 'id' in tagId[0]:
-            stash.Debug(f"Using tag name {tagName} with Tag ID {tagId[0]['id']}")
-            return tagId[0]['id']
-    return "-1"
+            return tagId[0]['id'], tagName
+    return "-1", None
 
 def toJson(data):
-    import json
     # data = data.replace("'", '"')
     data = data.replace("\\", "\\\\")
     data = data.replace("\\\\\\\\", "\\\\")
     return json.loads(data)
 
-def getAnAdvanceMenuOptionSelected(taskName, target, isBlackList, pathToDelete, sizeToDelete, durationToDelete, resolutionToDelete, ratingToDelete, tagToDelete, titleToDelete, pathStrToDelete, fileNotExistToDelete, compareToLess, compareToGreater):
+def getAnAdvanceMenuOptionSelected(taskName, target, isTagOnlyScenes, isBlackList, isGrayList, isPinkList, pathToDelete, sizeToDelete, durationToDelete, resolutionToDelete, ratingToDelete, tagToDelete, titleToDelete, pathStrToDelete, fileNotExistToDelete, compareToLess, compareToGreater):
     stash.Log(f"Processing taskName = {taskName}, target = {target}")
     if "Blacklist" in taskName:
         isBlackList = True
+    if "Graylist" in taskName:
+        isGrayList = True
+    if "Pinklist" in taskName:
+        isPinkList = True
     if "Less" in taskName:
         compareToLess = True
     if "Greater" in taskName:
         compareToGreater = True
+    
+    if ":TagOnlyScenes" in target:
+        isTagOnlyScenes = True
+        target = target.replace(":TagOnlyScenes","")
     
     if "pathToDelete" in taskName:
         pathToDelete = target.lower()
@@ -961,10 +1030,15 @@ def getAnAdvanceMenuOptionSelected(taskName, target, isBlackList, pathToDelete, 
         pathStrToDelete = target.lower()
     elif "fileNotExistToDelete" in taskName:
         fileNotExistToDelete = True
-    return isBlackList, pathToDelete, sizeToDelete, durationToDelete, resolutionToDelete, ratingToDelete, tagToDelete, titleToDelete, pathStrToDelete, fileNotExistToDelete, compareToLess, compareToGreater
+    elif "TagOnlyScenes" in taskName:
+        isTagOnlyScenes = True
+    return isTagOnlyScenes, isBlackList, isGrayList, isPinkList, pathToDelete, sizeToDelete, durationToDelete, resolutionToDelete, ratingToDelete, tagToDelete, titleToDelete, pathStrToDelete, fileNotExistToDelete, compareToLess, compareToGreater
 
 def getAdvanceMenuOptionSelected(advanceMenuOptionSelected):
+    isTagOnlyScenes = False
     isBlackList = False
+    isGrayList = False
+    isPinkList = False
     pathToDelete = ""
     sizeToDelete = -1
     durationToDelete = -1
@@ -982,16 +1056,27 @@ def getAdvanceMenuOptionSelected(advanceMenuOptionSelected):
             if "applyCombo" in stash.PLUGIN_TASK_NAME:
                 jsonObject = toJson(stash.JSON_INPUT['args']['Target'])
                 for taskName in jsonObject:
-                    isBlackList, pathToDelete, sizeToDelete, durationToDelete, resolutionToDelete, ratingToDelete, tagToDelete, titleToDelete, pathStrToDelete, fileNotExistToDelete, compareToLess, compareToGreater = getAnAdvanceMenuOptionSelected(taskName, jsonObject[taskName], isBlackList, pathToDelete, sizeToDelete, durationToDelete, resolutionToDelete, ratingToDelete, tagToDelete, titleToDelete, pathStrToDelete, compareToLess, compareToGreater)
+                    isTagOnlyScenes, isBlackList, isGrayList, isPinkList, pathToDelete, sizeToDelete, durationToDelete, resolutionToDelete, ratingToDelete, tagToDelete, titleToDelete, pathStrToDelete, fileNotExistToDelete, compareToLess, compareToGreater = getAnAdvanceMenuOptionSelected(taskName, jsonObject[taskName], isTagOnlyScenes, isBlackList, isGrayList, isPinkList, pathToDelete, sizeToDelete, durationToDelete, resolutionToDelete, ratingToDelete, tagToDelete, titleToDelete, pathStrToDelete, fileNotExistToDelete, compareToLess, compareToGreater)
             else:
-                return getAnAdvanceMenuOptionSelected(stash.PLUGIN_TASK_NAME, stash.JSON_INPUT['args']['Target'], isBlackList, pathToDelete, sizeToDelete, durationToDelete, resolutionToDelete, ratingToDelete, tagToDelete, titleToDelete, pathStrToDelete, compareToLess, compareToGreater)
-    return isBlackList, pathToDelete, sizeToDelete, durationToDelete, resolutionToDelete, ratingToDelete, tagToDelete, titleToDelete, pathStrToDelete, fileNotExistToDelete, compareToLess, compareToGreater
+                return getAnAdvanceMenuOptionSelected(stash.PLUGIN_TASK_NAME, stash.JSON_INPUT['args']['Target'], isTagOnlyScenes, isBlackList, isGrayList, isPinkList, pathToDelete, sizeToDelete, durationToDelete, resolutionToDelete, ratingToDelete, tagToDelete, titleToDelete, pathStrToDelete, compareToLess, compareToGreater)
+    return isTagOnlyScenes, isBlackList, isGrayList, isPinkList, pathToDelete, sizeToDelete, durationToDelete, resolutionToDelete, ratingToDelete, tagToDelete, titleToDelete, pathStrToDelete, fileNotExistToDelete, compareToLess, compareToGreater
+
+def getScenesFromReport():
+    stash.Log(f"Getting candidates for deletion from file {DuplicateCandidateForDeletionList}.")
+    scenes = []
+    lines = None
+    with open(DuplicateCandidateForDeletionList, 'r') as file:
+        lines = file.readlines()
+    for line in lines:
+        scenes += [json.loads(line)]
+    return scenes
 
 # //////////////////////////////////////////////////////////////////////////////
 # //////////////////////////////////////////////////////////////////////////////
 def manageTagggedDuplicates(deleteScenes=False, clearTag=False, setGrayListTag=False, tagId=-1, advanceMenuOptionSelected=False):
+    tagName = None
     if tagId == -1:
-        tagId = findCurrentTagId([duplicateMarkForDeletion, base1_duplicateMarkForDeletion, base2_duplicateMarkForDeletion, 'DuplicateMarkForDeletion', '_DuplicateMarkForDeletion'])
+        tagId, tagName = findCurrentTagId([duplicateMarkForDeletion, base1_duplicateMarkForDeletion, base2_duplicateMarkForDeletion, 'DuplicateMarkForDeletion', '_DuplicateMarkForDeletion'])
     if int(tagId) < 0:
         stash.Warn(f"Could not find tag ID for tag '{duplicateMarkForDeletion}'.")
         return
@@ -1000,7 +1085,7 @@ def manageTagggedDuplicates(deleteScenes=False, clearTag=False, setGrayListTag=F
     if clearAllDupfileManagerTags:
         excludedTags = [duplicateMarkForDeletion, duplicateWhitelistTag, excludeDupFileDeleteTag, graylistMarkForDeletion, longerDurationLowerResolution]
     
-    isBlackList, pathToDelete, sizeToDelete, durationToDelete, resolutionToDelete, ratingToDelete, tagToDelete, titleToDelete, pathStrToDelete, fileNotExistToDelete, compareToLess, compareToGreater = getAdvanceMenuOptionSelected(advanceMenuOptionSelected)
+    isTagOnlyScenes, isBlackList, isGrayList, isPinkList, pathToDelete, sizeToDelete, durationToDelete, resolutionToDelete, ratingToDelete, tagToDelete, titleToDelete, pathStrToDelete, fileNotExistToDelete, compareToLess, compareToGreater = getAdvanceMenuOptionSelected(advanceMenuOptionSelected)
     if advanceMenuOptionSelected and deleteScenes and pathToDelete == "" and tagToDelete == "" and titleToDelete == "" and pathStrToDelete == "" and sizeToDelete == -1 and durationToDelete == -1 and resolutionToDelete == -1 and ratingToDelete == -1 and fileNotExistToDelete == False:
         stash.Error("Running advance menu option with no options enabled.")
         return
@@ -1012,7 +1097,11 @@ def manageTagggedDuplicates(deleteScenes=False, clearTag=False, setGrayListTag=F
     QtyFailedQuery = 0
     stash.Debug("#########################################################################")
     stash.startSpinningProcessBar()
-    scenes = stash.find_scenes(f={"tags": {"value":tagId, "modifier":"INCLUDES"}}, fragment='id tags {id name} files {path width height duration size video_codec bit_rate frame_rate} details title rating100')
+    if isTagOnlyScenes or advanceMenuOptionSelected == False:
+        stash.Log(f"Getting candidates for deletion by using tag-ID {tagId} and tag-name {tagName}; isTagOnlyScenes={isTagOnlyScenes};advanceMenuOptionSelected={advanceMenuOptionSelected}")
+        scenes = stash.find_scenes(f={"tags": {"value":tagId, "modifier":"INCLUDES"}}, fragment='id tags {id name} files {path width height duration size video_codec bit_rate frame_rate} details title rating100')
+    else:
+        scenes = getScenesFromReport()
     stash.stopSpinningProcessBar()
     qtyResults = len(scenes)
     stash.Log(f"Found {qtyResults} scenes with tag ({duplicateMarkForDeletion})")
@@ -1062,6 +1151,12 @@ def manageTagggedDuplicates(deleteScenes=False, clearTag=False, setGrayListTag=F
             if advanceMenuOptionSelected:
                 if isBlackList:
                     if not stash.startsWithInList(blacklist, scene['files'][0]['path']):
+                        continue
+                if isGrayList:
+                    if not stash.startsWithInList(graylist, scene['files'][0]['path']):
+                        continue
+                if isPinkList:
+                    if not stash.startsWithInList(pinklist, scene['files'][0]['path']):
                         continue
                 if pathToDelete != "":
                     if not DupFileName.lower().startswith(pathToDelete):
@@ -1133,7 +1228,7 @@ def manageTagggedDuplicates(deleteScenes=False, clearTag=False, setGrayListTag=F
                 if fileNotExistToDelete:
                     if os.path.isfile(scene['files'][0]['path']):
                         continue
-            stash.Warn(f"Deleting duplicate '{DupFileName}'", toAscii=True, printTo=LOG_STASH_N_PLUGIN)
+            stash.Log(f"Deleting duplicate '{DupFileName}'", toAscii=True, printTo=LOG_STASH_N_PLUGIN)
             if alternateTrashCanPath != "":
                 destPath = f"{alternateTrashCanPath }{os.sep}{DupFileNameOnly}"
                 if os.path.isfile(destPath):
@@ -1142,6 +1237,7 @@ def manageTagggedDuplicates(deleteScenes=False, clearTag=False, setGrayListTag=F
             elif moveToTrashCan:
                 sendToTrash(DupFileName)
             result = stash.destroyScene(scene['id'], delete_file=True)
+            updateDuplicateCandidateForDeletionList(scene['id'], removeScene = True)
             QtyDeleted += 1
             stash.Debug(f"destroyScene result={result} for file {DupFileName};QtyDeleted={QtyDeleted};Count={QtyDup} of {qtyResults}", toAscii=True)
         else:
@@ -1217,6 +1313,7 @@ def mergeTags():
         sys.stdout.write("{" + f"mergeTags : 'failed', id1: '{scene1}', id2: '{scene2}'" + "}")
         return
     stash.mergeMetadata(scene1, scene2)
+    updateScenesInReports(scene2['id'])
     stash.Log(f"Done merging scenes for scene {scene1['id']} and scene {scene2['id']}")
     sys.stdout.write("{" + f"mergeTags : 'complete', id1: '{scene1['id']}', id2: '{scene2['id']}'" + "}")
 
@@ -1277,8 +1374,33 @@ def removeAllDupTagsFromAllScenes(deleteTags=False):
     else:
         stash.Log(f"Clear tags {tagsToClear}")
 
+def updateDuplicateCandidateForDeletionList(scene, removeScene = False):
+    lines = None
+    if not os.path.isfile(DuplicateCandidateForDeletionList):
+        return
+    with open(DuplicateCandidateForDeletionList, 'r') as file:
+        lines = file.readlines()
+    if removeScene:
+        scene_id = scene
+    else:
+        scene_id = scene['id']
+    foundScene = False
+    with open(DuplicateCandidateForDeletionList, 'w') as file:
+        for line in lines:
+            if foundScene:
+                file.write(line)
+            else:
+                sceneDetails = json.loads(line)
+                if sceneDetails['id'] == scene_id:
+                    if not removeScene:
+                        file.write(json.dumps(scene) + "\n")
+                    foundScene = True
+                else:
+                    file.write(line)
+
 def updateScenesInReport(fileName, scene):
     stash.Log(f"Updating table rows with scene {scene} in file {fileName}")
+    results = False
     scene1 = -1
     scene2 = -1
     strToFind = "class=\"ID_"
@@ -1286,10 +1408,12 @@ def updateScenesInReport(fileName, scene):
     with open(fileName, 'r') as file:
         lines = file.readlines()
     stash.Log(f"line count = {len(lines)}")
+    stash.Log(f"Searching for class=\"ID_{scene}\"")
     with open(fileName, 'w') as file:
         for line in lines:
             # stash.Debug(f"line = {line}")
             if f"class=\"ID_{scene}\"" in line:
+                stash.Debug(f"Found class ID_{scene} in line: {line}")
                 idx = 0
                 while line.find(strToFind, idx) > -1:
                     idx = line.find(strToFind, idx) + len(strToFind)
@@ -1304,30 +1428,41 @@ def updateScenesInReport(fileName, scene):
                     elif scene1 != -1 and scene2 != -1:
                         break
                 if scene1 != -1 and scene2 != -1:
-                    sceneDetail1 = stash.find_scene(scene1)
-                    sceneDetail2 = stash.find_scene(scene2)
-                    if sceneDetail1 == None or sceneDetail2 == None:
-                        stash.Error("Could not get scene details for both scene1 ({scene1}) and scene2  ({scene2}); sceneDetail1={sceneDetail1}; sceneDetail2={sceneDetail2};")
+                    sceneDetails1 = stash.find_scene(scene1, fragment=fragmentForSceneDetails + htmlFileData)
+                    sceneDetails2 = stash.find_scene(scene2, fragment=fragmentForSceneDetails + htmlFileData)
+                    if sceneDetails1 == None or sceneDetails2 == None:
+                        stash.Error("Could not get scene details for both scene1 ({scene1}) and scene2  ({scene2}); sceneDetails1={sceneDetails1}; sceneDetails2={sceneDetails2};")
                     else:
-                        writeRowToHtmlReport(file, sceneDetail1, sceneDetail2)
+                        stash.Log(f"Updating in report {fileName} scene {scene1} and scene {scene2}")
+                        writeRowToHtmlReport(file, sceneDetails1, sceneDetails2)
+                        if scene == sceneDetails1['id']:
+                            results = True
+                            updateDuplicateCandidateForDeletionList(sceneDetails1)
                 else:
                     stash.Error(f"Could not get both scene ID associated with scene {scene}; scene1 = {scene1}; scene2 = {scene2}")
                     file.write(line)
             else:
                 file.write(line)
+    if scene1 == -1 or scene2 == -1:
+        stash.Log(f"Did not find both scene ID's associated with scene {scene}; scene1 = {scene1}; scene2 = {scene2}")
+    return results
 
 def updateScenesInReports(scene, ReportName = htmlReportName):
     if os.path.isfile(ReportName):
-        updateScenesInReport(ReportName, scene)
+        if updateScenesInReport(ReportName, scene):
+            return
         for x in range(2, 9999):
             fileName = ReportName.replace(".html", f"_{x-1}.html")
             stash.Debug(f"Checking if file '{fileName}' exist.")
             if not os.path.isfile(fileName):
                 break
-            updateScenesInReport(fileName, scene)
+            if updateScenesInReport(fileName, scene):
+                break
+        stash.Debug("updateScenesInReports complete")
     else:
         stash.Log(f"Report file does not exist: {ReportName}")
 
+deleteSceneFlagBgColor = "#646464"
 def addPropertyToSceneClass(fileName, scene, property):
     stash.Log(f"Inserting property {property} for scene {scene} in file {fileName}")
     doStyleEndTagCheck = True
@@ -1339,14 +1474,20 @@ def addPropertyToSceneClass(fileName, scene, property):
         for line in lines:
             # stash.Debug(f"line = {line}")
             if doStyleEndTagCheck:
-                if property == "" and line.startswith(f".ID_{scene}" + "{"):
-                    continue
-                if line.startswith("</style>"):
-                    if property != "":
-                        styleSetting = f".ID_{scene}{property}\n"
-                        stash.Log(f"styleSetting = {styleSetting}")
-                        file.write(styleSetting)
-                    doStyleEndTagCheck = False
+                if scene == None:
+                    if line.startswith(f".ID_") and deleteSceneFlagBgColor not in line:
+                        continue
+                    elif line.startswith("</style>"):
+                        doStyleEndTagCheck = False
+                else:
+                    if property == "" and line.startswith(f".ID_{scene}" + "{"):
+                        continue
+                    if line.startswith("</style>"):
+                        if property != "":
+                            styleSetting = f".ID_{scene}{property}\n"
+                            stash.Log(f"styleSetting = {styleSetting}")
+                            file.write(styleSetting)
+                        doStyleEndTagCheck = False
             file.write(line)
 
 def addPropertyToSceneClassToAllFiles(scene, property, ReportName = htmlReportName):
@@ -1370,9 +1511,15 @@ def deleteScene(disableInReport=True, deleteFile=True):
     result = None
     result = stash.destroyScene(scene, delete_file=deleteFile)
     if disableInReport:
-        addPropertyToSceneClassToAllFiles(scene, "{background-color:gray;pointer-events:none;}")
+        addPropertyToSceneClassToAllFiles(scene, "{background-color:" + deleteSceneFlagBgColor + ";pointer-events:none;}")
+    updateDuplicateCandidateForDeletionList(scene, removeScene = True)
     stash.Log(f"{stash.PLUGIN_TASK_NAME} complete for scene {scene} with results = {result}")
     sys.stdout.write("{" + f"{stash.PLUGIN_TASK_NAME} : 'complete', id: '{scene}', result: '{result}'" + "}")
+
+def clearAllSceneFlags():
+    addPropertyToSceneClassToAllFiles(None, None)
+    stash.Log(f"{stash.PLUGIN_TASK_NAME} complete for all scenes")
+    sys.stdout.write("{" + f"{stash.PLUGIN_TASK_NAME} : 'complete'" + "}")
 
 def copyScene(moveScene=False):
     scene1, scene2 = getParseData()
@@ -1384,6 +1531,7 @@ def copyScene(moveScene=False):
     result = shutil.copy(scene1['files'][0]['path'], scene2['files'][0]['path'])
     if moveScene:
         result = stash.destroyScene(scene1['id'], delete_file=True)
+        updateDuplicateCandidateForDeletionList(scene1['id'], removeScene = True)
         stash.Log(f"destroyScene for scene {scene1['id']} results = {result}")
     stash.Log(f"{stash.PLUGIN_TASK_NAME} complete for scene {scene1['id']} and {scene2['id']}")
     sys.stdout.write("{" + f"{stash.PLUGIN_TASK_NAME} : 'complete', id1: '{scene1['id']}', id2: '{scene2['id']}', result: '{result}'" + "}")
@@ -1481,6 +1629,9 @@ try:
         stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
     elif stash.PLUGIN_TASK_NAME == "flagScene":
         flagScene()
+        stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
+    elif stash.PLUGIN_TASK_NAME == "clearAllSceneFlags":
+        clearAllSceneFlags()
         stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
     elif stash.PLUGIN_TASK_NAME == "copyScene":
         copyScene()

@@ -1,6 +1,6 @@
 name: DupFileManager
 description: Manages duplicate files.
-version: 0.2.1
+version: 0.2.2
 url: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/DupFileManager
 ui:
   javascript:
@@ -33,6 +33,10 @@ settings:
   zxBlacklist:
     displayName: Black List
     description: Least preferential paths; Determine primary deletion candidates. E.g. C:\Downloads,C:\DelMe-3rd,C:\DelMe-2nd,C:\DeleteMeFirst
+    type: STRING
+  zxPinklist:
+    displayName: Pink List
+    description: An [Advance Duplicate File Deletion Menu] option for deletion using paths. E.g. C:\SomeRandomDir,E:\DelPath2
     type: STRING
   zyMaxDupToProcess:
     displayName: Max Dup Process

@@ -42,12 +42,8 @@ exitMsg = "Change success!!"
 # **********************************************************************
 # ----------------------------------------------------------------------
 settings = {
-    "performerAppend": False,
-    "studioAppend": False,
-    "tagAppend": False,
     "yRenameEvenIfTitleEmpty": False,
     "z_keyFIeldsIncludeInFileName": False,
-    "zafileRenameViaMove": False,
     "zfieldKeyList": DEFAULT_FIELD_KEY_LIST,
     "zmaximumTagKeys": 12,
     "zseparators": DEFAULT_SEPERATOR,
@@ -114,7 +110,7 @@ if endpointHost == "0.0.0.0":
 endpoint = f"{stash.JSON_INPUT['server_connection']['Scheme']}://{endpointHost}:{stash.JSON_INPUT['server_connection']['Port']}/graphql"
 
 # stash.Trace(f"(endpoint={endpoint})")
-move_files = stash.pluginSettings["zafileRenameViaMove"]
+move_files = stash.Setting("fileRenameViaMove")
 fieldKeyList = stash.pluginSettings["zfieldKeyList"] # Default Field Key List with the desired order
 if not fieldKeyList or fieldKeyList == "":
     fieldKeyList = DEFAULT_FIELD_KEY_LIST
@@ -150,7 +146,7 @@ def getPerformers(scene, title):
     title = title.lower()
     results = ""
     for performer in scene['performers']:
-        name = stash.find_performer(performer['id'])['name']
+        name = performer['name']
         stash.Trace(f"performer = {name}")
         if not include_keyField_if_in_name:
             if name.lower() in title:
@@ -162,7 +158,7 @@ def getPerformers(scene, title):
 def getGalleries(scene, title):
     results = ""
     for gallery in scene['galleries']:
-        name = stash.find_gallery(gallery['id'])['title']
+        name = gallery = stash.find_gallery(gallery['id'])['title']
         stash.Trace(f"gallery = {name}")
         if not include_keyField_if_in_name:
             if name.lower() in title:
@@ -175,10 +171,9 @@ def getTags(scene, title):
     title = title.lower()
     results = ""
     for tag in scene['tags']:
-        tag_details = stash.find_tag(int(tag['id']))
-        name = tag_details['name']
+        name = tag['name']
         stash.Trace(f"tag = {name}")
-        if excludeIgnoreAutoTags == True and tag_details['ignore_auto_tag'] == True:
+        if excludeIgnoreAutoTags == True and tag['ignore_auto_tag'] == True:
             stash.Trace(f"Skipping tag name '{name}' because ignore_auto_tag is True.")
             continue
         if not include_keyField_if_in_name:
@@ -231,8 +226,12 @@ def form_filename(original_file_stem, scene_details):
     
     for key in fieldKeyList:
         if key == 'studio':
-            if stash.pluginSettings["studioAppend"]:
-                studio_name = scene_details.get('code', {})
+            if stash.Setting("studioAppendEnable"):
+                studio = scene_details.get('studio')
+                if studio != None:
+                    studio_name = studio.get('name')
+                else:
+                    studio_name = None
                 stash.Trace(f"(studio_name={studio_name})")
                 if studio_name:
                     studio_name += POSTFIX_STYLES.get('studio')
@@ -251,7 +250,7 @@ def form_filename(original_file_stem, scene_details):
                 else:
                     filename_parts.append(title)
         elif key == 'performers':
-            if stash.pluginSettings["performerAppend"]:
+            if stash.Setting("performerAppendEnable"):
                 performers = getPerformers(scene_details, title)
                 if performers != "":
                     performers += POSTFIX_STYLES.get('performers')
@@ -261,7 +260,7 @@ def form_filename(original_file_stem, scene_details):
                     else:
                         filename_parts.append(performers)
         elif key == 'date':
-            scene_date = scene_details.get('date', '')
+            scene_date = scene_details.get('date')
             if scene_date:
                 scene_date += POSTFIX_STYLES.get('date')
                 if WRAPPER_STYLES.get('date'):
@@ -269,8 +268,10 @@ def form_filename(original_file_stem, scene_details):
                 if scene_date not in title:
                     filename_parts.append(scene_date)
         elif key == 'resolution':
-            width = str(scene_details.get('files', [{}])[0].get('width', ''))  # Convert width to string
-            height = str(scene_details.get('files', [{}])[0].get('height', ''))  # Convert height to string
+            # width = str(scene_details.get('files', [{}])[0].get('width', ''))  # Convert width to string
+            # height = str(scene_details.get('files', [{}])[0].get('height', ''))  # Convert height to string
+            width = str(scene_details['files'][0]['width'])
+            height = str(scene_details['files'][0]['height'])
             if width and height:
                 resolution = width + POSTFIX_STYLES.get('width_height_seperator') + height + POSTFIX_STYLES.get('resolution')
                 if WRAPPER_STYLES.get('resolution'):
@@ -278,7 +279,7 @@ def form_filename(original_file_stem, scene_details):
                 if resolution not in title:
                     filename_parts.append(resolution)
         elif key == 'width':
-            width = str(scene_details.get('files', [{}])[0].get('width', ''))  # Convert width to string
+            width = str(scene_details['files'][0]['width'])
             if width:
                 width += POSTFIX_STYLES.get('width')
                 if WRAPPER_STYLES.get('width'):
@@ -286,7 +287,7 @@ def form_filename(original_file_stem, scene_details):
                 if width not in title:
                     filename_parts.append(width)
         elif key == 'height':
-            height = str(scene_details.get('files', [{}])[0].get('height', ''))  # Convert height to string
+            height = str(scene_details['files'][0]['height'])
             if height:
                 height += POSTFIX_STYLES.get('height')
                 if WRAPPER_STYLES.get('height'):
@@ -294,7 +295,7 @@ def form_filename(original_file_stem, scene_details):
                 if height not in title:
                     filename_parts.append(height)
         elif key == 'video_codec':
-            video_codec = scene_details.get('files', [{}])[0].get('video_codec', '').upper()  # Convert to uppercase
+            video_codec = scene_details['files'][0]['video_codec'].upper()  # Convert to uppercase
             if video_codec:
                 video_codec += POSTFIX_STYLES.get('video_codec')
                 if WRAPPER_STYLES.get('video_codec'):
@@ -302,7 +303,7 @@ def form_filename(original_file_stem, scene_details):
                 if video_codec not in title:
                     filename_parts.append(video_codec)
         elif key == 'frame_rate':
-            frame_rate = str(scene_details.get('files', [{}])[0].get('frame_rate', '')) + 'FPS'  # Convert to string and append ' FPS'
+            frame_rate = str(scene_details['files'][0]['frame_rate']) + 'FPS'  # Convert to string and append ' FPS'
             if frame_rate:
                 frame_rate += POSTFIX_STYLES.get('frame_rate')
                 if WRAPPER_STYLES.get('frame_rate'):
@@ -319,7 +320,7 @@ def form_filename(original_file_stem, scene_details):
                     filename_parts.append(galleries)
                 stash.Trace(f"(galleries={galleries})")
         elif key == 'tags':
-            if stash.pluginSettings["tagAppend"]:
+            if stash.Setting("tagAppendEnable"):
                 tags = getTags(scene_details, title)
                 if tags != "":
                     tags += POSTFIX_STYLES.get('tag')
@@ -343,7 +344,8 @@ def form_filename(original_file_stem, scene_details):
 def rename_scene(scene_id):  
     global exitMsg
     POST_SCAN_DELAY = 3
-    scene_details = stash.find_scene(scene_id)
+    fragment = 'id title performers {name} tags {id name ignore_auto_tag} studio {name} galleries {id} files {id path width height video_codec frame_rate} date'
+    scene_details = stash.find_scene(scene_id, fragment)
     stash.Trace(f"(scene_details={scene_details})")
     if not scene_details:
         stash.Error(f"Scene with ID {scene_id} not found.")
