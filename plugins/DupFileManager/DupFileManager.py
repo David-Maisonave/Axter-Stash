@@ -557,6 +557,39 @@ def getSceneID(scene):
 def fileNameClassID(scene):
     return f" class=\"FN_ID_{scene['id']}\" "
 
+def doesDelCandidateHaveMetadataNotInDupToKeep(DupFile, DupFileToKeep, listName, itemName = 'name'):
+    DelCandidateItems = []
+    DupToKeepItems = []
+    DupToKeepMissingItem = False
+    DelCandidateMissingItem = False
+    for item in DupFileToKeep[listName]:
+        if listName != 'tags' or not item['ignore_auto_tag']:
+            if listName == "groups":
+                DupToKeepItems += [item['group']['name']]
+            elif listName == "galleries":
+                item = stash.getGalleryName(item['id'])
+                DupToKeepItems += [item[itemName]]
+            else:
+                DupToKeepItems += [item[itemName]]
+    for item in DupFile[listName]:
+        if listName != 'tags' or not item['ignore_auto_tag']:
+            if listName == "groups":
+                name = item['group'][itemName]
+            elif listName == "galleries":
+                item = stash.getGalleryName(item['id'])
+                name = item[itemName]
+            else:
+                name = item[itemName]
+            DelCandidateItems += [name]
+            if name not in DupToKeepItems:
+                DupToKeepMissingItem = True
+    for name in DupToKeepItems:
+        if name not in DelCandidateItems:
+            DelCandidateMissingItem = True
+            break
+    return DupToKeepMissingItem, DelCandidateMissingItem
+
+
 htmlReportNameFolder        = f"{stash.PLUGINS_PATH}{os.sep}DupFileManager{os.sep}report"
 htmlReportName              = f"{htmlReportNameFolder}{os.sep}{stash.Setting('htmlReportName')}"
 htmlReportTableRow          = stash.Setting('htmlReportTableRow')
@@ -568,10 +601,14 @@ htmlPreviewOrStream         = "stream" if stash.Setting('streamOverPreview') els
 
 def writeRowToHtmlReport(fileHtmlReport, DupFile, DupFileToKeep, QtyTagForDel = "?", tagDuplicates = False):
     fileDoesNotExistStr = "<b style='color:red;background-color:yellow;font-size:10px;'>[File NOT Exist]<b>"
-    htmlTagPrefix = '<div class="dropdown_icon"><img src="https://www.axter.com/images/stash/tag.png" alt="Tags" style="width:20px;height:20px;"><i class="fa fa-caret-down"></i><div class="dropdown_tag-content">'
-    htmlPerformerPrefix = '<div class="dropdown_icon"><img src="https://www.axter.com/images/stash/performer.png" alt="Performers" title="Performers" style="width:20px;height:20px;"><i class="fa fa-caret-down"></i><div class="dropdown_performer-content">'
-    htmlGalleryPrefix = '<div class="dropdown_icon"><img src="https://www.axter.com/images/stash/galleries.png" alt="Galleries" title="Galleries" style="width:20px;height:20px;"><i class="fa fa-caret-down"></i><div class="dropdown_gallery-content">'
-    htmlGroupPrefix = '<div class="dropdown_icon"><img src="https://www.axter.com/images/stash/group.png" alt="Groups" title="Groups" style="width:20px;height:20px;"><i class="fa fa-caret-down"></i><div class="dropdown_group-content">'
+    defaultColorTag = "BlueTag.png"
+    defaultColorPerformer = "Headshot.png"
+    defaultColorGalleries = "Galleries.png"
+    defaultColorGroup = "Group.png"
+    htmlTagPrefix = '<div class="dropdown_icon"><img src="https://www.axter.com/images/stash/' + defaultColorTag + '" alt="Tags" style="width:20px;height:20px;"><i class="fa fa-caret-down"></i><div class="dropdown_tag-content">'
+    htmlPerformerPrefix = '<div class="dropdown_icon"><img src="https://www.axter.com/images/stash/' + defaultColorPerformer + '" alt="Performers" title="Performers" style="width:20px;height:20px;"><i class="fa fa-caret-down"></i><div class="dropdown_performer-content">'
+    htmlGalleryPrefix = '<div class="dropdown_icon"><img src="https://www.axter.com/images/stash/' + defaultColorGalleries + '" alt="Galleries" title="Galleries" style="width:20px;height:20px;"><i class="fa fa-caret-down"></i><div class="dropdown_gallery-content">'
+    htmlGroupPrefix = '<div class="dropdown_icon"><img src="https://www.axter.com/images/stash/' + defaultColorGroup + '" alt="Groups" title="Groups" style="width:20px;height:20px;"><i class="fa fa-caret-down"></i><div class="dropdown_group-content">'
     dupFileExist = True if os.path.isfile(DupFile['files'][0]['path']) else False
     toKeepFileExist = True if os.path.isfile(DupFileToKeep['files'][0]['path']) else False
     fileHtmlReport.write(f"{htmlReportTableRow}")
@@ -640,25 +677,41 @@ def writeRowToHtmlReport(fileHtmlReport, DupFile, DupFileToKeep, QtyTagForDel = 
         fileHtmlReport.write("</div></div>")
     else:
         fileHtmlReport.write(fileDoesNotExistStr)
+    DupToKeepMissingTag, DelCandidateMissingTag = doesDelCandidateHaveMetadataNotInDupToKeep(DupFile, DupFileToKeep, 'tags')
     if len(DupFile['tags']) > 0:
-        fileHtmlReport.write(htmlTagPrefix)
+        if DupToKeepMissingTag:
+            fileHtmlReport.write(htmlTagPrefix.replace(defaultColorTag, "YellowTag.png"))
+        else:
+            fileHtmlReport.write(htmlTagPrefix)
         for tag in DupFile['tags']:
             # if not tag['ignore_auto_tag']:
             fileHtmlReport.write(f"<div style='color:black;font-size: 12px;'>{tag['name']}</div>")
         fileHtmlReport.write("</div></div>")
+    DupToKeepMissingPerformer, DelCandidateMissingPerformer = doesDelCandidateHaveMetadataNotInDupToKeep(DupFile, DupFileToKeep, 'performers')
     if len(DupFile['performers']) > 0:
-        fileHtmlReport.write(htmlPerformerPrefix)
+        if DupToKeepMissingPerformer:
+            fileHtmlReport.write(htmlPerformerPrefix.replace(defaultColorPerformer, "YellowHeadshot.png"))
+        else:
+            fileHtmlReport.write(htmlPerformerPrefix)
         for performer in DupFile['performers']:
             fileHtmlReport.write(f"<div style='color:black;font-size: 12px;'>{performer['name']}</div>")
         fileHtmlReport.write("</div></div>")
+    DupToKeepMissingGallery, DelCandidateMissingGallery = doesDelCandidateHaveMetadataNotInDupToKeep(DupFile, DupFileToKeep, 'galleries', 'title')
     if len(DupFile['galleries']) > 0:
-        fileHtmlReport.write(htmlGalleryPrefix)
+        if DupToKeepMissingGallery:
+            fileHtmlReport.write(htmlGalleryPrefix.replace(defaultColorGalleries, "YellowGalleries.png"))
+        else:
+            fileHtmlReport.write(htmlGalleryPrefix)
         for gallery in DupFile['galleries']:
-            gallery = stash.find_gallery(gallery['id'])
+            gallery = stash.getGalleryName(gallery['id'])
             fileHtmlReport.write(f"<div style='color:black;font-size: 12px;'>{gallery['title']}</div>")
         fileHtmlReport.write("</div></div>")
+    DupToKeepMissingGroup, DelCandidateMissingGroup = doesDelCandidateHaveMetadataNotInDupToKeep(DupFile, DupFileToKeep, 'groups')
     if len(DupFile['groups']) > 0:
-        fileHtmlReport.write(htmlGroupPrefix)
+        if DupToKeepMissingGroup:
+            fileHtmlReport.write(htmlGroupPrefix.replace(defaultColorGroup, "YellowGroup.png"))
+        else:
+            fileHtmlReport.write(htmlGroupPrefix)
         for group in DupFile['groups']:
             fileHtmlReport.write(f"<div style='color:black;font-size: 12px;'>{group['group']['name']}</div>")
         fileHtmlReport.write("</div></div>")
@@ -706,24 +759,36 @@ def writeRowToHtmlReport(fileHtmlReport, DupFile, DupFileToKeep, QtyTagForDel = 
         fileHtmlReport.write(fileDoesNotExistStr)
     
     if len(DupFileToKeep['tags']) > 0:
-        fileHtmlReport.write(htmlTagPrefix)
+        if DelCandidateMissingTag:
+            fileHtmlReport.write(htmlTagPrefix.replace(defaultColorTag, "RedTag.png"))
+        else:
+            fileHtmlReport.write(htmlTagPrefix)
         for tag in DupFileToKeep['tags']:
             # if not tag['ignore_auto_tag']:
             fileHtmlReport.write(f"<div style='color:black;font-size: 12px;'>{tag['name']}</div>")
         fileHtmlReport.write("</div></div>")
     if len(DupFileToKeep['performers']) > 0:
-        fileHtmlReport.write(htmlPerformerPrefix)
+        if DelCandidateMissingPerformer:
+            fileHtmlReport.write(htmlPerformerPrefix.replace(defaultColorPerformer, "PinkHeadshot.png"))
+        else:
+            fileHtmlReport.write(htmlPerformerPrefix)
         for performer in DupFileToKeep['performers']:
             fileHtmlReport.write(f"<div style='color:black;font-size: 12px;'>{performer['name']}</div>")
         fileHtmlReport.write("</div></div>")
     if len(DupFileToKeep['galleries']) > 0:
-        fileHtmlReport.write(htmlGalleryPrefix)
+        if DelCandidateMissingGallery:
+            fileHtmlReport.write(htmlGalleryPrefix.replace(defaultColorGalleries, "PinkGalleries.png"))
+        else:
+            fileHtmlReport.write(htmlGalleryPrefix)
         for gallery in DupFileToKeep['galleries']:
-            gallery = stash.find_gallery(gallery['id'])
+            gallery = stash.getGalleryName(gallery['id'])
             fileHtmlReport.write(f"<div style='color:black;font-size: 12px;'>{gallery['title']}</div>")
         fileHtmlReport.write("</div></div>")
     if len(DupFileToKeep['groups']) > 0:
-        fileHtmlReport.write(htmlGroupPrefix)
+        if DelCandidateMissingGroup:
+            fileHtmlReport.write(htmlGroupPrefix.replace(defaultColorGroup, "PinkGroup.png"))
+        else:
+            fileHtmlReport.write(htmlGroupPrefix)
         for group in DupFileToKeep['groups']:
             fileHtmlReport.write(f"<div style='color:black;font-size: 12px;'>{group['group']['name']}</div>")
         fileHtmlReport.write("</div></div>")

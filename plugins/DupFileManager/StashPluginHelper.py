@@ -92,6 +92,7 @@ class StashPluginHelper(StashInterface):
     stopProcessBarSpin = True
     updateProgressbarOnIter = 0
     currentProgressbarIteration = 0
+    galleryNamesCache = {}
     
     class OS_Type(IntEnum):
         WINDOWS = 1
@@ -773,6 +774,14 @@ class StashPluginHelper(StashInterface):
                 errMsg = f"Exception calling [updateScene]. Will retry; count({i}); Error: {e}\nTraceBack={tb}"
             time.sleep(sleepSecondsBetweenRetry)
     
+    # getGalleryName uses a cache so it doesn't have to hit the server for the same ID.
+    def getGalleryName(self, gallery_id, refreshCache=False):
+        if refreshCache:
+            self.galleryNamesCache = {}
+        if gallery_id not in self.galleryNamesCache:
+            self.galleryNamesCache[gallery_id] = self.find_gallery(gallery_id)
+        return self.galleryNamesCache[gallery_id]
+    
     def runPlugin(self, plugin_id, task_mode=None, args:dict={}, asyn=False):
         """Runs a plugin operation.
            The operation is run immediately and does not use the job queue.
@@ -986,6 +995,8 @@ class mergeMetadata: # A class to merge scene metadata from source scene to dest
         self.mergeItems('tags', 'tag_ids', [], excludeName=self.excludeMergeTags)
         self.mergeItems('performers', 'performer_ids', [])
         self.mergeItems('galleries', 'gallery_ids', [])
+        # ToDo: Firgure out how to merge groups
+        # self.mergeItems('groups', 'group_ids')
         # Looks like movies has been removed from new Stash version
         # self.mergeItems('movies', 'movies', [])
         self.mergeItems('urls', listToAdd=self.destData['urls'], NotStartWith=self.stash.STASH_URL)
@@ -1020,9 +1031,13 @@ class mergeMetadata: # A class to merge scene metadata from source scene to dest
             if item not in self.destData[fieldName]:
                 if NotStartWith == None or not item.startswith(NotStartWith):
                     if excludeName == None or item['name'] not in excludeName:
-                        if fieldName == 'movies':
-                            listToAdd += [{"movie_id" : item['movie']['id'], "scene_index" : item['scene_index']}]
-                            dataAdded += f"{item['movie']['id']} "                    
+                        if fieldName == 'groups':
+                            # listToAdd += [{"group_id" : item['group']['id'], "group_name" : item['group']['name']}]
+                            listToAdd += [item['group']['id']]
+                            dataAdded += f"{item['group']['id']} "                    
+                        # elif fieldName == 'movies':
+                            # listToAdd += [{"movie_id" : item['movie']['id'], "scene_index" : item['scene_index']}]
+                            # dataAdded += f"{item['movie']['id']} "                    
                         elif updateFieldName == None:
                             listToAdd += [item]
                             dataAdded += f"{item} "

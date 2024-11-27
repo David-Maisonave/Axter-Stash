@@ -31,3 +31,8 @@
 - Added report option to delete by flags set on the report.
 ### 1.0.0.1
 - Fixed bug with report delete scene request.
+### 1.0.0.2
+- In the report, made icon colors for tags, performers, galleries, and groups with different colors if they don't match. In other words, use different color icons if **candidate to delete** doesn't match **duplicate to keep** associated icon data.
+  - If data for associated icon are the same, then both icons are black or blue (the default color).
+  - If [**duplicate to keep**] is missing data that is in [**candidate to delete**], than [**candidate to delete**] gets a yellow icon.
+  - If [**candidate to delete**] is missing data that is in [**duplicate to keep**], than [**duplicate to keep**] gets a pink icon.
