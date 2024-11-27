@@ -20,3 +20,12 @@
 - Added pinklist option to Settings->Plugins->Plugins and to [**Advance Duplicate File Deletion Menu**]
   - The pinklist is only used with the [**Advance Duplicate File Deletion Menu**], and it's **NOT** used in the primary process to selected candidates for deletion.
 - Advance Menu now works with non-tagged scenes that are in the current report.
+### 1.0.0
+- Consolidated buttons and links on report into dropdown buttons.
+- On report, added dropdown menu options for flags.
+- Rename Tools-UI advance duplicate tagged menu to [**Advance Duplicate File Deletion Menu**]
+- When [**Advance Duplicate File Deletion Menu**] completes report, gives user prompt to open the report in browser.
+- Added performance enhancement for removing (clearing) duplicate tags from all scenes by using SQL call.
+- Added option to report to delete files that do not exist by duplicate candidates in report, as well as by tagged files.
+- Added logic to disable scene in report if deleted by [**Advance Duplicate File Deletion Menu**]. Note: Requires a refresh.
+- Added report option to delete by flags set on the report.

@@ -65,7 +65,7 @@ li:hover .large {
    box-shadow: 1px 1px 3px 3px rgba(127, 127, 127, 0.15);;
 }
 /******** Dropdown buttons *********/
-.dropdown .dropdown_tag .dropdown_performer .dropdown_gallery .dropbtn {
+.dropdown {
   font-size: 14px;
   border: none;
   outline: none;
@@ -94,6 +94,40 @@ li:hover .large {
 .dropdown:hover .dropdown-content {
   display: block;
 }
+/*** Dropdown Buttons in Table ***/
+.dropbtn_table {
+  font-size: 14px;
+  border: none;
+  outline: none;
+  color: white;
+  padding: 6px 10px;
+  background-color: transparent;
+  font-family: inherit; /* Important for vertical align on mobile phones */
+  margin: 0; /* Important for vertical align on mobile phones */
+  float:left;
+}
+.dropbtn_table-content{
+  display: none;
+  position: absolute;
+  background-color: inherit;
+  min-width: 80px;
+  box-shadow: 0px 4px 12px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+.dropbtn_table:hover .dropbtn_table-content {
+  display: block;
+} 
+.links_table-content{
+  display: none;
+  position: absolute;
+  background-color: AntiqueWhite;
+  min-width: 80px;
+  box-shadow: 0px 4px 12px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+.dropbtn_table:hover .links_table-content {
+  display: block;
+} 
 /*************-- Dropdown Icons --*************/
 .dropdown_icon {
 	height:22px;
@@ -187,6 +221,10 @@ function trim(str, ch) {
     return (start > 0 || end < str.length) ? str.substring(start, end) : str;
 }
 function RunPluginOperation(Mode, ActionID, button, asyncAjax){
+	if (asyncAjax){
+        $('html').addClass('wait');
+        $("body").css("cursor", "progress");
+    }
 	var chkBxRemoveValid = document.getElementById("RemoveValidatePrompt");
     if (apiKey !== "")
         $.ajaxSetup({beforeSend: function(xhr) {xhr.setRequestHeader('apiKey', apiKey);}});    
@@ -196,13 +234,44 @@ function RunPluginOperation(Mode, ActionID, button, asyncAjax){
 			variables: {"plugin_id": "DupFileManager", "args": { "Target" : ActionID, "mode":Mode}},
 		}), success: function(result){
 			console.log(result);
-            if (Mode === "renameFile" || Mode === "clearAllSceneFlags" || Mode === "mergeTags")
+            if (asyncAjax){
+                $('html').removeClass('wait');
+                $("body").css("cursor", "default");
+            }
+            if (Mode === "renameFile" || Mode === "clearAllSceneFlags" || Mode === "mergeTags" || (Mode !== "deleteScene" && Mode.startsWith("deleteScene")))
                 location.replace(location.href); 
-			if (!chkBxRemoveValid.checked) alert("Action " + Mode + " for scene(s) ID# " + ActionID + " complete.");
+			if (!chkBxRemoveValid.checked && Mode !== "flagScene") alert("Action " + Mode + " for scene(s) ID# " + ActionID + " complete.\\n\\nResults=" + result);
 		}, error: function(XMLHttpRequest, textStatus, errorThrown) { 
 			console.log("Ajax failed with Status: " + textStatus + "; Error: " + errorThrown); 
+            if (asyncAjax){
+                $('html').removeClass('wait');
+                $("body").css("cursor", "default");
+            }
 		}  
 	});
+}
+function SetFlagOnScene(flagType, ActionID){
+	if (flagType === "yellow highlight")
+		$('.ID_' + ActionID).css('background','yellow');
+	else if (flagType === "green highlight")
+		$('.ID_' + ActionID).css('background','#00FF00');
+	else if (flagType === "orange highlight")
+		$('.ID_' + ActionID).css('background','orange');
+	else if (flagType === "cyan highlight")
+		$('.ID_' + ActionID).css('background','cyan');
+	else if (flagType === "pink highlight")
+		$('.ID_' + ActionID).css('background','pink');
+	else if (flagType === "red highlight")
+		$('.ID_' + ActionID).css('background','red');
+	else if (flagType === "strike-through")
+		$('.ID_' + ActionID).css('text-decoration', 'line-through');
+	else if (flagType === "disable-scene")
+		$('.ID_' + ActionID).css({ 'background' : 'gray', 'pointer-events' : 'none' });
+	else if (flagType === "remove all flags")
+		$('.ID_' + ActionID).removeAttr('style'); //.css({ 'background' : '', 'text-decoration' : '', 'pointer-events' : '' });
+	else
+		return false;
+	return true;
 }
 function selectMarker(Mode, ActionID, button){
 	$('<p>Select desire marker type <select><option>yellow highlight</option><option>green highlight</option><option>orange highlight</option><option>cyan highlight</option><option>pink highlight</option><option>red highlight</option><option>strike-through</option><option>disable-scene</option><option>remove all flags</option></select></p>').confirm(function(answer){
@@ -213,29 +282,8 @@ function selectMarker(Mode, ActionID, button){
                 console.log("Invalid flagType");
                 return;
             }
-            if (flagType === "yellow highlight")
-                $('.ID_' + ActionID).css('background','yellow');
-            else if (flagType === "green highlight")
-                $('.ID_' + ActionID).css('background','#00FF00');
-            else if (flagType === "orange highlight")
-                $('.ID_' + ActionID).css('background','orange');
-            else if (flagType === "cyan highlight")
-                $('.ID_' + ActionID).css('background','cyan');
-            else if (flagType === "pink highlight")
-                $('.ID_' + ActionID).css('background','pink');
-            else if (flagType === "red highlight")
-                $('.ID_' + ActionID).css('background','red');
-            else if (flagType === "strike-through")
-                $('.ID_' + ActionID).css('text-decoration', 'line-through');
-            else if (flagType === "disable-scene")
-                $('.ID_' + ActionID).css({ 'background' : 'gray', 'pointer-events' : 'none' });
-            else if (flagType === "remove all flags")
-                $('.ID_' + ActionID).removeAttr('style'); //.css({ 'background' : '', 'text-decoration' : '', 'pointer-events' : '' });
-            else {
-                flagType = "none";
-                $('.ID_' + ActionID).css("target-property", "");
-                return;
-            }
+			if (!SetFlagOnScene(flagType, ActionID))
+				return;
             ActionID = ActionID + ":" + flagType;
             console.log("ActionID = " + ActionID);
             RunPluginOperation(Mode, ActionID, button, false);
@@ -273,6 +321,8 @@ $(document).ready(function(){
   $("button").click(function(){
     var Mode = this.value;
     var ActionID = this.id;
+	if (Mode === "DoNothing")
+		return;
 	if (ActionID === "AdvanceMenu" || ActionID === "AdvanceMenu_")
     {
 		var newUrl = window.location.href;
@@ -280,14 +330,17 @@ $(document).ready(function(){
 		window.open(newUrl, "_blank");
         return;
     }
-	if (Mode === "deleteScene" || Mode === "removeScene"){
+	if (Mode.startsWith("deleteScene") || Mode === "removeScene"){
 		var chkBxDisableDeleteConfirm = document.getElementById("RemoveToKeepConfirm");
         question = "Are you sure you want to delete this file and remove scene from stash?";
+        if (Mode !== "deleteScene" && Mode.startsWith("deleteScene")) question = "Are you sure you want to delete all the flagged files and remove them from stash?";
         if (Mode === "removeScene") question = "Are you sure you want to remove scene from stash?";
 		if (!chkBxDisableDeleteConfirm.checked && !confirm(question))
 			return;
-        $('.ID_' + ActionID).css('background-color','gray');
-        $('.ID_' + ActionID).css('pointer-events','none');
+        if (Mode === "deleteScene" || Mode === "removeScene"){
+            $('.ID_' + ActionID).css('background-color','gray');
+            $('.ID_' + ActionID).css('pointer-events','none');
+        }
 	}
 	else if (Mode === "newName" || Mode === "renameFile"){
 	    var myArray = ActionID.split(":");
@@ -303,6 +356,14 @@ $(document).ready(function(){
 	else if (Mode === "flagScene"){
 	    selectMarker(Mode, ActionID, this);
         return;
+    }
+	else if (Mode.startsWith("flagScene")){
+	    var flagType = Mode.substring(9);
+		Mode = "flagScene";
+		if (!SetFlagOnScene(flagType, ActionID))
+				return;
+        ActionID = ActionID + ":" + flagType;
+        console.log("ActionID = " + ActionID);
     }
     RunPluginOperation(Mode, ActionID, this, true);
   });
@@ -329,11 +390,19 @@ $(document).ready(function(){
 <td><input type="checkbox" id="RemoveToKeepConfirm" name="RemoveToKeepConfirm"><label for="RemoveToKeepConfirm" title="Disable confirmation prompts for delete scenes">Disable Delete Confirmation</label><br></td>
 <td>
     <div class="dropdown">
-        <button id="AdvanceMenu" title="View advance menu for tagged duplicates." name="AdvanceMenu">Advance Tag Menu <i class="fa fa-caret-down"></i></button>
+        <button id="AdvanceMenu" title="View advance menu for tagged duplicates." name="AdvanceMenu">Advance Menu <i class="fa fa-caret-down"></i></button>
         <div class="dropdown-content">
-          <div><button type="button" id="clearAllSceneFlags" value="clearAllSceneFlags" title="Remove flags from report for all scenes, except for deletion flag.">Clear All Scene Flags</button></div>
-          <div><button type="button" id="clear_duplicate_tags_task" value="clear_duplicate_tags_task" title="Remove duplicate (_DuplicateMarkForDeletion_?) tag from all scenes. This action make take a few minutes to complete.">Remove All Scenes Tags</button></div>
-          <div><button type="button" id="fileNotExistToDelete" value="fileNotExistToDelete" title="Delete tagged duplicates for which file does NOT exist.">Delete Files That do Not Exist</button></div>
+            <div><button type="button" id="clear_duplicate_tags_task" value="clear_duplicate_tags_task" title="Remove duplicate (_DuplicateMarkForDeletion_?) tag from all scenes. This action make take a few minutes to complete.">Remove All Scenes Tags</button></div>
+            <div><button type="button" id="fileNotExistToDelete" value="Tagged" title="Delete tagged duplicates for which file does NOT exist.">Delete Tagged Files That do Not Exist</button></div>
+            <div><button type="button" id="fileNotExistToDelete" value="Report" title="Delete duplicate candidate files in report for which file does NOT exist.">Delete Files That do Not Exist in Report</button></div>
+            <div><button type="button" id="clearAllSceneFlags" value="clearAllSceneFlags" title="Remove flags from report for all scenes, except for deletion flag.">Clear All Scene Flags</button></div>
+            <div><button title="Delete all yellow flagged scenes in report." value="deleteSceneYellowFlag" id="yellow" style="background-color:yellow"		>Delete All Yellow Flagged Scenes</button></div>
+            <div><button title="Delete all green flagged scenes in report." value="deleteSceneGreenFlag" id="green" style="background-color:#00FF00"		>Delete All Green Flagged Scenes</button></div>
+            <div><button title="Delete all orange flagged scenes in report." value="deleteSceneOrangeFlag" id="orange" style="background-color:orange"		>Delete All Orange Flagged Scenes</button></div>
+            <div><button title="Delete all cyan flagged scenes in report." value="deleteSceneCyanFlag" id="cyan" style="background-color:cyan"				>Delete All Cyan Flagged Scenes</button></div>
+            <div><button title="Delete all pink flagged scenes in report." value="deleteScenePinkFlag" id="pink" style="background-color:pink"				>Delete All Pink Flagged Scenes</button></div>
+            <div><button title="Delete all red flagged scenes in report." value="deleteSceneRedFlag" id="red" style="background-color:red"					>Delete All Red Flagged Scenes</button></div>
+            <div><button title="Delete all strike-through scenes in report." value="StrikeThrough" id="line-through"								>Delete All Strike-through Scenes</button></div>
         </div>
     </div>
 </td>

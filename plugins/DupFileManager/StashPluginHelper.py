@@ -846,6 +846,22 @@ class StashPluginHelper(StashInterface):
             return None
         return results['rows'][0][0]
     
+    def removeTagFromAllScenes(self, tagName=None, tagID=-1): # Requires either tagName or tagID to be populated.
+        if tagID < 1:
+            if tagName == None or tagName == "":
+                self.Error("Called removeTagFromAllScenes without a tagName or a tagID. One of these two fields MUST be populated.")
+                return False
+            if tag := self.find_tag(tagName):
+                tagID = tag['id']
+            else:
+                self.Warn(f"Failed to get tag {tagName}.")
+                return False
+        self.Debug(f"Removing tag ID {tagID} from all scenes.")
+        results = self.sql_commit(f"delete from scenes_tags where tag_id = {tagID}")
+        self.Debug(f"Called sql_commit and received results {results}.")
+        return True
+    
+    
     # ############################################################################################################
     # Functions which are candidates to be added to parent class use snake_case naming convention.
     # ############################################################################################################

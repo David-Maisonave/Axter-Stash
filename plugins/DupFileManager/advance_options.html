@@ -70,6 +70,8 @@ html.wait, html.wait * { cursor: wait !important; }
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <script src="https://www.axter.com/js/jquery-3.7.1.min.js"></script>
+<script src="https://www.axter.com/js/jquery.prompt.js"></script>
+<link rel="stylesheet" href="https://www.axter.com/js/jquery.prompt.css"/>
 <script>
 var apiKey = ""; // For Stash installations with a password setup, populate this variable with the apiKey found in Stash->Settings->Security->[API Key];   	----- Or pass in the apiKey at the URL command line. Example: advance_options.html?apiKey=12345G4igiJdgssdgiwqInh5cCI6IkprewJ9hgdsfhgfdhd&GQL=http://localhost:9999/graphql
 var GraphQl_URL = "http://localhost:9999/graphql";// For Stash installations with non-standard ports or URL's, populate this variable with actual URL;   	----- Or pass in the URL at the command line using GQL param. Example: advance_options.html?GQL=http://localhost:9900/graphql
@@ -80,7 +82,7 @@ if (urlParams.get('GQL') != null && urlParams.get('GQL') !== "")
 	GraphQl_URL = urlParams.get('GQL');
 console.log(urlParams);
 console.log("GQL = " + GraphQl_URL);
-console.log("apiKey = " + apiKey);
+console.log("Key = " + apiKey);
 
 function RunPluginDupFileManager(Mode, Param = 0, Async = false, TagOnlyScenes = false) {
 	$('html').addClass('wait');
@@ -88,25 +90,48 @@ function RunPluginDupFileManager(Mode, Param = 0, Async = false, TagOnlyScenes =
 	if (TagOnlyScenes)
 		Param += ":TagOnlyScenes";
 	console.log("GraphQl_URL = " + GraphQl_URL + "; Mode = " + Mode + "; Param = " + Param);
-	//if ($("#InPathCheck").prop('checked'))
-	if (apiKey !== "")
+	if (apiKey !== ""){
+		console.log("Using apiKey = " + apiKey);
 		$.ajaxSetup({beforeSend: function(xhr) {xhr.setRequestHeader('apiKey', apiKey);}});
+	}
 	$.ajax({method: "POST", url: GraphQl_URL, contentType: "application/json", dataType: "text", cache: Async, async: Async,
 	data: JSON.stringify({
 			query: `mutation RunPluginOperation($plugin_id:ID!,$args:Map!){runPluginOperation(plugin_id:$plugin_id,args:$args)}`,
 			variables: {"plugin_id": "DupFileManager", "args": { "Target" : Param, "mode":Mode}},
 		}), success: function(result){
-			console.log("Ajax success with result = " + result);
 			$('html').removeClass('wait');
 			$("body").css("cursor", "default");
+			if (result.startsWith("{\"errors\"")){
+				console.log("Ajax FAILED with result = " + result);
+				if (result.indexOf("{\"runPluginOperation\":null}") > 0)
+					alert("Stash RunPluginOperation failed with possible source code error.\nCheck Stash logging for details.\n\nResults = " + result);
+				else
+					alert("Stash RunPluginOperation failed with result = " + result);
+				return;
+			}
+			console.log("Ajax success with result = " + result);
+			if (Mode === "tag_duplicates_task" || Mode === "create_duplicate_report_task"){
+				if (result.indexOf("\"Report complete\"") == -1)
+					alert("Stash RunPluginOperation returned unexpected results.\nNot sure if report completed successfully.\n\nResults = " + result);
+				else
+					$('<p>Report complete. Click on OK to open report in browser.</p>').confirm(function(e){
+						if(e.response){
+							var reportUrl = window.location.href;
+							reportUrl = reportUrl.replace("advance_options.html", "report/DuplicateTagScenes.html");
+							console.log("reportUrl = " + reportUrl);
+							window.open(reportUrl, "_blank");
+						}
+					});
+			}
 		}, error: function(XMLHttpRequest, textStatus, errorThrown) { 
 			console.log("Ajax failed with Status: " + textStatus + "; Error: " + errorThrown); 
+			$('html').removeClass('wait');
+			$("body").css("cursor", "default");
 		}
 	});
 	console.log("Setting default cursor");
 }    
 $(document).ready(function(){
-
   $("button").click(function(){
 	const AddedWarn = "?  This will delete the files, and remove them from stash.";
 	console.log(this.id);

@@ -1,6 +1,6 @@
 name: DupFileManager
 description: Manages duplicate files.
-version: 0.2.2
+version: 1.0.0
 url: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/DupFileManager
 ui:
   javascript:
@@ -69,6 +69,10 @@ settings:
   zzTracing:
     displayName: Tracing
     description: Enable tracing and debug so-as to add additional tracing and debug logging in Stash\plugins\DupFileManager\DupFileManager.log
+    type: BOOLEAN
+  zzdryRun:
+    displayName: Dry Run
+    description: Enable to run script in [Dry Run] mode. In dry run mode, files are NOT deleted, and only logging is performed. Use the logging to determine if deletion will occur as expected.
     type: BOOLEAN
 exec:
   - python
