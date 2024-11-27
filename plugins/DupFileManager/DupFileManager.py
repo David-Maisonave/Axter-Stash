@@ -1743,9 +1743,6 @@ try:
     elif stash.PLUGIN_TASK_NAME == "delete_tagged_duplicates_task":
         manageDuplicatesTaggedOrInReport(deleteScenes=True)
         stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
-    elif stash.PLUGIN_TASK_NAME.startswith("deleteScene"):
-        manageDuplicatesTaggedOrInReport(deleteScenes=True, checkFlagOption=True)
-        stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
     elif stash.PLUGIN_TASK_NAME == "delete_duplicates_task":
         mangeDupFiles(deleteDup=True, merge=mergeDupFilename)
         stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
@@ -1760,6 +1757,9 @@ try:
         stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
     elif stash.PLUGIN_TASK_NAME == "deleteScene":
         deleteScene()
+        stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
+    elif stash.PLUGIN_TASK_NAME.startswith("deleteScene"):
+        manageDuplicatesTaggedOrInReport(deleteScenes=True, checkFlagOption=True)
         stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
     elif stash.PLUGIN_TASK_NAME == "removeScene":
         deleteScene(deleteFile=False)

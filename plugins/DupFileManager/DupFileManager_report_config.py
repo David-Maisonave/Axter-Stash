@@ -239,7 +239,7 @@ function RunPluginOperation(Mode, ActionID, button, asyncAjax){
                 $("body").css("cursor", "default");
             }
             if (Mode === "renameFile" || Mode === "clearAllSceneFlags" || Mode === "mergeTags" || (Mode !== "deleteScene" && Mode.startsWith("deleteScene")))
-                location.replace(location.href); 
+                location.href = location.href; // location.replace(location.href); 
 			if (!chkBxRemoveValid.checked && Mode !== "flagScene") alert("Action " + Mode + " for scene(s) ID# " + ActionID + " complete.\\n\\nResults=" + result);
 		}, error: function(XMLHttpRequest, textStatus, errorThrown) { 
 			console.log("Ajax failed with Status: " + textStatus + "; Error: " + errorThrown); 
