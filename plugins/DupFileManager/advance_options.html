@@ -256,8 +256,8 @@ $(document).ready(function(){
 			Param += "\"" + "pathStrToDelete" + Blacklist + "\":\"" + $("#pathStrToDeleteText").val().replace("\\", "\\\\") + "\", ";
 		if ($("#fileNotExistCheck").prop('checked'))
 			Param += "\"" + "fileNotExistToDelete" + Blacklist + "\":\"true\", ";
-		if ($("#DupTagOnlyCheck_MultiOption").prop('checked'))
-			Param += "\"" + "TagOnlyScenes" + Blacklist + "\":\"true\", ";
+		if ($("#tagOrFlagCombobox").val() !== "")
+			Param += "\"" + $("#tagOrFlagCombobox").val() + Blacklist + "\":\"true\", ";
 		Param += '}';
 		Param = Param.replace(', }', '}');
 		if (Param === "{}")
@@ -321,7 +321,21 @@ function DeleteDupInPath(){
 	</tr>
 	<tr>
 		<td><label title="When enabled, operations only apply to scenes which have the special tag _DuplicateMarkForDeletion_?" for="DupTagOnlyCheck">Apply action only to scenes with <b>_DuplicateMarkForDeletion_?</b> tag:</label><input title="When enabled, operations only apply to scenes which have the special tag _DuplicateMarkForDeletion_?" type="checkbox" id="DupTagOnlyCheck" name="DupTagOnlyCheck" value="true"></td>
-		<td><label title="When enabled, Multi-Options operations only apply to scenes which have the special tag _DuplicateMarkForDeletion_?" for="DupTagOnlyCheck_MultiOption">Dup Tag:</label><input title="When enabled, Multi-Options operations only apply to scenes which have the special tag _DuplicateMarkForDeletion_?" type="checkbox" id="DupTagOnlyCheck_MultiOption" name="DupTagOnlyCheck" value="true"></td>
+		<td>
+			<label for="tagOrFlagCombobox">TagOrFlag:</label>
+				<select id="tagOrFlagCombobox" name="tagOrFlagCombobox">
+					<option value="" selected="selected"></option>
+					<option value="TagOnlyScenes" title="When selected, Multi-Options operations only apply to scenes which have the special tag _DuplicateMarkForDeletion_?">Dup Tag</option>
+					<option value="YellowFlag" 	style="background-color:Yellow;" title="When selected, Multi-Options operations only apply to scenes with [Yellow] fag.">Yellow Flag</option>
+					<option value="GreenFlag" 	style="background-color:#00FF00;" title="When selected, Multi-Options operations only apply to scenes with [Green] fag.">Green Flag</option>
+					<option value="OrangeFlag" 	style="background-color:Orange;" title="When selected, Multi-Options operations only apply to scenes with [Orange] fag.">Orange Flag</option>
+					<option value="CyanFlag" 	style="background-color:Cyan;" title="When selected, Multi-Options operations only apply to scenes with [Cyan] fag.">Cyan Flag</option>
+					<option value="PinkFlag" 	style="background-color:Pink;" title="When selected, Multi-Options operations only apply to scenes with [Pink] fag.">Pink Flag</option>
+					<option value="RedFlag" 	style="background-color:Red;" title="When selected, Multi-Options operations only apply to scenes with [Red] fag.">Red Flag</option>
+				</select>
+
+		
+		</td>
 	</tr>
 	<tr>
 		<td><form id="pathToDeleteForm" action="javascript:DeleteDupInPath();"  target="_self">

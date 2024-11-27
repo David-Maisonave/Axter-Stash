@@ -36,3 +36,9 @@
   - If data for associated icon are the same, then both icons are black or blue (the default color).
   - If [**duplicate to keep**] is missing data that is in [**candidate to delete**], than [**candidate to delete**] gets a yellow icon.
   - If [**candidate to delete**] is missing data that is in [**duplicate to keep**], than [**duplicate to keep**] gets a pink icon.
+### 1.0.0.3
+- Added option on report to merge all metadata missing in [**Duplicate to Keep**] files.
+- Added cookies to report so as to remember user options for Disable Complete Confirmation **[Disable Complete Confirmation]** and **[Disable Delete Confirmation]**.
+  - This change was needed because sometimes the browser refuse to open local URL's with params on the URL.
+  - Using cookies also allows check options status to stay the same after refresh.
+- Added code to [**Advance Duplicate File Deletion Menu**] to delete based on flags.

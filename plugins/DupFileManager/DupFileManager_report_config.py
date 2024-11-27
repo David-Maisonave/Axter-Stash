@@ -195,24 +195,19 @@ var OrgNextPage = null;
 var OrgHomePage = null;
 var RemoveToKeepConfirmValue = null;
 var RemoveValidatePromptValue = null;
-function SetPaginateButton(){
-    $("#NextPage").attr("href", OrgNextPage + "?" + RemoveToKeepConfirmValue + "&" + RemoveValidatePromptValue);
-    $("#PrevPage").attr("href", OrgPrevPage + "?" + RemoveToKeepConfirmValue + "&" + RemoveValidatePromptValue);
-    $("#HomePage").attr("href", OrgHomePage + "?" + RemoveToKeepConfirmValue + "&" + RemoveValidatePromptValue);
-    $("#NextPage_Top").attr("href", OrgNextPage + "?" + RemoveToKeepConfirmValue + "&" + RemoveValidatePromptValue);
-    $("#PrevPage_Top").attr("href", OrgPrevPage + "?" + RemoveToKeepConfirmValue + "&" + RemoveValidatePromptValue);
-    $("#HomePage_Top").attr("href", OrgHomePage + "?" + RemoveToKeepConfirmValue + "&" + RemoveValidatePromptValue);
-}
+const StrRemoveToKeepConfirm = "RemoveToKeepConfirm=";
+const StrRemoveValidatePrompt = "RemoveValidatePrompt=";
 function SetPaginateButtonChange(){
     var chkBxRemoveValid = document.getElementById("RemoveValidatePrompt");
     var chkBxDisableDeleteConfirm = document.getElementById("RemoveToKeepConfirm");
-    RemoveToKeepConfirmValue = "RemoveToKeepConfirm=false";
-    RemoveValidatePromptValue = "RemoveValidatePrompt=false";
+    RemoveToKeepConfirmValue = StrRemoveToKeepConfirm + "false";
+    RemoveValidatePromptValue = StrRemoveValidatePrompt + "false";
     if (chkBxRemoveValid.checked)
-        RemoveToKeepConfirmValue = "RemoveToKeepConfirm=true";
+        RemoveToKeepConfirmValue = StrRemoveToKeepConfirm + "true";
     if (chkBxDisableDeleteConfirm.checked)
-        RemoveValidatePromptValue = "RemoveValidatePrompt=true";   
-    SetPaginateButton();
+        RemoveValidatePromptValue = StrRemoveValidatePrompt + "true";
+    document.cookie = RemoveToKeepConfirmValue + "&" + RemoveValidatePromptValue + ";";
+    console.log("Cookies = " + document.cookie);
 }
 function trim(str, ch) {
     var start = 0, end = str.length;
@@ -239,7 +234,7 @@ function RunPluginOperation(Mode, ActionID, button, asyncAjax){
                 $("body").css("cursor", "default");
             }
             if (Mode === "renameFile" || Mode === "clearAllSceneFlags" || Mode === "mergeTags" || (Mode !== "deleteScene" && Mode.startsWith("deleteScene")))
-                location.href = location.href; // location.replace(location.href); 
+                location.href = location.href; // location.replace(location.href);
 			if (!chkBxRemoveValid.checked && Mode !== "flagScene") alert("Action " + Mode + " for scene(s) ID# " + ActionID + " complete.\\n\\nResults=" + result);
 		}, error: function(XMLHttpRequest, textStatus, errorThrown) { 
 			console.log("Ajax failed with Status: " + textStatus + "; Error: " + errorThrown); 
@@ -300,24 +295,49 @@ $(document).ready(function(){
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
     console.log("urlParams = " + urlParams);
-    RemoveToKeepConfirmValue = "RemoveToKeepConfirm=false";
-    RemoveValidatePromptValue = "RemoveValidatePrompt=false";
+    RemoveToKeepConfirmValue = StrRemoveToKeepConfirm + "false";
+    RemoveValidatePromptValue = StrRemoveValidatePrompt + "false";
+    var FetchCookies = true;
     if (urlParams.get('RemoveToKeepConfirm') != null && urlParams.get('RemoveToKeepConfirm') !== ""){
-        RemoveToKeepConfirmValue = "RemoveToKeepConfirm=" + urlParams.get('RemoveToKeepConfirm');
+        FetchCookies = false;
+        RemoveToKeepConfirmValue = StrRemoveToKeepConfirm + urlParams.get('RemoveToKeepConfirm');
         if (urlParams.get('RemoveToKeepConfirm') === "true")
             $( "#RemoveToKeepConfirm" ).prop("checked", true);
         else
             $( "#RemoveToKeepConfirm" ).prop("checked", false);
     }
     if (urlParams.get('RemoveValidatePrompt') != null && urlParams.get('RemoveValidatePrompt') !== ""){
-        RemoveValidatePromptValue = "RemoveValidatePrompt=" + urlParams.get('RemoveValidatePrompt');
+        FetchCookies = false;
+        RemoveValidatePromptValue = StrRemoveValidatePrompt + urlParams.get('RemoveValidatePrompt');
         console.log("RemoveValidatePromptValue = " + RemoveValidatePromptValue);
         if (urlParams.get('RemoveValidatePrompt') === "true")
             $( "#RemoveValidatePrompt" ).prop("checked", true);
         else
             $( "#RemoveValidatePrompt" ).prop("checked", false);
     }
-    SetPaginateButton();
+    if (FetchCookies){
+        console.log("Cookies = " + document.cookie);
+        var cookies = document.cookie;
+        if (cookies.indexOf(StrRemoveToKeepConfirm) > -1){
+            var idx = cookies.indexOf(StrRemoveToKeepConfirm) + StrRemoveToKeepConfirm.length;
+            var s = cookies.substring(idx);
+            console.log("StrRemoveToKeepConfirm Cookie = " + s);
+            if (s.startsWith("true"))
+                $( "#RemoveToKeepConfirm" ).prop("checked", true);
+            else
+                $( "#RemoveToKeepConfirm" ).prop("checked", false);
+        }
+        if (cookies.indexOf(StrRemoveValidatePrompt) > -1){
+            var idx = cookies.indexOf(StrRemoveValidatePrompt) + StrRemoveValidatePrompt.length;
+            var s = cookies.substring(idx);
+            console.log("StrRemoveValidatePrompt Cookie = " + s);
+            if (s.startsWith("true"))
+                $( "#RemoveValidatePrompt" ).prop("checked", true);
+            else
+                $( "#RemoveValidatePrompt" ).prop("checked", false);
+        }
+    }
+    SetPaginateButtonChange();
   $("button").click(function(){
     var Mode = this.value;
     var ActionID = this.id;
@@ -386,15 +406,18 @@ $(document).ready(function(){
 <td>Date Created: (DateCreatedPlaceHolder)</td>
 </tr></table></td>
 <td><table><tr>
-<td><input type="checkbox" id="RemoveValidatePrompt" name="RemoveValidatePrompt"><label for="RemoveValidatePrompt" title="Disable notice for task completion (Popup).">Disable Complete Confirmation</label><br></td>
-<td><input type="checkbox" id="RemoveToKeepConfirm" name="RemoveToKeepConfirm"><label for="RemoveToKeepConfirm" title="Disable confirmation prompts for delete scenes">Disable Delete Confirmation</label><br></td>
 <td>
     <div class="dropdown">
-        <button id="AdvanceMenu" title="View advance menu for tagged duplicates." name="AdvanceMenu">Advance Menu <i class="fa fa-caret-down"></i></button>
+        <button id="AdvanceMenu" name="AdvanceMenu">Menu <i class="fa fa-caret-down"></i></button>
         <div class="dropdown-content">
-            <div><button type="button" id="clear_duplicate_tags_task" value="clear_duplicate_tags_task" title="Remove duplicate (_DuplicateMarkForDeletion_?) tag from all scenes. This action make take a few minutes to complete.">Remove All Scenes Tags</button></div>
+            <div><button id="AdvanceMenu" title="Open [Advance Duplicate File Deletion Menu] on a new tab in the browser." name="AdvanceMenu">Advance Duplicate File Deletion Menu</i></button></div>
+            <div style="height:2px;width:220px;border-width:0;color:gray;background-color:gray;">_</div>
+            <div><button type="button" id="mergeMetadataForAll" value="mergeTags" title="Merge scene metadata from [Duplicate to Delete] to [Duplicate to Keep]. This action make take a few minutes to complete.">Merge Tags, Performers, and Galleries</button></div>
+            <div><button type="button" id="clear_duplicate_tags_task" value="clear_duplicate_tags_task" title="Remove duplicate (_DuplicateMarkForDeletion_?) tag from all scenes. This action make take a few minutes to complete.">Remove Scenes Dup Tags</button></div>
+            <div style="height:2px;width:220px;border-width:0;color:gray;background-color:gray;">_</div>
             <div><button type="button" id="fileNotExistToDelete" value="Tagged" title="Delete tagged duplicates for which file does NOT exist.">Delete Tagged Files That do Not Exist</button></div>
             <div><button type="button" id="fileNotExistToDelete" value="Report" title="Delete duplicate candidate files in report for which file does NOT exist.">Delete Files That do Not Exist in Report</button></div>
+            <div style="height:2px;width:220px;border-width:0;color:gray;background-color:gray;">_</div>
             <div><button type="button" id="clearAllSceneFlags" value="clearAllSceneFlags" title="Remove flags from report for all scenes, except for deletion flag.">Clear All Scene Flags</button></div>
             <div><button title="Delete all yellow flagged scenes in report." value="deleteSceneYellowFlag" id="yellow" style="background-color:yellow"		>Delete All Yellow Flagged Scenes</button></div>
             <div><button title="Delete all green flagged scenes in report." value="deleteSceneGreenFlag" id="green" style="background-color:#00FF00"		>Delete All Green Flagged Scenes</button></div>
@@ -406,6 +429,9 @@ $(document).ready(function(){
         </div>
     </div>
 </td>
+<td><input type="checkbox" id="RemoveValidatePrompt" name="RemoveValidatePrompt"><label for="RemoveValidatePrompt" title="Disable notice for task completion (Popup).">Disable Complete Confirmation</label><br></td>
+<td><input type="checkbox" id="RemoveToKeepConfirm" name="RemoveToKeepConfirm"><label for="RemoveToKeepConfirm" title="Disable confirmation prompts for delete scenes">Disable Delete Confirmation</label><br></td>
+
 </tr></table></td>
 </tr></table></center>
 <h2>Stash Duplicate Scenes Report (MatchTypePlaceHolder)</h2>\n""",
