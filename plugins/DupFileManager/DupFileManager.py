@@ -1279,7 +1279,7 @@ def manageDuplicatesTaggedOrInReport(deleteScenes=False, clearTag=False, setGray
     
     flaggedScenes = None
     flagType = None
-    if checkFlagOption or "Flag" in tagOrFlag:
+    if checkFlagOption or (tagOrFlag != None and "Flag" in tagOrFlag):
         if checkFlagOption:
             flaggedScenes, flagType = getFlaggedScenes()
         else:
@@ -1353,7 +1353,7 @@ def manageDuplicatesTaggedOrInReport(deleteScenes=False, clearTag=False, setGray
         elif deleteScenes:
             DupFileName = scene['files'][0]['path']
             DupFileNameOnly = pathlib.Path(DupFileName).stem
-            if checkFlagOption and "Flag" not in tagOrFlag:
+            if checkFlagOption and (tagOrFlag == None or "Flag" not in tagOrFlag):
                 if int(scene['id']) in flaggedScenes:
                     stash.Log(f"Found {flagType} flagged candidate for deletion; Scene ID = {scene['id']}")
                 else:
