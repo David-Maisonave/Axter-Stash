@@ -1721,12 +1721,12 @@ def updateScenesInReports(scene, ReportName = htmlReportName):
         stash.Log(f"Report file does not exist: {ReportName}")
 
 def addPropertyToSceneClass(fileName, scene, property):
-    stash.Log(f"Inserting property {property} for scene {scene} in file {fileName}")
+    stash.Debug(f"Inserting property {property} for scene {scene} in file {fileName}")
     doStyleEndTagCheck = True
     lines = None
     with open(fileName, 'r') as file:
         lines = file.readlines()
-    stash.Log(f"line count = {len(lines)}")
+    stash.Debug(f"line count = {len(lines)}")
     with open(fileName, 'w') as file:
         for line in lines:
             # stash.Debug(f"line = {line}")
@@ -1744,7 +1744,7 @@ def addPropertyToSceneClass(fileName, scene, property):
                     if line.startswith("</style>"):
                         if property != "" and property != "remove highlight":
                             styleSetting = f".ID_{scene}{property}\n"
-                            stash.Log(f"styleSetting = {styleSetting}")
+                            stash.Debug(f"styleSetting = {styleSetting}")
                             file.write(styleSetting)
                         doStyleEndTagCheck = False
             file.write(line)
@@ -1794,6 +1794,7 @@ def copyScene(moveScene=False):
         return
     if moveScene:
         stash.mergeMetadata(scene1, scene2)
+    stash.Debug(f"Coping file {scene1['files'][0]['path']} to {scene2['files'][0]['path']}")
     result = shutil.copy(scene1['files'][0]['path'], scene2['files'][0]['path'])
     if moveScene:
         if dry_run:
