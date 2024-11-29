@@ -43,3 +43,7 @@
   - This change was needed because sometimes the browser refuse to open local URL's with params on the URL.
   - Using cookies also allows check options status to stay the same after refresh.
 - Added code to [**Advance Duplicate File Deletion Menu**] to delete based on flags.
+### 1.0.1
+- Change [**Advance Duplicate File Deletion Menu**] default input values to placeholder text.
+- Change stash toolbar icon for DupFileManager to a file icon with a video camera.
+- Removed **plugin/** from the URL for the Tools-UI menu.

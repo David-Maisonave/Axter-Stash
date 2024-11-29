@@ -85,3 +85,5 @@ Please use the following link to report RenameFile Feature Request:[RenameFile F
 Please do **NOT** use the feature request to include any problems associated with errors. Instead use the bug report for error issues.
 
 **Note:** This script is **largely** based on the [Renamer](https://github.com/Serechops/Serechops-Stash/tree/main/plugins/Renamer) script.
+
+### Future Planned Features or Fixes

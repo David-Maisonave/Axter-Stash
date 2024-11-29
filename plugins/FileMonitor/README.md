@@ -1,4 +1,4 @@
-# FileMonitor: Ver 0.9.2 (By David Maisonave)
+# FileMonitor: Ver 1.0.0 (By David Maisonave)
 
 FileMonitor is a [Stash](https://github.com/stashapp/stash) plugin with the following two main features:
 
@@ -170,3 +170,5 @@ Please use the following link to report FileMonitor bugs:
 Please use the following link to report FileMonitor Feature Request:[FileMonitor Feature Reques](https://github.com/David-Maisonave/Axter-Stash/issues/new?assignees=&labels=Enhancement&projects=&template=feature_request_plugin.yml&title=%F0%9F%92%A1%EF%B8%8F%5BEnhancement%5D%3A%5BFileMonitor%5D+Your_Short_title)
 
 Please do **NOT** use the feature request to include any problems associated with errors. Instead use the bug report for error issues.
+
+### Future Planned Features or Fixes

@@ -5,19 +5,20 @@
 #       Example:    python filemonitor.py --url http://localhost:9999
 try:
     import ModulesValidate
-    ModulesValidate.modulesInstalled(["stashapp-tools", "watchdog", "schedule", "requests"])
+    ModulesValidate.modulesInstalled(["stashapp-tools", "watchdog", "schedule", "requests"], silent=True)
 except Exception as e:
     import traceback, sys
     tb = traceback.format_exc()
     print(f"ModulesValidate Exception. Error: {e}\nTraceBack={tb}", file=sys.stderr)
-from StashPluginHelper import StashPluginHelper
 import os, sys, time, pathlib, argparse, platform, traceback, logging
+from StashPluginHelper import StashPluginHelper
 from StashPluginHelper import taskQueue
 from threading import Lock, Condition
 from multiprocessing import shared_memory
 from filemonitor_config import config
 from filemonitor_task_examples import task_examples
 from filemonitor_self_unit_test import self_unit_test
+from datetime import datetime
 
 config['task_scheduler'] = config['task_scheduler'] + task_examples['task_scheduler']
 if self_unit_test['selfUnitTest_repeat']:
@@ -62,6 +63,13 @@ stash = StashPluginHelper(
         maxbytes=5*1024*1024,
         apiKey=parse_args.apikey
         )
+
+doJsonReturnModeTypes = ["getFileMonitorRunningStatus"]
+doJsonReturn = False
+if len(sys.argv) < 2 and stash.PLUGIN_TASK_NAME in doJsonReturnModeTypes:
+    doJsonReturn = True
+    stash.log_to_norm = stash.LogTo.FILE
+
 stash.status(logLevel=logging.DEBUG)
 stash.Log(f"\nStarting (__file__={__file__}) (stash.CALLED_AS_STASH_PLUGIN={stash.CALLED_AS_STASH_PLUGIN}) (stash.DEBUG_TRACING={stash.DEBUG_TRACING}) (stash.DRY_RUN={stash.DRY_RUN}) (stash.PLUGIN_TASK_NAME={stash.PLUGIN_TASK_NAME})************************************************")
 stash.Trace(f"stash.JSON_INPUT={stash.JSON_INPUT}")
@@ -72,6 +80,7 @@ signal = Condition(mutex)
 shouldUpdate = False
 
 SHAREDMEMORY_NAME = "DavidMaisonaveAxter_FileMonitor" # Unique name for shared memory
+SHAREDMEMORY_SIZE = 4
 RECURSIVE = stash.pluginSettings["recursiveDisabled"] == False
 SCAN_MODIFIED = stash.pluginConfig["scanModified"]
 RUN_CLEAN_AFTER_DELETE = stash.pluginConfig["runCleanAfterDelete"]
@@ -502,7 +511,7 @@ def start_library_monitor():
     global lastScanJob
     try:
         # Create shared memory buffer which can be used as singleton logic or to get a signal to quit task from external script
-        shm_a = shared_memory.SharedMemory(name=SHAREDMEMORY_NAME, create=True, size=4)
+        shm_a = shared_memory.SharedMemory(name=SHAREDMEMORY_NAME, create=True, size=SHAREDMEMORY_SIZE)
     except:
         stash.Error(f"Could not open shared memory map ({SHAREDMEMORY_NAME}). Change File Monitor must be running. Can not run multiple instance of Change File Monitor. Stop FileMonitor before trying to start it again.")
         return
@@ -743,7 +752,7 @@ def stop_library_monitor():
             os.remove(SPECIAL_FILE_NAME)
     stash.Trace("Opening shared memory map.")
     try:
-        shm_a = shared_memory.SharedMemory(name=SHAREDMEMORY_NAME, create=False, size=4)
+        shm_a = shared_memory.SharedMemory(name=SHAREDMEMORY_NAME, create=False, size=SHAREDMEMORY_SIZE)
     except:
         # If FileMonitor is running as plugin, then it's expected behavior that SharedMemory will not be available.
         stash.Trace(f"Could not open shared memory map ({SHAREDMEMORY_NAME}). Change File Monitor must not be running.")
@@ -759,7 +768,7 @@ def stop_library_monitor():
 def start_library_monitor_service():
     # First check if FileMonitor is already running
     try:
-        shm_a = shared_memory.SharedMemory(name=SHAREDMEMORY_NAME, create=False, size=4)
+        shm_a = shared_memory.SharedMemory(name=SHAREDMEMORY_NAME, create=False, size=SHAREDMEMORY_SIZE)
         shm_a.close()
         shm_a.unlink()
         stash.Error("FileMonitor is already running. Need to stop FileMonitor before trying to start it again.")
@@ -846,6 +855,21 @@ def manageTagggedScenes(clearTag=True):
 
 runTypeID=0
 runTypeName=["NothingToDo", "stop_library_monitor", "StartFileMonitorAsAServiceTaskID", "StartFileMonitorAsAPluginTaskID", "CommandLineStartLibMonitor"]
+
+def getFileMonitorRunningStatus():
+    FileMonitorStatus = "NOT running"
+    try:
+        shm_a = shared_memory.SharedMemory(name=SHAREDMEMORY_NAME, create=False, size=SHAREDMEMORY_SIZE)
+        shm_a.close()
+        shm_a.unlink()
+        FileMonitorStatus = "RUNNING"
+        stash.Log("FileMonitor is running...")
+    except:
+        pass
+        stash.Log("FileMonitor is NOT running!!!")
+    stash.Log(f"{stash.PLUGIN_TASK_NAME} complete")
+    sys.stdout.write("{" + f"{stash.PLUGIN_TASK_NAME} : 'complete', FileMonitorStatus:'{FileMonitorStatus}'" + "}")
+
 try:
     if parse_args.stop or parse_args.restart or stash.PLUGIN_TASK_NAME == "stop_library_monitor":
         runTypeID=1
@@ -876,6 +900,9 @@ try:
         runTypeID=7
         manageTagggedScenes()
         stash.Trace(f"{CLEAR_SYNC_LIBRARY_TAG} EXIT")
+    elif stash.PLUGIN_TASK_NAME == "getFileMonitorRunningStatus":
+        getFileMonitorRunningStatus()
+        stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
     elif not stash.CALLED_AS_STASH_PLUGIN:
         runTypeID=4
         if parse_args.kill_job_task_que != None and parse_args.kill_job_task_que != "":
@@ -889,7 +916,8 @@ try:
 except Exception as e:
     tb = traceback.format_exc()
     stash.Error(f"Exception while running FileMonitor. runType='{runTypeName[runTypeID]}'; Error: {e}\nTraceBack={tb}")
-
+    if doJsonReturn:
+        sys.stdout.write("{" + f"Exception : '{e}; See log file for TraceBack' " + "}")
 stash.Trace("\n*********************************\nEXITING   ***********************\n*********************************")
 
 # ToDo: Add option to add path to library if path not included when calling metadata_scan

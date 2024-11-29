@@ -1,4 +1,4 @@
-# DupFileManager: Ver 1.0.0 (By David Maisonave)
+# DupFileManager: Ver 1.0.1 (By David Maisonave)
 
 DupFileManager is a [Stash](https://github.com/stashapp/stash) plugin which manages duplicate files in the Stash system.
 It has both **task** and **tools-UI** components.
@@ -101,9 +101,10 @@ That's it!!!
 - Full bottom extended portion of the Advanced Menu screen.
   - ![Screenshot 2024-11-22 232208](https://github.com/user-attachments/assets/bf1f3021-3a8c-4875-9737-60ee3d7fe675)
 
-### Future Planned Features
+### Future Planned Features or Fixes
 - Add logic to merge performers and galaries seperatly from tag merging on report. Planned for 1.5.0 Version.
 - Add code to report to make it when the report updates the screen (due to tag merging), it stays in the same row position. Planned for 1.5.0 Version.
+- Fix errors on HTML page listed in https://validator.w3.org. Planned for 1.9.0 Version.
 - Add logic to merge group metadata when selecting merge option on report. Planned for 2.0.0 Version.
 - Add advanced menu directly to the Settings->Tools menu. Planned for 2.0.0 Version.
 - Add report directly to the Settings->Tools menu. Planned for 2.0.0 Version.

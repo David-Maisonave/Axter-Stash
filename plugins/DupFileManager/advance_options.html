@@ -281,31 +281,33 @@ function DeleteDupInPath(){
 	<tr><th><div><b style="color:red;"><i>DupFileManager</i></b></div>Advance Duplicate File Deletion Menu</th><th>Apply Multiple Options</th></tr>
 	<tr>
 		<td>
-			<table style="border-collapse: collapse; border: none;"><tr style="border: none;">
+			<table style="border-collapse: collapse; border: none;">
 				<tr><th colspan="3" style="font-size: 12px;border: none;">Create report overriding user [Match Duplicate Distance] and [significantTimeDiff] settings</th></tr>
-				<td style="border: none;"><div class="dropdown">
-					<button type="button" id="create_duplicate_report_task" value="-1" title="Create new report WITHOUT tags using user settings for [Match Duplicate Distance].">Create Duplicate Report <i class="fa fa-caret-down"></i></button>
-					<div class="dropdown-content">
-					  <div><button type="button" id="create_duplicate_report_task0a" value="0" title="Create report using [Match Duplicate Distance]=0 (Exact Match). NO tagging.">Create Duplicate Report [Exact Match]</button></div>
-					  <div><button type="button" id="create_duplicate_report_task1a" value="1" title="Create report using [Match Duplicate Distance]=1 (High Match). NO tagging.">Create Duplicate Report [High Match]</button></div>
-					  <div><button type="button" id="create_duplicate_report_task2a" value="2" title="Create report using [Match Duplicate Distance]=2 (Medium Match). NO tagging.">Create Duplicate Report [Medium Match]</button></div>
-					  <div><button type="button" id="create_duplicate_report_task3a" value="3" title="Create report using [Match Duplicate Distance]=3 (Low Match). NO tagging.">Create Duplicate Report [Low Match]</button></div>
-					  <div style="height:2px;width:220px;border-width:0;color:gray;background-color:gray;">_</div>
-					  <div><button type="button" id="tag_duplicates_task" value="-1" title="Create new report which tags duplicates with tag name _DuplicateMarkForDeletion using user settings for [Match Duplicate Distance].">Create Duplicate Report with Tagging (With Default Match Setting)</button></div>
-					  <div><button type="button" id="tag_duplicates_task0a" value="0" title="Create report which tags duplicates with tag name _DuplicateMarkForDeletion_0 and using [Match Duplicate Distance]=0 (Exact Match).">Create Duplicate Tagging Report [Exact Match]</button></div>
-					  <div><button type="button" id="tag_duplicates_task1a" value="1" title="Create report which tags duplicates with tag name _DuplicateMarkForDeletion_1 and using [Match Duplicate Distance]=1 (High Match).">Create Duplicate Tagging Report [High Match]</button></div>
-					  <div><button type="button" id="tag_duplicates_task2a" value="2" title="Create report which tags duplicates with tag name _DuplicateMarkForDeletion_2 and using [Match Duplicate Distance]=2 (Medium Match).">Create Duplicate Tagging Report [Medium Match]</button></div>
-					  <div><button type="button" id="tag_duplicates_task3a" value="3" title="Create report which tags duplicates with tag name _DuplicateMarkForDeletion_3 and using [Match Duplicate Distance]=3 (Low Match).">Create Duplicate Tagging Report [Low Match]</button></div>
-					</div>
-				</div></td>
-				<td style="border: none;padding: 0 15px;">
-					<label for="significantTimeDiff" title="Significant time difference setting, where 1 equals 100% and (.9) equals 90%.">Time Difference%:</label>
-					<input type="number" min="0.25" max="1.00" step="0.01" id="significantTimeDiff" name="significantTimeDiff" title="Significant time difference setting, where 1 equals 100% and (.9) equals 90%." value="0.90">
-				</td>
-				<td style="border: none;padding: 0 15px;">
-					<button type="button" id="viewreport" title="View duplicate file report.">View Dup Report</button>
-				</td>
-			</tr></table>
+				<tr>
+					<td style="border: none;"><div class="dropdown">
+						<button type="button" id="create_duplicate_report_task" value="-1" title="Create new report WITHOUT tags using user settings for [Match Duplicate Distance].">Create Duplicate Report <i class="fa fa-caret-down"></i></button>
+						<div class="dropdown-content">
+						  <div><button type="button" id="create_duplicate_report_task0a" value="0" title="Create report using [Match Duplicate Distance]=0 (Exact Match). NO tagging.">Create Duplicate Report [Exact Match]</button></div>
+						  <div><button type="button" id="create_duplicate_report_task1a" value="1" title="Create report using [Match Duplicate Distance]=1 (High Match). NO tagging.">Create Duplicate Report [High Match]</button></div>
+						  <div><button type="button" id="create_duplicate_report_task2a" value="2" title="Create report using [Match Duplicate Distance]=2 (Medium Match). NO tagging.">Create Duplicate Report [Medium Match]</button></div>
+						  <div><button type="button" id="create_duplicate_report_task3a" value="3" title="Create report using [Match Duplicate Distance]=3 (Low Match). NO tagging.">Create Duplicate Report [Low Match]</button></div>
+						  <div style="height:2px;width:220px;border-width:0;color:gray;background-color:gray;">_</div>
+						  <div><button type="button" id="tag_duplicates_task" value="-1" title="Create new report which tags duplicates with tag name _DuplicateMarkForDeletion using user settings for [Match Duplicate Distance].">Create Duplicate Report with Tagging (With Default Match Setting)</button></div>
+						  <div><button type="button" id="tag_duplicates_task0a" value="0" title="Create report which tags duplicates with tag name _DuplicateMarkForDeletion_0 and using [Match Duplicate Distance]=0 (Exact Match).">Create Duplicate Tagging Report [Exact Match]</button></div>
+						  <div><button type="button" id="tag_duplicates_task1a" value="1" title="Create report which tags duplicates with tag name _DuplicateMarkForDeletion_1 and using [Match Duplicate Distance]=1 (High Match).">Create Duplicate Tagging Report [High Match]</button></div>
+						  <div><button type="button" id="tag_duplicates_task2a" value="2" title="Create report which tags duplicates with tag name _DuplicateMarkForDeletion_2 and using [Match Duplicate Distance]=2 (Medium Match).">Create Duplicate Tagging Report [Medium Match]</button></div>
+						  <div><button type="button" id="tag_duplicates_task3a" value="3" title="Create report which tags duplicates with tag name _DuplicateMarkForDeletion_3 and using [Match Duplicate Distance]=3 (Low Match).">Create Duplicate Tagging Report [Low Match]</button></div>
+						</div>
+					</div></td>
+					<td style="border: none;padding: 0 15px;">
+						<label for="significantTimeDiff" title="Significant time difference setting, where 1 equals 100% and (.9) equals 90%.">Time Difference%:</label>
+						<input type="number" min="0.25" max="1.00" step="0.01" id="significantTimeDiff" name="significantTimeDiff" title="Significant time difference setting, where 1 equals 100% and (.9) equals 90%." value="0.90">
+					</td>
+					<td style="border: none;padding: 0 15px;">
+						<button type="button" id="viewreport" title="View duplicate file report.">View Dup Report</button>
+					</td>
+				</tr>
+			</table>
 		</td>
 		<td>
 			<div class="dropdown">
@@ -340,7 +342,7 @@ function DeleteDupInPath(){
 	<tr>
 		<td><form id="pathToDeleteForm" action="javascript:DeleteDupInPath();"  target="_self">
 			<label for="pathToDeleteText">Path:</label>
-			<input type="text" id="pathToDeleteText" name="pathToDeleteText" value="C:\Downloads">
+			<input type="text" id="pathToDeleteText" name="pathToDeleteText" placeholder="C:\Downloads" value="">
 			<button type="button" id="pathToDelete" title="Delete tagged duplicates having file path">Delete Dup in Path</button>
 			<button type="button" id="pathToDeleteBlacklist" title="Delete blacklist tagged duplicates having file path">Del Blacklist Dup in Path</button>
 		</form>
@@ -350,7 +352,7 @@ function DeleteDupInPath(){
 	<tr>
 		<td><form id="sizeToDeleteForm" action="javascript:DeleteDupInPath();"  target="_self">
 				<label for="sizeToDelete" title="File size in bytes.">File Size (bytes):</label>
-				<input type="number" id="sizeToDelete" name="sizeToDelete" title="File size in bytes." value="123456">
+				<input type="number" min="0" step="1000000" id="sizeToDelete" name="sizeToDelete" title="File size in bytes." placeholder="123456" value="">
 				<label for="sizeToDeleteLess">All:</label>
 				<button type="button" id="sizeToDeleteLess" title="Delete tagged duplicates with file size less than"><</button>
 				<button type="button" id="sizeToDeleteGreater" title="Delete tagged duplicates with file size greater than">></button>
@@ -370,7 +372,7 @@ function DeleteDupInPath(){
 	<tr>
 		<td><form id="durationToDeleteForm" action="javascript:DeleteDupInPath();"  target="_self">
 				<label for="durationToDelete" title="Scene duration (time) in seconds.">Duration (seconds):</label>
-				<input type="number" min="1" max="14400" id="durationToDelete" name="durationToDelete" title="Duration in seconds." value="60">
+				<input type="number" min="1" max="14400" id="durationToDelete" name="durationToDelete" title="Duration in seconds." placeholder="60" value="">
 				<label for="durationToDeleteLess">All:</label>
 				<button type="button" id="durationToDeleteLess" title="Delete tagged duplicates with duration less than"><</button>
 				<button type="button" id="durationToDeleteGreater" title="Delete tagged duplicates with duration greater than">></button>
@@ -429,7 +431,7 @@ function DeleteDupInPath(){
 	<tr>
 		<td><form id="tagToDeleteForm" action="javascript:DeleteDupInPath();"  target="_self">
 				<label for="tagToDelete" title="Scene with tag.">Tag:</label>
-				<input type="text" id="tagToDeleteText" name="tagToDelete" title="tag name." value="redhead">
+				<input type="text" id="tagToDeleteText" name="tagToDelete" title="tag name." placeholder="redhead" value="">
 				<label for="tagToDelete">All:</label>
 				<button type="button" id="tagToDelete" title="Delete tagged duplicates with tag name">Contains</button>
 				<label for="tagToDeleteBlacklist">Blacklist:</label>
@@ -441,7 +443,7 @@ function DeleteDupInPath(){
 	<tr>
 		<td><form id="titleToDeleteForm" action="javascript:DeleteDupInPath();"  target="_self">
 				<label for="titleToDelete" title="Scene having value in title.">Title:</label>
-				<input type="text" id="titleToDeleteText" name="titleToDelete" title="String to search for in title." value="mature">
+				<input type="text" id="titleToDeleteText" name="titleToDelete" title="String to search for in title." placeholder="mature" value="">
 				<label for="titleToDelete">All:</label>
 				<button type="button" id="titleToDelete" title="Delete tagged duplicates with title name including value">Contains</button>
 				<label for="titleToDeleteBlacklist">Blacklist:</label>
@@ -453,7 +455,7 @@ function DeleteDupInPath(){
 	<tr>
 		<td><form id="pathStrToDeleteForm" action="javascript:DeleteDupInPath();"  target="_self">
 				<label for="pathStrToDelete" pathStr="Scene having value in path.">Path String:</label>
-				<input type="text" id="pathStrToDeleteText" name="pathStrToDelete" pathStr="String to search for in path." value="blond">
+				<input type="text" id="pathStrToDeleteText" name="pathStrToDelete" pathStr="String to search for in path." placeholder="blond" value="">
 				<label for="pathStrToDelete">All:</label>
 				<button type="button" id="pathStrToDelete" pathStr="Delete tagged duplicates with path having value">Contains</button>
 				<label for="pathStrToDeleteBlacklist">Blacklist:</label>
