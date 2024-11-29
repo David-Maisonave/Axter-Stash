@@ -42,7 +42,7 @@
 									children: (React.createElement(React.Fragment, null,
 										props.children,
 										React.createElement(NavLink, { className: "nav-utility", exact: true, to: "/FileMonitor" },
-											React.createElement(Button, { className: "minimal d-flex align-items-center h-100", title: FileMonitorStatusButtonToolTip },
+											React.createElement(Button, { className: "minimal d-flex align-items-center h-100", title: FileMonitorRunningStatusStr },
 												React.createElement(Icon, { icon: iconToUse }))))) // faFileCircleXmark faFileCirclePlus
 								}
 							];
