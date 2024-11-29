@@ -16,7 +16,7 @@ From the GUI, FileMonitor can be started as a service or as a plugin. The recomm
   - ![Screenshot 2024-11-29 071301](https://github.com/user-attachments/assets/640c34f4-228d-4a85-aba8-69626c3ac850)
     - If FileMonitor is running, it'll display the following screen:
     - ![Screenshot 2024-11-29 071836](https://github.com/user-attachments/assets/28ac9de3-c41a-46cd-8cda-7751fb3e50bb)
-  - There's also an icon that gets displayed on the top left corner of the Stash page. When FileMonitor is running this icon has a checkmark on it.
+  - There's also an icon that gets displayed on the top right corner of the Stash page. When FileMonitor is running this icon has a checkmark on it.
   - ![Screenshot 2024-11-29 073833](https://github.com/user-attachments/assets/397615f1-871f-4c1c-ac6e-6b517233e734)
   - When FileMonitor is not running, the icon has an **X**.
   - ![Screenshot 2024-11-29 074154](https://github.com/user-attachments/assets/e8b117fa-9842-40b2-91d4-182c8b4cd528)
