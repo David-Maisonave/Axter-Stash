@@ -22,12 +22,12 @@ It has both **task** and **tools-UI** components.
     - Merge: Copy Metadata (tags, performers,& studios) from left to right.
 - Can merge potential source in the duplicate file names for tag names, performers, and studios.
   - Normally when Stash searches the file name for tag names, performers, and studios, it only does so using the primary file.
-- Advance menu (for specially tagged duplicates)
-  ![Screenshot 2024-11-22 145139](https://github.com/user-attachments/assets/d76646f0-c5a8-4069-ad0f-a6e5e96e7ed0)
+- Advance menu
+  ![Screenshot 2024-12-13 164930](https://github.com/user-attachments/assets/10098a4d-de2f-4e83-94ce-5988c5935404)
   - Advance menu can be access from the Settings->Tools->**[DupFileManager Tools and Utilities]** menu or from the **reports**.
     - Only access Advance Menu from the report when using Stash setup requiring a password.
   - Here are **some** of the options available in the **Advance Menu**.
-    - Delete only specially tagged duplicates in blacklist path.
+    - Delete specially tagged duplicates in blacklist path.
     - Delete duplicates with specified file path.
     - Delete duplicates with specific string in File name.
     - Delete duplicates with specified file size range.
@@ -36,8 +36,8 @@ It has both **task** and **tools-UI** components.
     - Delete duplicates having specified tags.
     - Delete duplicates with specified rating.
     - Delete duplicates with any of the above combinations.
-- Bottom extended portion of the Advanced Menu screen.
-  - ![Screenshot 2024-11-22 232005](https://github.com/user-attachments/assets/9a0d2e9d-783b-4ea2-8fa5-3805b40af4eb)
+- Bottom extended portion of the Advanced Menu is for customizing the report.
+  - ![Screenshot 2024-12-13 165238](https://github.com/user-attachments/assets/9ba9ab12-cd60-4be4-bc26-6ffe76a68edc)
 - Delete duplicate file task with the following options:
   - Tasks (Settings->Task->[Plugin Tasks]->DupFileManager)
     - **Tag Duplicates** - Set tag DuplicateMarkForDeletion to the duplicates with lower resolution, duration, file name length, and/or black list path.
