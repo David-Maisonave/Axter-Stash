@@ -127,5 +127,6 @@ That's it!!!
   - Add doulbe strike-through option to flagging.
   - Add option to report to avoid reloading page after updating report.
   - Add option to report to automatically strip width & height from name on rename.
+  - Add link to version history to [**Advance Duplicate File Menu**] and to [DupFileManager Tools and Utilities]
     
   
