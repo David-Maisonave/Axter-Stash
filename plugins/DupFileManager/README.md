@@ -23,7 +23,7 @@ It has both **task** and **tools-UI** components.
 - Can merge potential source in the duplicate file names for tag names, performers, and studios.
   - Normally when Stash searches the file name for tag names, performers, and studios, it only does so using the primary file.
 - Advance menu
-  ![Screenshot 2024-12-13 164930](https://github.com/user-attachments/assets/10098a4d-de2f-4e83-94ce-5988c5935404)
+  - ![Screenshot 2024-12-13 164930](https://github.com/user-attachments/assets/10098a4d-de2f-4e83-94ce-5988c5935404)
   - Advance menu can be access from the Settings->Tools->**[DupFileManager Tools and Utilities]** menu or from the **reports**.
     - Only access Advance Menu from the report when using Stash setup requiring a password.
   - Here are **some** of the options available in the **Advance Menu**.
