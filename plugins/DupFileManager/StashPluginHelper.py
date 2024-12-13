@@ -830,11 +830,13 @@ class StashPluginHelper(StashInterface):
         data = data.replace("\\\\\\\\", "\\\\")
         return json.loads(data)
     
-    def isCorrectDbVersion(self, verNumber = 68):
+    def isCorrectDbVersion(self, verNumber = 68, isEqualOrGreater = True):
         results = self.sql_query("select version from schema_migrations")
         # self.Log(results)
         if len(results['rows']) == 0 or len(results['rows'][0]) == 0:
             return False
+        if isEqualOrGreater:
+            return int(results['rows'][0][0]) >= verNumber
         return int(results['rows'][0][0]) == verNumber
     
     def renameFileNameInDB(self, fileId, oldName, newName, UpdateUsingIdOnly = False):
@@ -847,6 +849,11 @@ class StashPluginHelper(StashInterface):
             if 'rows_affected' in results and results['rows_affected'] == 1:
                 return True
         return False
+    
+    # This only works if filename has not changed. If file name has changed, call renameFileNameInDB first.
+    def updateFileScene(self, fullFilePath):
+        mylist = [fullFilePath]
+        return self.metadata_scan(mylist)
     
     def getFileNameFromDB(self, id):
         results = self.sql_query(f'select basename from files where id = {id};')
@@ -870,6 +877,10 @@ class StashPluginHelper(StashInterface):
         self.Debug(f"Called sql_commit and received results {results}.")
         return True
     
+    def isEmpty(self, data):
+        if data == None or len(data) == 0:
+            return True
+        return False
     
     # ############################################################################################################
     # Functions which are candidates to be added to parent class use snake_case naming convention.

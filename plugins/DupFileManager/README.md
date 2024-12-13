@@ -1,4 +1,4 @@
-# DupFileManager: Ver 1.0.1 (By David Maisonave)
+# DupFileManager: Ver 1.1.0 (By David Maisonave)
 
 DupFileManager is a [Stash](https://github.com/stashapp/stash) plugin which manages duplicate files in the Stash system.
 It has both **task** and **tools-UI** components.
@@ -101,11 +101,31 @@ That's it!!!
 - Full bottom extended portion of the Advanced Menu screen.
   - ![Screenshot 2024-11-22 232208](https://github.com/user-attachments/assets/bf1f3021-3a8c-4875-9737-60ee3d7fe675)
 
-### Future Planned Features or Fixes
-- Add logic to merge performers and galaries seperatly from tag merging on report. Planned for 1.5.0 Version.
-- Add code to report to make it when the report updates the screen (due to tag merging), it stays in the same row position. Planned for 1.5.0 Version.
-- Fix errors on HTML page listed in https://validator.w3.org. Planned for 1.9.0 Version.
-- Add logic to merge group metadata when selecting merge option on report. Planned for 2.0.0 Version.
-- Add advanced menu directly to the Settings->Tools menu. Planned for 2.0.0 Version.
-- Add report directly to the Settings->Tools menu. Planned for 2.0.0 Version.
-
+### Future Planned Features, Changes, or Fixes
+- Scheduled Changes
+  - Add chat icon to report which on hover, displays a popup window showing scene details content. Planned for 1.2.0 Version.
+  - Add image icon to report; on hover show scene cover image. Planned for 1.2.0 Version.
+  - Add studio icon to report; on hover show studio name. Planned for 1.2.0 Version.
+  - Add option on report to view rating and change it. Use an icon with a number on it to show rating. Planned for 1.2.0 Version.
+  - On report make flag toggle logic. In other words, when flag button is selected, and scene is already that color, remove the colored flag. Planned for 1.2.0 Version.
+  - Add report option to set flag to all scenes missing metadata on Scene-ToKeep or having higher resolution or longer duration on **Duplicate-to-Delete** scene. Planned for 1.2.0 Version.
+  - Add option to [**Advance Duplicate File Menu**] to display cover image for preview image. Planned for 1.2.0 Version.
+  - On report, when move operation is performed, have it automatically delete the **Duplicate-to-Delete** scene. Planned for 1.2.0 Version.
+  - On [**Advance Duplicate File Menu**], add a flag option to the menu on the left side, and shrink the tag option. Planned for 1.2.0 Version.
+    - Change the TagOrFlag option on the right side to a check mark.
+  - Add option to delete by file type. Planned for 1.2.0 Version.
+  - On report, have [Flag or Tag] option still enabled after manually disabling scene. Planned for 1.2.0 Version.
+  - On [**Advance Duplicate File Menu**], have the details section hide fully, or partially when the page is first displayed. Planned for 1.4.0 Version.
+- Unscheduled Changes
+  - Change splitbutton so it hides tooltip when hovering over dropdown side of the button.
+  - Fix errors on HTML page listed in https://validator.w3.org.
+  - Add logic to merge performers and galaries seperatly from tag merging on report.
+  - Add logic to merge group metadata when selecting merge option on report.
+  - Add advanced menu directly to the Settings->Tools menu.
+  - Add report directly to the Settings->Tools menu.
+  - Create cookies for the options in the [**Advance Duplicate File Menu**].
+  - Add doulbe strike-through option to flagging.
+  - Add option to report to avoid reloading page after updating report.
+  - Add option to report to automatically strip width & height from name on rename.
+    
+  

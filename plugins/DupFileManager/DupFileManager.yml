@@ -1,6 +1,6 @@
 name: DupFileManager
 description: Manages duplicate files.
-version: 1.0.1
+version: 1.1.0
 url: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/DupFileManager
 ui:
   javascript:
@@ -79,6 +79,10 @@ exec:
   - "{pluginDir}/DupFileManager.py"
 interface: raw
 tasks:
+  - name: Create Duplicate Report
+    description: Create a report listing duplicates, which can be viewed using Stash->Settings->Tools->[Duplicate File Report]
+    defaultArgs:
+      mode: create_duplicate_report_task
   - name: Tag Duplicates
     description: Set tag DuplicateMarkForDeletion to the duplicates with lower resolution, duration, file name length, or black list path.
     defaultArgs:
