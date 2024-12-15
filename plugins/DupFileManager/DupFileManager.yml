@@ -1,14 +1,11 @@
 name: DupFileManager
 description: Manages duplicate files.
-version: 1.1.0
+version: 1.1.1
 url: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/DupFileManager
 ui:
   javascript:
+  - https://axter.com/js/jquery-3.7.1.min.js
   - DupFileManager.js
-  css:
-  - DupFileManager.css
-  - DupFileManager.css.map
-  - DupFileManager.js.map
 settings:
   matchDupDistance:
     displayName: Match Duplicate Distance

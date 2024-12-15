@@ -83,6 +83,10 @@
 - Always include [Next] paginate on top of first report page, and CSS hide it if only one page.
 - Added code to report to make it when the report updates the screen (due to tag merging), it stays in the same row position on the page.
 - Added plugin task [Create Duplicate Report]
-
-
+### 1.1.1
+- Added code to handle Chrome, Edge and any other chrome based browser when selecting local file links from Stash URL.
+  - On a Chrome based browser, the new code list the local links in text instead of as a button.
+  - A note is displayed and highlighted explaining to the user that they have to copy and pasted the link to the browser's address field.
+  - On browsers like FireFox, a button is displayed instead, and no note is displayed.
+- Removed *.css and *.map files, which were not being used.
 
