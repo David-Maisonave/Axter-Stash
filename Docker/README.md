@@ -25,3 +25,10 @@ Then use a DOS window to change to the **ws1** directory before calling the scri
 - Example skipping docker-compose:
   - `CreateContainer.cmd ContainerName "stashapp/stash:v0.26.2" 9992 C:\Videos SKIP`
 
+### Downloads
+- Docker
+  - Use the following link to download Docker
+  - (https://www.docker.com/products/docker-desktop/)[https://www.docker.com/products/docker-desktop/]
+- Stash Image
+  - The CreateContainer.cmd script can download the Image before creating the container by adding **PULL** at the end of the command line.
+  - Example: `CreateContainer.cmd ver0272 "stashapp/stash:v0.27.2" 9999 PULL`
