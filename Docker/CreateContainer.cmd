@@ -28,24 +28,30 @@ set VariableArg=%9
 set SkipDockerCompose=
 set DLNAFunctionality="no"
 set PullDockerStashImage=
-if [%VariableArg%]==[DLNA] 		(set DLNAFunctionality=yes)
-if [%VariableArg%]==[SKIP] 		(set SkipDockerCompose=yes)
-if [%VariableArg%]==[PULL] 		(set PullDockerStashImage=yes)
-if [%SharedMountPath%]==[DLNA] 	(set DLNAFunctionality=yes) & (set SharedMountPath=)
-if [%SharedMountPath%]==[SKIP] 	(set SkipDockerCompose=yes) & (set SharedMountPath=)
-if [%SharedMountPath%]==[PULL] 	(set PullDockerStashImage=yes) & (set SharedMountPath=)
-if [%SharedMountPath2%]==[DLNA] (set DLNAFunctionality=yes) & (set SharedMountPath2=)
-if [%SharedMountPath2%]==[SKIP] (set SkipDockerCompose=yes) & (set SharedMountPath2=)
-if [%SharedMountPath2%]==[PULL] (set PullDockerStashImage=yes) & (set SharedMountPath2=)
-if [%SharedMountPath3%]==[DLNA] (set DLNAFunctionality=yes) & (set SharedMountPath3=)
-if [%SharedMountPath3%]==[SKIP] (set SkipDockerCompose=yes) & (set SharedMountPath3=)
-if [%SharedMountPath3%]==[PULL] (set PullDockerStashImage=yes) & (set SharedMountPath3=)
-if [%SharedMountPath4%]==[DLNA] (set DLNAFunctionality=yes) & (set SharedMountPath4=)
-if [%SharedMountPath4%]==[SKIP] (set SkipDockerCompose=yes) & (set SharedMountPath4=)
-if [%SharedMountPath4%]==[PULL] (set PullDockerStashImage=yes) & (set SharedMountPath4=)
-if [%SharedMountPath5%]==[DLNA] (set DLNAFunctionality=yes) & (set SharedMountPath5=)
-if [%SharedMountPath5%]==[SKIP] (set SkipDockerCompose=yes) & (set SharedMountPath5=)
-if [%SharedMountPath5%]==[PULL] (set PullDockerStashImage=yes) & (set SharedMountPath5=)
+set MountAccess=":ro"
+if [%SharedMountPath%]==[DLNA] 		(set DLNAFunctionality=yes) & (set SharedMountPath=)
+if [%SharedMountPath%]==[SKIP] 		(set SkipDockerCompose=yes) & (set SharedMountPath=)
+if [%SharedMountPath%]==[PULL] 		(set PullDockerStashImage=yes) & (set SharedMountPath=)
+if [%SharedMountPath2%]==[DLNA] 	(set DLNAFunctionality=yes) & (set SharedMountPath2=)
+if [%SharedMountPath2%]==[SKIP] 	(set SkipDockerCompose=yes) & (set SharedMountPath2=)
+if [%SharedMountPath2%]==[PULL] 	(set PullDockerStashImage=yes) & (set SharedMountPath2=)
+if [%SharedMountPath2%]==[WRITE]	(set MountAccess=) & (set SharedMountPath2=)
+if [%SharedMountPath3%]==[DLNA] 	(set DLNAFunctionality=yes) & (set SharedMountPath3=)
+if [%SharedMountPath3%]==[SKIP] 	(set SkipDockerCompose=yes) & (set SharedMountPath3=)
+if [%SharedMountPath3%]==[PULL] 	(set PullDockerStashImage=yes) & (set SharedMountPath3=)
+if [%SharedMountPath3%]==[WRITE]	(set MountAccess=) & (set SharedMountPath3=)
+if [%SharedMountPath4%]==[DLNA] 	(set DLNAFunctionality=yes) & (set SharedMountPath4=)
+if [%SharedMountPath4%]==[SKIP] 	(set SkipDockerCompose=yes) & (set SharedMountPath4=)
+if [%SharedMountPath4%]==[PULL] 	(set PullDockerStashImage=yes) & (set SharedMountPath4=)
+if [%SharedMountPath4%]==[WRITE]	(set MountAccess=) & (set SharedMountPath4=)
+if [%SharedMountPath5%]==[DLNA] 	(set DLNAFunctionality=yes) & (set SharedMountPath5=)
+if [%SharedMountPath5%]==[SKIP] 	(set SkipDockerCompose=yes) & (set SharedMountPath5=)
+if [%SharedMountPath5%]==[PULL] 	(set PullDockerStashImage=yes) & (set SharedMountPath5=)
+if [%SharedMountPath5%]==[WRITE]	(set MountAccess=) & (set SharedMountPath5=)
+if [%VariableArg%]==[DLNA] 			(set DLNAFunctionality=yes)
+if [%VariableArg%]==[SKIP] 			(set SkipDockerCompose=yes)
+if [%VariableArg%]==[PULL] 			(set PullDockerStashImage=yes)
+if [%VariableArg%]==[WRITE] 		(set MountAccess=)
 echo SkipDockerCompose = %SkipDockerCompose% ; DLNAFunctionality = %DLNAFunctionality%
 set DockerComposeFile="docker-compose.yml"
 
@@ -112,15 +118,15 @@ echo       - ./cache:/cache>> %DockerComposeFile%
 echo       - ./blobs:/blobs>> %DockerComposeFile%
 echo       - ./generated:/generated>> %DockerComposeFile%
 if [%SharedMountPath%]==[] goto :SkipSharedMountPaths
-echo       - %SharedMountPath%:/external:ro>> %DockerComposeFile%
+echo       - %SharedMountPath%:/external%MountAccess%>> %DockerComposeFile%
 if [%SharedMountPath2%]==[] goto :SkipSharedMountPaths
-echo       - %SharedMountPath2%:/external2:ro>> %DockerComposeFile%
+echo       - %SharedMountPath2%:/external2%MountAccess%>> %DockerComposeFile%
 if [%SharedMountPath3%]==[] goto :SkipSharedMountPaths
-echo       - %SharedMountPath3%:/external3:ro>> %DockerComposeFile%
+echo       - %SharedMountPath3%:/external3%MountAccess%>> %DockerComposeFile%
 if [%SharedMountPath4%]==[] goto :SkipSharedMountPaths
-echo       - %SharedMountPath4%:/external4:ro>> %DockerComposeFile%
+echo       - %SharedMountPath4%:/external4%MountAccess%>> %DockerComposeFile%
 if [%SharedMountPath5%]==[] goto :SkipSharedMountPaths
-echo       - %SharedMountPath5%:/external5:ro>> %DockerComposeFile%
+echo       - %SharedMountPath5%:/external5%MountAccess%>> %DockerComposeFile%
 :SkipSharedMountPaths
 
 if [%SkipDockerCompose%] NEQ [] goto :DoNot_DockerCompose
