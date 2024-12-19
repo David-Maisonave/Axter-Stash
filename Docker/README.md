@@ -28,7 +28,7 @@ Then use a DOS window to change to the **ws1** directory before calling the scri
   - `CreateContainer.cmd ContainerName "stashapp/stash:v0.26.2" 9992 C:\Videos SKIP`
 
 ### Shared Mount Paths
-- CreateContainer.cmd can create 1-5 shared mount paths on the container. A shared mount path is a path that is a HOST path that is mounted on the container, which allows the container to access files.
+- CreateContainer.cmd can create 1-5 shared mount paths on the container. A shared mount path is a path that is a HOST path that is mounted on the container, which allows the container to access files in the shared mount path.
 - By default the shared mount is READ-ONLY, but by appending **WRITE** to the command line, the script will make all the shared mounts with read-write access.
   - Example:  `CreateContainer.cmd ContainerName1 "stashapp/stash:latest" 9999 C:\MySharedMountPath WRITE`
 
