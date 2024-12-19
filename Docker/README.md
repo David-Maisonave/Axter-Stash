@@ -3,7 +3,7 @@
 CreateContainer.cmd is a Windows script that is used to create a Stash container on Docker.
 
 To use it, first copy the file to the following path:
-**C:\Users\MyUserName\AppData\Local\Docker\wsl\CreateContainer.cmd**
+`C:\Users\MyUserName\AppData\Local\Docker\wsl\CreateContainer.cmd`
 
 Note: Replace **MyUserName** with the actual user name.
 
