@@ -89,4 +89,16 @@
   - A note is displayed and highlighted explaining to the user that they have to copy and pasted the link to the browser's address field.
   - On browsers like FireFox, a button is displayed instead, and no note is displayed.
 - Removed *.css and *.map files, which were not being used.
+### 1.1.2
+- Moved link to [**Advance Duplicate File Menu**] to https://stash.axter.com/1.1.2/advance_options.html
+  - This allows the Advance Menu to be accessed by Chrome, Edge and other Chrome based browsers which don't allow accessing local links from a non-local URL.
+- Added additional warnings when detecting Chrome based browsers and when moving from non-local link to local link.
+- Moved htmlReportPrefix field from the DupFileManager_report_config.py to DupFileManager_report_header.
+  - This was needed because Python on Docker gives an error when using tripple quoted strings.
+- Made advance_options.html HTML5 compliance.
+- Added additional details returned by getLocalDupReportPath to include (IS_DOCKER, ReportUrl, AdvMenuUrl, apikey, & LocalDir).
+
+
+
+
 

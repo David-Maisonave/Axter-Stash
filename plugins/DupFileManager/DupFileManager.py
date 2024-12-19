@@ -153,6 +153,11 @@ tagLongDurationLowRes       = stash.Setting('tagLongDurationLowRes')
 bitRateIsImporantComp       = stash.Setting('bitRateIsImporantComp')
 codecIsImporantComp         = stash.Setting('codecIsImporantComp')
 
+DupFileManagerFolder        = f"{stash.PLUGINS_PATH}{os.sep}community{os.sep}DupFileManager"
+if not os.path.isdir(DupFileManagerFolder):
+    DupFileManagerFolder        = f"{stash.PLUGINS_PATH}{os.sep}DupFileManager"
+reportHeader                = f"{DupFileManagerFolder}{os.sep}DupFileManager_report_header"
+
 excludeFromReportIfSignificantTimeDiff = False
 htmlReportPaginate          = stash.Setting('htmlReportPaginate')
 htmlIncludeImagePreview     = stash.Setting('htmlIncludeImagePreview')
@@ -570,8 +575,13 @@ def getPath(Scene, getParent = False):
         return pathlib.Path(path).resolve().parent
     return path
 
+htmlReportPrefix = None
 def getHtmlReportTableRow(qtyResults, tagDuplicates):
-    htmlReportPrefix = stash.Setting('htmlReportPrefix')
+    global htmlReportPrefix
+    if htmlReportPrefix != None:
+        return htmlReportPrefix
+    with open(reportHeader, 'r') as file:
+        htmlReportPrefix = file.read()
     htmlReportPrefix = htmlReportPrefix.replace('http://127.0.0.1:9999/graphql', stash.url)
     htmlReportPrefix = htmlReportPrefix.replace('http://localhost:9999/graphql', stash.url)
     if 'apiKey' in stash.STASH_CONFIGURATION and stash.STASH_CONFIGURATION['apiKey'] != "":
@@ -654,8 +664,7 @@ def doesDelCandidateHaveMetadataNotInDupToKeep(DupFile, DupFileToKeep, listName,
             break
     return DupToKeepMissingItem, DelCandidateMissingItem
 
-
-htmlReportNameFolder        = f"{stash.PLUGINS_PATH}{os.sep}DupFileManager{os.sep}report"
+htmlReportNameFolder        = f"{DupFileManagerFolder}{os.sep}report"
 htmlReportName              = f"{htmlReportNameFolder}{os.sep}{stash.Setting('htmlReportName')}"
 htmlReportTableRow          = stash.Setting('htmlReportTableRow')
 htmlReportVideoPreview      = f"width='{htmlVideoPreviewWidth}' height='{htmlVideoPreviewHeight}' {stash.Setting('htmlReportVideoPreview')} "
@@ -1747,7 +1756,14 @@ def mergeTags(inputScene1=None):
 def getLocalDupReportPath():
     htmlReportExist = "true" if os.path.isfile(htmlReportName) else "false"
     localPath = htmlReportName.replace("\\", "\\\\")
-    jsonReturn = "{'LocalDupReportExist' : " + f"{htmlReportExist}" + ", 'Path': '" + f"{localPath}" + "'}"
+    LocalDir = htmlReportNameFolder.replace("\\", "\\\\")
+    ReportUrl = f"file://{htmlReportName.replace(os.sep, '/')}"
+    AdvMenuUrl = f"file://{stash.PLUGINS_PATH.replace(os.sep, '/')}/DupFileManager/advance_options.html"
+    ReportUrlDir = f"file://{htmlReportNameFolder.replace(os.sep, '/')}"
+    apikey_json = ", 'apiKey':''"
+    if 'apiKey' in stash.STASH_CONFIGURATION:
+        apikey_json = f", 'apiKey':'{stash.STASH_CONFIGURATION['apiKey']}'"
+    jsonReturn = "{" + f"'LocalDupReportExist' : {htmlReportExist}, 'Path': '{localPath}', 'LocalDir': '{LocalDir}', 'ReportUrlDir': '{ReportUrlDir}', 'ReportUrl': '{ReportUrl}', 'AdvMenuUrl': '{AdvMenuUrl}', 'IS_DOCKER': '{stash.IS_DOCKER}' {apikey_json}" + "}"
     stash.Log(f"Sending json value {jsonReturn}")
     sys.stdout.write(jsonReturn)
 

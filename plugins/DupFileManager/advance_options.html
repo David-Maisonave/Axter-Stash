@@ -18,57 +18,72 @@ html.wait, html.wait * { cursor: wait !important; }
 <script src="https://www.axter.com/js/jquery.prompt.js"></script>
 <link rel="stylesheet" href="https://www.axter.com/js/jquery.prompt.css"/>
 <script>
-var apiKey = ""; // For Stash installations with a password setup, populate this variable with the apiKey found in Stash->Settings->Security->[API Key];   	----- Or pass in the apiKey at the URL command line. Example: advance_options.html?apiKey=12345G4igiJdgssdgiwqInh5cCI6IkprewJ9hgdsfhgfdhd&GQL=http://localhost:9999/graphql
-var GraphQl_URL = "http://localhost:9999/graphql";// For Stash installations with non-standard ports or URL's, populate this variable with actual URL;   	----- Or pass in the URL at the command line using GQL param. Example: advance_options.html?GQL=http://localhost:9900/graphql
+const isChrome = !!window.chrome;
 const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('apiKey') != null && urlParams.get('apiKey') !== "")
-	apiKey = urlParams.get('apiKey');
-if (urlParams.get('GQL') != null && urlParams.get('GQL') !== "")
-	GraphQl_URL = urlParams.get('GQL');
+let thisUrl = "" + window.location;
+const isAxterCom = (thisUrl.search("axter.com") > -1);
+function getParam(ParamName, DefaultValue = ""){
+	if (urlParams.get(ParamName) != null && urlParams.get(ParamName) !== "")
+		return urlParams.get(ParamName);
+	return DefaultValue;
+}
+const apiKey = getParam("apiKey"); // For Stash installations with a password setup, populate this variable with the apiKey found in Stash->Settings->Security->[API Key];   	----- Or pass in the apiKey at the URL command line. Example: advance_options.html?apiKey=12345G4igiJdgssdgiwqInh5cCI6IkprewJ9hgdsfhgfdhd&GQL=http://localhost:9999/graphql
+const GraphQl_URL = getParam("GQL", "http://localhost:9999/graphql");// For Stash installations with non-standard ports or URL's, populate this variable with actual URL;   	----- Or pass in the URL at the command line using GQL param. Example: advance_options.html?GQL=http://localhost:9900/graphql
+var   ReportUrlDir = getParam("ReportUrlDir")
+const IS_DOCKER = getParam("IS_DOCKER") === "True";
+var ReportUrl = "";
+// let stash_site = { GQL: GraphQl_URL, apiKey: apiKey, ReportUrlDir: ReportUrlDir, };
+// document.cookie = 'stash_site=' + JSON.stringify(stash_site);
 console.log(urlParams);
-console.log("GQL = " + GraphQl_URL);
-console.log("Key = " + apiKey);
+console.log("GQL = " + GraphQl_URL + "; apiKey = " + apiKey + "; ReportUrlDir = " + ReportUrlDir + "; isChrome = " + isChrome + "; isAxterCom = " + isAxterCom + "; IS_DOCKER = " + IS_DOCKER + "; Cookies = " + document.cookie);
 
-function RunPluginDupFileManager(Mode, Param = 0, Async = false, TagOnlyScenes = false) {
+// DockerWarning = "<p><b>Warning: </b>The current version of DupFileManager does not support accessing report files from Docker Stash setup.</p><p>The link in the bottom of this window will not work unless you're using a browser in the Docker OS.</p>Consider installing Firefox by using instructions in following link:<a href=\"https://collabnix.com/running-firefox-in-docker-container/\" target=\"_blank\" id=\"advance_options\">Firefox-in-Docker-Container</a><p>...</p>";
+DockerWarning = "<p><b>Warning: </b>The current version of DupFileManager does not support accessing report files from Docker Stash setup.</p><p>The following link will not work unless you're using a browser in the Docker OS.</p>";
+
+function RunPluginDupFileManager(Mode, Param = 0, Async = false, TagOnlyScenes = false, DataType = "text") {
 	// alert("Mode = " + Mode + ";Param = " + Param);
 	$('html').addClass('wait');
 	$("body").css("cursor", "progress");
 	if (TagOnlyScenes)
 		Param += ":TagOnlyScenes";
-	console.log("GraphQl_URL = " + GraphQl_URL + "; Mode = " + Mode + "; Param = " + Param);
+	console.log("GraphQl_URL = " + GraphQl_URL + "; Mode = " + Mode + "; Param = " + Param + "; DataType = " + DataType);
 	if (apiKey !== ""){
 		console.log("Using apiKey = " + apiKey);
 		$.ajaxSetup({beforeSend: function(xhr) {xhr.setRequestHeader('apiKey', apiKey);}});
 	}
-	$.ajax({method: "POST", url: GraphQl_URL, contentType: "application/json", dataType: "text", cache: Async, async: Async,
+	const AjaxData = $.ajax({method: "POST", url: GraphQl_URL, contentType: "application/json", dataType: DataType, cache: Async, async: Async,
 	data: JSON.stringify({
 			query: `mutation RunPluginOperation($plugin_id:ID!,$args:Map!){runPluginOperation(plugin_id:$plugin_id,args:$args)}`,
 			variables: {"plugin_id": "DupFileManager", "args": { "Target" : Param, "mode":Mode}},
 		}), success: function(result){
 			$('html').removeClass('wait');
 			$("body").css("cursor", "default");
-			if (result.startsWith("{\"errors\"")){
-				console.log("Ajax FAILED with result = " + result);
-				if (result.indexOf("{\"runPluginOperation\":null}") > 0)
-					alert("Stash RunPluginOperation failed with possible source code error.\nCheck Stash logging for details.\n\nResults = " + result);
-				else
-					alert("Stash RunPluginOperation failed with result = " + result);
-				return;
+			if (DataType === "text"){
+				if (result.startsWith("{\"errors\"")){
+					console.log("Ajax FAILED with result = " + result);
+					if (result.indexOf("{\"runPluginOperation\":null}") > 0)
+						alert("Stash RunPluginOperation failed with possible source code error.\nCheck Stash logging for details.\n\nResults = " + result);
+					else
+						alert("Stash RunPluginOperation failed with result = " + result);
+					return;
+				}
+				console.log("Ajax success with result = " + result);
+				if (Mode === "tag_duplicates_task" || Mode === "create_duplicate_report_task"){
+					if (result.indexOf("\"Report complete\"") == -1)
+						alert("Stash RunPluginOperation returned unexpected results.\nNot sure if report completed successfully.\n\nResults = " + result);
+					else{
+						var Notice = "";
+						var Instructions = "<p>Click the below link to open report in your browser.</p>";
+						if (IS_DOCKER)
+							Instructions = DockerWarning;
+						if (isAxterCom && isChrome)
+							Notice = "<p>Note: If your browser does not support opening local file links from a non-local URL, copy and paste the above link to your browser address field.</p>";
+						$("<h2>Report complete!</h2>" + Instructions + "<a href=\"" + ReportUrl + "\" target=\"_blank\" id=\"advance_options\">" + ReportUrl + "</a>" + Notice).alert();
+					}
+				}
 			}
-			console.log("Ajax success with result = " + result);
-			if (Mode === "tag_duplicates_task" || Mode === "create_duplicate_report_task"){
-				if (result.indexOf("\"Report complete\"") == -1)
-					alert("Stash RunPluginOperation returned unexpected results.\nNot sure if report completed successfully.\n\nResults = " + result);
-				else
-					$('<p>Report complete. Click on OK to open report in browser.</p>').confirm(function(retrn){
-						if(retrn.response){
-							var reportUrl = window.location.href;
-							reportUrl = reportUrl.replace("advance_options.html", "report/DuplicateTagScenes.html");
-							console.log("reportUrl = " + reportUrl);
-							window.open(reportUrl, "_blank");
-						}
-					});
-			}
+			else
+				console.log("Ajax JSON results = " + JSON.stringify(result));
 		}, error: function(XMLHttpRequest, textStatus, errorThrown) { 
 			console.log("Ajax failed with Status: " + textStatus + "; Error: " + errorThrown); 
 			$('html').removeClass('wait');
@@ -76,7 +91,27 @@ function RunPluginDupFileManager(Mode, Param = 0, Async = false, TagOnlyScenes =
 		}
 	});
 	console.log("Setting default cursor");
+	if (DataType == "text"){
+		console.log(AjaxData.responseText);
+		return AjaxData.responseText;
+	}
+	JsonStr = AjaxData.responseJSON.data.runPluginOperation.replaceAll("'", "\"");
+	console.log("JSON runPluginOperation = " + JsonStr);
+	return JSON.parse(JsonStr);
 }
+
+function GetReportUrlDir(){
+	var LocalDuplicateReport = RunPluginDupFileManager("getLocalDupReportPath", 0, false, false, "json");
+	console.log("LocalDuplicateReport.LocalDupReportExist = " + LocalDuplicateReport.LocalDupReportExist);
+	console.log("LocalDuplicateReport.Path = " + LocalDuplicateReport.Path);
+	ReportUrl = LocalDuplicateReport.ReportUrl;
+	console.log("ReportUrl = " + ReportUrl);
+	return LocalDuplicateReport.ReportUrlDir;
+}
+if (ReportUrlDir === "")
+	ReportUrlDir = GetReportUrlDir();
+console.log("ReportUrlDir = " + ReportUrlDir);
+
 function GetStashTabUrl(Tab){
 	var Url = GraphQl_URL;
 	Url = Url.replace("graphql", "settings?tab=" + Tab);
@@ -122,10 +157,16 @@ function ProcessClick(This_){
 	}
 	else if (ID === "viewreport")
 	{
-		var reportUrl = window.location.href;
-		reportUrl = reportUrl.replace("advance_options.html", "report/DuplicateTagScenes.html");
-		console.log("reportUrl = " + reportUrl);
-		window.open(reportUrl, "_blank");
+		if (IS_DOCKER)
+			$(DockerWarning + "<a href=\"" + ReportUrl + "\" target=\"_blank\" id=\"advance_options\">" + ReportUrl + "</a>").alert();
+		else if (isAxterCom){
+			if (isChrome)
+				$("<p>This browser does not support local file links from a non-local URL. To open the report, copy and paste the following link to your browser address bar.</p><a href=\"" + ReportUrl + "\" target=\"_blank\" id=\"advance_options\">" + ReportUrl + "</a>").alert();
+			else
+				$("<p>If this browser supports local file links from a non-local URL, you can click on the following link to open your report. Other wise to open the report, copy and paste the link to your browser address bar.</p><a href=\"" + ReportUrl + "\" target=\"_blank\" id=\"advance_options\">" + ReportUrl + "</a>").alert();
+		}
+		else
+			window.open(ReportUrl, "_blank");
 	}
 	else if (ID === "viewStashPlugin")
 		window.open(GetStashTabUrl("plugins"), "_blank");
@@ -298,12 +339,10 @@ function DeleteDupInPath(){
 </script>
 </head>
 <body>
-<center>
-<div class="easyui-accordion" data-options="multiple:true" style="width:800px;">
+<div class="easyui-accordion" data-options="multiple:true" style="width:800px;margin: auto;">
 <div title="Menu" data-options="iconCls:'icon-ok'" style="overflow:auto;padding:10px;">
-<center>
-<table style="color:darkgreen;background-color:powderblue;">
-	<tr><th><div><b style="color:red;"><i>DupFileManager</i></b></div>Advance Duplicate File Menu</th><th>Apply Multiple Options</th></tr>
+<table style="color:darkgreen;background-color:powderblue;margin: auto;">
+	<tr style="text-align:center;"><th><div><b style="color:red;"><i>DupFileManager</i></b></div>Advance Duplicate File Menu</th><th>Apply Multiple Options</th></tr>
 	<tr>
 		<td>
 			<table style="border-collapse: collapse; border: none;">
@@ -1956,9 +1995,8 @@ function DeleteDupInPath(){
 </table>
 </div>
 <div title="Create Report Options" data-options="iconCls:'icon-menu2'" style="overflow:auto;padding:10px;">
-<center>
-<table style="color:darkgreen;background-color:powderblue;">
-	<tr><th colspan="3">
+<table style="color:darkgreen;background-color:powderblue;margin: auto;">
+	<tr style="text-align:center;"><th colspan="3">
 		These options override the UI plugin user settings and the DupFileManager_config.py settings.
 		<div style="font-size: 10px;">These options apply to <b>[Create Duplicate Report]</b> <b style="color:red;background-color:yellow">sub-menu</b> options, that have specific <b style="color:red;background-color:yellow">match</b> value.</div>
 	</th></tr>
@@ -2026,10 +2064,9 @@ function DeleteDupInPath(){
 		<td><div class="easyui-tooltip" title="The size of preview video height. Default value is 120."><label for="VideoPreviewHeight">Preview Video Height:</label><input type="number" min="50" max="600" step="10" id="VideoPreviewHeight" name="VideoPreviewHeight" value="120"></div></td>
 	</tr>
 </table>
-</center>
 </div>
 <div title="Help" data-options="iconCls:'icon-help', selected:'false'" style="padding:10px;">
-<table style="color:darkgreen;background-color:powderblue;">	
+<table style="color:darkgreen;background-color:powderblue;margin: auto;">	
 	<tr><td style="font-size: 12px;" colspan="2">
 		<ol type="I" style="padding-left: 16px;">
 			<li>Match Duplicate Distance Number Details</li>
@@ -2113,7 +2150,7 @@ function DeleteDupInPath(){
 							</ol>					
 						</ol>					
 				</ol>
-			<li>List</b></li>
+			<li><b>List</b></li>
 				<ol type="1" style="padding-left: 16px;">
 					<li>DupFileManager supports 4 types of list that are configured in Stash=>Settings->Plugins->DupFileManager.</li>
 						<ol type="A" style="padding-left: 16px;">
@@ -2155,9 +2192,8 @@ function DeleteDupInPath(){
 	</td></tr>
 </table>
 </div>
-</center>
+</div>
 <div id="div1"></div>
-</center>
 </body></html>
 
 

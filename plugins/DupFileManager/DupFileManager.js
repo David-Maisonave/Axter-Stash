@@ -1,16 +1,5 @@
 (function () {
-	// export default withRouter(Header);
-	// const { withRouter } = window.PluginApi.libraries.ReactRouterDOM;
-	// class Header extends Component {
-	  // constructor(props) {
-		// super(props);
-	  // }
-	  // render() {
-		// const path = this.props.location.pathname.slice(1);
-		// return ("<div><h1>{path}</h1>foofoo2</div>");
-	  // }
-	// }
-	var isChrome = !!window.chrome;
+	const isChrome = !!window.chrome;
 	const PluginApi = window.PluginApi;
     const React = PluginApi.React;
 	const { Component } = PluginApi.React;
@@ -22,18 +11,17 @@
 	var myArray = rootPath.split("/");
 	rootPath = myArray[0] + "//" + myArray[2]
 	console.log("rootPath = " + rootPath);
-	var AsyncResults = null;
 	function RunPluginDupFileManager(Mode, DataType = "text", Async = false, ActionID = 0) {
-		AsyncResults = null;
 		const AjaxData = $.ajax({method: "POST", url: "/graphql", contentType: "application/json",  dataType: DataType, cache: Async, async: Async,
 		data: JSON.stringify({
 				query: `mutation RunPluginOperation($plugin_id:ID!,$args:Map!){runPluginOperation(plugin_id:$plugin_id,args:$args)}`,
 				variables: {"plugin_id": "DupFileManager", "args": { "Target" : ActionID, "mode":Mode}},
 			}), success: function(result){
-				AsyncResults = result;
-				console.log(AsyncResults);
-				if (DataType == "text")
+				if (DataType == "text"){
+					console.log("result=" + result);
 					return result;
+				}
+				console.log("JSON result=" + JSON.stringify(result));
 				return result;
 			}
 		});
@@ -44,18 +32,24 @@
 			console.log(AjaxData.responseText);
 			return AjaxData.responseText;
 		}
-		console.log(AjaxData.responseJSON);
-		return JSON.parse(AjaxData.responseJSON.data.runPluginOperation.replaceAll("'", "\""));
+		JsonStr = AjaxData.responseJSON.data.runPluginOperation.replaceAll("'", "\"");
+		console.log("JSON runPluginOperation = " + JsonStr);
+		return JSON.parse(JsonStr);
 	}
 	var LocalDupReportExist = false;
 	var AdvanceMenuOptionUrl  = "";
+	var apiKey  = "";
+	var UrlParam = "";
+	var IS_DOCKER = "";
 	function GetLocalDuplicateReportPath(){
 		var LocalDuplicateReport = RunPluginDupFileManager("getLocalDupReportPath", "json");
 		var LocalDuplicateReportPath = "file://" + LocalDuplicateReport.Path;
-		console.log(LocalDuplicateReportPath);
-		// AdvanceMenuOptionUrl = LocalDuplicateReportPath.replace("report\\DuplicateTagScenes.html", "advance_options.html" + "?GQL=" + rootPath);
-		AdvanceMenuOptionUrl = LocalDuplicateReportPath.replace("report\\DuplicateTagScenes.html", "advance_options.html");
-		console.log(AdvanceMenuOptionUrl);
+		apiKey = LocalDuplicateReport.apiKey;
+		IS_DOCKER = LocalDuplicateReport.IS_DOCKER;
+		UrlParam = "?GQL=" + rootPath + "/graphql&IS_DOCKER=" + IS_DOCKER + "&apiKey=" + apiKey;
+		console.log("LocalDuplicateReportPath=" + JSON.stringify(LocalDuplicateReportPath) + "; document.cookie=" + document.cookie);
+		AdvanceMenuOptionUrl = LocalDuplicateReport.AdvMenuUrl + UrlParam;
+		console.log("AdvanceMenuOptionUrl=" + AdvanceMenuOptionUrl);
 		LocalDupReportExist = LocalDuplicateReport.LocalDupReportExist;
 		return LocalDuplicateReportPath;
 	}
@@ -77,16 +71,14 @@
 			return React.createElement("div", null, 
 					React.createElement("div", {style:{"background-color":"yellow", color:"red"}}, ChromeNotice),
 					React.createElement("h5", null, ShowReportChromeHeader),
-					React.createElement("a", {href: LocalDuplicateReportPath, style:{color:"pink"}, title: ShowReportButtonToolTip}, LocalDuplicateReportPath));
-		return React.createElement("a", { href: LocalDuplicateReportPath, title: ShowReportButtonToolTip}, React.createElement(Button, null, ButtonText));
+					React.createElement("a", {href: LocalDuplicateReportPath, style:{color:"pink"}, title: ShowReportButtonToolTip, target:"_blank"}, LocalDuplicateReportPath));
+		return React.createElement("a", { href: LocalDuplicateReportPath, title: ShowReportButtonToolTip, target:"_blank"}, React.createElement(Button, null, ButtonText));
 	}
 	function GetAdvanceMenuButton()
 	{
-		if (isChrome)
-			return React.createElement("div", null, 
-					React.createElement("h5", null, "The following is the link to the [Advance Duplicate File Menu]"),
-					React.createElement("a", {href: AdvanceMenuOptionUrl, style:{color:"pink"}}, AdvanceMenuOptionUrl));
-		return React.createElement("a", { href: AdvanceMenuOptionUrl, title: "Open link to the [Advance Duplicate File Menu]."}, React.createElement(Button, null, "Show [Advance Duplicate File Menu]"));
+		return React.createElement("a", { href: "https://stash.axter.com/1.1.2/advance_options.html" + UrlParam, title: "Open link to the [Advance Duplicate File Menu].", target:"_blank"}, React.createElement(Button, null, "Show [Advance Duplicate File Menu]"));
+		// The following does not work with Chrome, or with an apiKey, or with a non-standard Stash URL.
+		//return React.createElement("a", { href: AdvanceMenuOptionUrl, title: "Open link to the [Advance Duplicate File Menu].", target:"_blank"}, React.createElement(Button, null, "Show [Advance Duplicate File Menu]"));
 	}
 	function GetCreateReportNoTagButton(ButtonText){return React.createElement(Link, { to: "/DupFileManager_CreateReportWithNoTagging", title: CreateReportNoTagButtonToolTip }, React.createElement(Button, null, ButtonText));}
 	function GetCreateReportButton(ButtonText){return React.createElement(Link, { to: "/DupFileManager_CreateReport", title: CreateReportButtonToolTip }, React.createElement(Button, null, ButtonText));}
