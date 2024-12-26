@@ -1,11 +1,11 @@
-# DupFileManager: Ver 1.1.2 (By David Maisonave)
+# DupFileManager: Ver 1.1.3 (By David Maisonave)
 
 DupFileManager is a [Stash](https://github.com/stashapp/stash) plugin which manages duplicate files in the Stash system.
 It has both **task** and **tools-UI** components.
 
 ### Features
 
-- Creates a duplicate file report which can be accessed from the settings->tools menu options.The report is created as an HTML file and stored in local path under plugins\DupFileManager\report\DuplicateTagScenes.html.
+- Creates a duplicate file report which can be accessed from the Stash->Settings->Tools menu options.The report is created as an HTML file and stored in local path under plugins\DupFileManager\report\DuplicateTagScenes.html.
   - See screenshot at the bottom of this page for example report.
   - Items on the left side of the report are the primary duplicates designated for deletion. By default, these duplicates are given a special _duplicate tag.
   - Items on the right side of the report are designated as primary duplicates to keep. They usually have higher resolution, duration and/or preferred paths.
@@ -24,8 +24,7 @@ It has both **task** and **tools-UI** components.
   - Normally when Stash searches the file name for tag names, performers, and studios, it only does so using the primary file.
 - Advance menu
   - ![Screenshot 2024-12-13 164930](https://github.com/user-attachments/assets/10098a4d-de2f-4e83-94ce-5988c5935404)
-  - Advance menu can be access from the Settings->Tools->**[DupFileManager Tools and Utilities]** menu or from the **reports**.
-    - Only access Advance Menu from the report when using Stash setup requiring a password.
+  - Advance menu can be access from the Stash->Settings->Tools->**[Duplicate File Report]** menu or from the **DupFileManager Tools & Util**.
   - Here are **some** of the options available in the **Advance Menu**.
     - Delete specially tagged duplicates in blacklist path.
     - Delete duplicates with specified file path.
@@ -39,11 +38,11 @@ It has both **task** and **tools-UI** components.
 - Bottom extended portion of the Advanced Menu is for customizing the report.
   - ![Screenshot 2024-12-13 165238](https://github.com/user-attachments/assets/9ba9ab12-cd60-4be4-bc26-6ffe76a68edc)
 - Delete duplicate file task with the following options:
-  - Tasks (Settings->Task->[Plugin Tasks]->DupFileManager)
+  - Tasks (Stash->Settings->Task->[Plugin Tasks]->DupFileManager)
     - **Tag Duplicates** - Set tag DuplicateMarkForDeletion to the duplicates with lower resolution, duration, file name length, and/or black list path.
     - **Delete Tagged Duplicates** - Delete scenes having DuplicateMarkForDeletion tag.
     - **Delete Duplicates** - Deletes duplicate files. Performs deletion without first tagging.
-  - Plugin UI options (Settings->Plugins->Plugins->[DupFileManager])
+  - Plugin UI options (Stash->Settings->Plugins->Plugins->[DupFileManager])
     - Has a 3 tier path selection to determine which duplicates to keep, and which should be candidates for deletions.
       - **Whitelist** - List of paths NOT to be deleted. 
         - E.g. C:\Favorite\,E:\MustKeep\
@@ -80,8 +79,39 @@ That's it!!!
 
 ### Options
 
-- Options are accessible in the GUI via Settings->Plugins->Plugins->[DupFileManager].
-- More options available in DupFileManager_config.py.
+- Options are accessible in the GUI via Stash->Settings->Plugins->Plugins->[DupFileManager].
+- Also see:
+  - Stash->Settings->Tools->[Duplicate File Report]
+  - Stash->Settings->Tools->[DupFileManager Tools and Utilities]
+- More options available on the following link:
+  - [advance_options.html](https://stash.axter.com/1.1/advance_options.html)
+  - When using a Stash installation that requires a password or that is not using port 9999...
+    - Access above link from Stash->Settings->Tools->[Duplicate File Report]->[**Advance Duplicate File Menu**]
+	- Or add the GQL and apiKey as parameters to the URL.
+	  - Example: https://stash.axter.com/1.1/advance_options.html?GQL=http://localhost:9999/graphql&apiKey=1234567890abcdefghijklmnop
+    - See following for more details: [Stash Password](README.md#Stash-Password)
+
+### Advanced Options
+
+Users can setup a private or alternate remote site by changing variables **remoteReportDirURL** and **js_DirURL** in file DupFileManager_report_config.py.
+- The following files are needed at the remote site that is pointed to by **remoteReportDirURL**.
+  - DupFileManager_report.js
+  - DupFileManager_report.css
+  - file.html
+  - advance_options.html
+- The **js_DirURL** path requires the following:
+  - jquery-3.7.1.min.js
+  - EasyUI associated files
+  - jquery.prompt.js and jquery.prompt.css  
+
+### Stash Password
+
+- Stash installation configured with a password, need to generate an API-Key. 
+  - To generate an API-Key:
+    - Go to Stash->Settings->Security->Authentication->[API Key]
+	- Click on [Generate API-Key]
+- Once the API key is generated, DupFileManager will automatically fetch the key.
+
 
 ### Screenshots
 
@@ -103,6 +133,7 @@ That's it!!!
 
 ### Future Planned Features, Changes, or Fixes
 - Scheduled Changes
+  - Remove [Max Dup Process] from the Stash->Plugins GUI. This option already exist in advance menu. Planned for 1.2.0 Version.
   - Add chat icon to report which on hover, displays a popup window showing scene details content. Planned for 1.2.0 Version.
   - Add image icon to report; on hover show scene cover image. Planned for 1.2.0 Version.
   - Add studio icon to report; on hover show studio name. Planned for 1.2.0 Version.
@@ -121,12 +152,13 @@ That's it!!!
   - Fix errors on HTML page listed in https://validator.w3.org.
   - Add logic to merge performers and galaries seperatly from tag merging on report.
   - Add logic to merge group metadata when selecting merge option on report.
-  - Add advanced menu directly to the Settings->Tools menu.
-  - Add report directly to the Settings->Tools menu.
+  - Add advanced menu directly to the Stash->Settings->Tools menu. (This change does not look doable!!!)
+  - Add report directly to the Stash->Settings->Tools menu. (This change does not look doable!!!)
   - Create cookies for the options in the [**Advance Duplicate File Menu**].
   - Add doulbe strike-through option to flagging.
   - Add option to report to avoid reloading page after updating report.
   - Add option to report to automatically strip width & height from name on rename.
   - Add link to version history to [**Advance Duplicate File Menu**] and to [DupFileManager Tools and Utilities]
+  - Move [Merge Duplicate Tags], [Whitelist Delete In Same Folder], and [Swap Better **] field options from the Stash->Plugins GUI to the advance menu.
     
   

@@ -1,0 +1,26 @@
+- id: DupFileManager
+  name: DupFileManager
+  metadata:
+    description: Manages duplicate files.
+  version: 1.0.0-3ddd7fa
+  date: 2024-11-29 02:38:12
+  path: DupFileManager.zip
+  sha256: 5047dc27cfec45f64372d68d93e227a26bcc1e3590d2701ce31b039dfa5c7c89
+
+- id: filemonitor
+  name: FileMonitor
+  metadata:
+    description: Monitors the Stash library folders, and updates Stash if any changes occurs in the Stash library paths.
+  version: 0.9.0-97999c1
+  date: 2024-08-28 13:25:34
+  path: filemonitor.zip
+  sha256: 8a45d4341d85e4ea6e0dbc8125282027e1c76ecb178b0c146d20cc2745ccf711
+
+- id: renamefile
+  name: RenameFile
+  metadata:
+    description: Renames video (scene) file names when the user edits the [Title] field located in the scene [Edit] tab.
+  version: 0.4.6-97999c1
+  date: 2024-08-28 13:25:34
+  path: renamefile.zip
+  sha256: e0cf5105be0be6336ad6bca56ff6d7295954e1fbaec3f0e921a917a44da31f57

@@ -45,4 +45,8 @@ report_config = {
     "htmlReportName" : "DuplicateTagScenes.html",
     # If enabled, create an HTML report when tagging duplicate files
     "createHtmlReport" : True,
+    # To use a private or an alternate site to access report and advance menu
+    "remoteReportDirURL" : "https://stash.axter.com/1.1/",
+    # To use a private or an alternate site to access jquery, easyui, and jquery.prompt
+    "js_DirURL" : "https://www.axter.com/js/",
 }

@@ -16,8 +16,6 @@ from StashPluginHelper import StashPluginHelper
 from stashapi.stash_types import PhashDistance
 from DupFileManager_config import config # Import config from DupFileManager_config.py
 from DupFileManager_report_config import report_config
-
-# ToDo: make sure the following line of code works
 config |= report_config
 
 parser = argparse.ArgumentParser()
@@ -81,11 +79,13 @@ doJsonReturnModeTypes = ["tag_duplicates_task", "removeDupTag", "addExcludeTag",
                          "createDuplicateReportWithoutTagging", "deleteLocalDupReportHtmlFiles", "clear_duplicate_tags_task",
                          "deleteAllDupFileManagerTags", "deleteBlackListTaggedDuplicatesTask", "deleteTaggedDuplicatesLwrResOrLwrDuration",
                          "deleteBlackListTaggedDuplicatesLwrResOrLwrDuration", "create_duplicate_report_task", "copyScene"]
-doJsonReturnModeTypes += [advanceMenuOptions]
+javascriptModeTypes  = ["getReport", "getAdvanceMenu"]
+javascriptModeTypes += advanceMenuOptions
+javascriptModeTypes += doJsonReturnModeTypes
 doJsonReturn = False
 def isReportOrAdvMenu():
     if len(sys.argv) < 2:
-        if stash.PLUGIN_TASK_NAME in doJsonReturnModeTypes:
+        if stash.PLUGIN_TASK_NAME in javascriptModeTypes:
             return True
         if stash.PLUGIN_TASK_NAME.endswith("Flag"):
             return True
@@ -100,7 +100,7 @@ elif stash.PLUGIN_TASK_NAME == "doEarlyExit":
     time.sleep(3)
     exit(0)
 
-stash.Log("******************* Starting   *******************")
+stash.Log(f"******************* Starting   ******************* json={doJsonReturn}")
 if len(sys.argv) > 1:
     stash.Log(f"argv = {sys.argv}")
 else:
@@ -286,6 +286,10 @@ if stash.Setting('appendMatchDupDistance'):
 
 stash.initMergeMetadata(excludeMergeTags)
 
+apiKey = ""
+if 'apiKey' in stash.STASH_CONFIGURATION:
+    apiKey = stash.STASH_CONFIGURATION['apiKey']
+FileLink = f"file.html?GQL={stash.url}&apiKey={apiKey}&IS_DOCKER={stash.IS_DOCKER}&PageNo="
 graylist = stash.Setting('zwGraylist').split(listSeparator)
 graylist = [item.lower() for item in graylist]
 if graylist == [""] : graylist = []
@@ -584,6 +588,8 @@ def getHtmlReportTableRow(qtyResults, tagDuplicates):
         htmlReportPrefix = file.read()
     htmlReportPrefix = htmlReportPrefix.replace('http://127.0.0.1:9999/graphql', stash.url)
     htmlReportPrefix = htmlReportPrefix.replace('http://localhost:9999/graphql', stash.url)
+    htmlReportPrefix = htmlReportPrefix.replace("[remoteReportDirURL]", stash.Setting('remoteReportDirURL'))
+    htmlReportPrefix = htmlReportPrefix.replace("[js_DirURL]", stash.Setting('js_DirURL'))
     if 'apiKey' in stash.STASH_CONFIGURATION and stash.STASH_CONFIGURATION['apiKey'] != "":
         htmlReportPrefix = htmlReportPrefix.replace('var apiKey = "";', f"var apiKey = \"{stash.STASH_CONFIGURATION['apiKey']}\";")
     if tagDuplicates == False:
@@ -1000,7 +1006,8 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False, deleteBlack
         deleteLocalDupReportHtmlFiles(False)
         fileHtmlReport = open(htmlReportName, "w")
         fileHtmlReport.write(f"{getHtmlReportTableRow(qtyResults, tagDuplicates)}\n")
-        fileHtmlReport.write("<center class=\"ID_NextPage_Top\"><a target=\"_self\" id=\"NextPage_Top\" iconCls=\"icon-next\" class=\"easyui-linkbutton easyui-tooltip\" title=\"Next Page\" href=\"DuplicateTagScenes_1.html\">Next</a></center>")
+        fileHtmlReport.write("<center class=\"ID_NextPage_Top\" id=\"ID_NextPage_Top\"><a target=\"_self\" iconCls=\"icon-next\" class=\"easyui-linkbutton easyui-tooltip\" title=\"Next Page\" href=\"DuplicateTagScenes_1.html\">Next</a></center>")
+        fileHtmlReport.write(f"<center id=\"ID_NextPage_Top_Remote\"><a target=\"_self\" iconCls=\"icon-next\" class=\"easyui-linkbutton easyui-tooltip\" title=\"Next Page\" href=\"{FileLink}1\">Next</a></center>")
         fileHtmlReport.write(f"{stash.Setting('htmlReportTable')}\n")
         htmlReportTableHeader   = stash.Setting('htmlReportTableHeader')
         SceneTableHeader = htmlReportTableHeader
@@ -1164,34 +1171,46 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False, deleteBlack
                                 if QtyTagForDelPaginate >= htmlReportPaginate:
                                     QtyTagForDelPaginate = 0
                                     fileHtmlReport.write("</table>\n")
-                                    homeHtmReportLink = f"<a target=\"_self\" id=\"HomePage\" iconCls=\"icon-home\" class=\"easyui-linkbutton easyui-tooltip\" title=\"Home Page\" href=\"{pathlib.Path(htmlReportNameHomePage).name}\">Home</a>"
+                                    homeHtmReportLink = f"<a target=\"_self\" iconCls=\"icon-home\" class=\"easyui-linkbutton easyui-tooltip\" title=\"Home Page\" href=\"{pathlib.Path(htmlReportNameHomePage).name}\">Home</a>"
                                     prevHtmReportLink = ""
+                                    prevRemoteLink = f"<a target=\"_self\" iconCls=\"icon-prev\" class=\"easyui-linkbutton easyui-tooltip\" title=\"Previous Page\" href=\"{FileLink}{PaginateId-1}\">Prev</a>"
+                                    homeRemoteLink = f"<a target=\"_self\" iconCls=\"icon-home\" class=\"easyui-linkbutton easyui-tooltip\" title=\"Home Page\" href=\"{FileLink}0\">Home</a>"
                                     if PaginateId > 0:
                                         if PaginateId > 1:
                                             prevHtmReport = htmlReportNameHomePage.replace(".html", f"_{PaginateId-1}.html")
                                         else:
                                             prevHtmReport = htmlReportNameHomePage
-                                        prevHtmReportLink = f"<a target=\"_self\" id=\"PrevPage\" iconCls=\"icon-prev\" class=\"easyui-linkbutton easyui-tooltip\" title=\"Previous Page\" href=\"{pathlib.Path(prevHtmReport).name}\">Prev</a>"
+                                        prevHtmReportLink = f"<a target=\"_self\" iconCls=\"icon-prev\" class=\"easyui-linkbutton easyui-tooltip\" title=\"Previous Page\" href=\"{pathlib.Path(prevHtmReport).name}\">Prev</a>"
                                     nextHtmReport = htmlReportNameHomePage.replace(".html", f"_{PaginateId+1}.html")
-                                    nextHtmReportLink = f"<a target=\"_self\" id=\"NextPage\" iconCls=\"icon-next\" class=\"easyui-linkbutton easyui-tooltip\" title=\"Next Page\" href=\"{pathlib.Path(nextHtmReport).name}\">Next</a>"
-                                    fileHtmlReport.write(f"<center><table><tr><td>{homeHtmReportLink}</td><td>{prevHtmReportLink}</td><td>{nextHtmReportLink}</td></tr></table></center>")
+                                    nextHtmReportLink = f"<a target=\"_self\" iconCls=\"icon-next\" class=\"easyui-linkbutton easyui-tooltip\" title=\"Next Page\" href=\"{pathlib.Path(nextHtmReport).name}\">Next</a>"
+                                    nextRemoteLink = f"<a target=\"_self\" iconCls=\"icon-next\" class=\"easyui-linkbutton easyui-tooltip\" title=\"Next Page\" href=\"{FileLink}{PaginateId+1}\">Next</a>"
+                                    if PaginateId > 0:
+                                        fileHtmlReport.write(f"<center id=\"ID_NextPage_Bottom\"><table><tr><td>{homeHtmReportLink}</td><td>{prevHtmReportLink}</td><td>{nextHtmReportLink}</td></tr></table></center>")
+                                        fileHtmlReport.write(f"<center id=\"ID_NextPage_Bottom_Remote\"><table><tr><td>{homeRemoteLink}</td><td>{prevRemoteLink}</td><td>{nextRemoteLink}</td></tr></table></center>")
+                                    else:
+                                        fileHtmlReport.write(f"<center id=\"ID_NextPage_Bottom\">{nextHtmReportLink}</center>")
+                                        fileHtmlReport.write(f"<center id=\"ID_NextPage_Bottom_Remote\">{nextRemoteLink}</center>")
                                     fileHtmlReport.write(f"{stash.Setting('htmlReportPostfix')}")
                                     fileHtmlReport.close()
                                     PaginateId+=1
                                     fileHtmlReport = open(nextHtmReport, "w")
                                     fileHtmlReport.write(f"{getHtmlReportTableRow(qtyResults, tagDuplicates)}\n")
+                                    prevRemoteLink = f"<a target=\"_self\" iconCls=\"icon-prev\" class=\"easyui-linkbutton easyui-tooltip\" title=\"Previous Page\" href=\"{FileLink}{PaginateId-1}\">Prev</a>"
+                                    nextRemoteLink = f"<a target=\"_self\" iconCls=\"icon-next\" class=\"easyui-linkbutton easyui-tooltip\" title=\"Next Page\" href=\"{FileLink}{PaginateId+1}\">Next</a>"
                                     if PaginateId > 1:
                                         prevHtmReport = htmlReportNameHomePage.replace(".html", f"_{PaginateId-1}.html")
                                     else:
                                         prevHtmReport = htmlReportNameHomePage
-                                    prevHtmReportLink = f"<a target=\"_self\" id=\"PrevPage_Top\" iconCls=\"icon-prev\" class=\"easyui-linkbutton easyui-tooltip\" title=\"Previous Page\" href=\"{pathlib.Path(prevHtmReport).name}\">Prev</a>"
+                                    prevHtmReportLink = f"<a target=\"_self\" iconCls=\"icon-prev\" class=\"easyui-linkbutton easyui-tooltip\" title=\"Previous Page\" href=\"{pathlib.Path(prevHtmReport).name}\">Prev</a>"
                                     if len(DupFileSets) > (QtyTagForDel + htmlReportPaginate):
                                         nextHtmReport = htmlReportNameHomePage.replace(".html", f"_{PaginateId+1}.html")
-                                        nextHtmReportLink = f"<a target=\"_self\" id=\"NextPage_Top\" iconCls=\"icon-next\" class=\"easyui-linkbutton easyui-tooltip\" title=\"Next Page\" href=\"{pathlib.Path(nextHtmReport).name}\">Next</a>"
-                                        fileHtmlReport.write(f"<center><table><tr><td>{homeHtmReportLink}</td><td>{prevHtmReportLink}</td><td>{nextHtmReportLink}</td></tr></table></center>")
+                                        nextHtmReportLink = f"<a target=\"_self\" iconCls=\"icon-next\" class=\"easyui-linkbutton easyui-tooltip\" title=\"Next Page\" href=\"{pathlib.Path(nextHtmReport).name}\">Next</a>"
+                                        fileHtmlReport.write(f"<center class=\"ID_NextPage_Top\" id=\"ID_NextPage_Top\"><table><tr><td>{homeHtmReportLink}</td><td>{prevHtmReportLink}</td><td>{nextHtmReportLink}</td></tr></table></center>")
+                                        fileHtmlReport.write(f"<center id=\"ID_NextPage_Top_Remote\"><table><tr><td>{homeRemoteLink}</td><td>{prevRemoteLink}</td><td>{nextRemoteLink}</td></tr></table></center>")
                                     else:
                                         stash.Debug(f"DupFileSets Qty = {len(DupFileSets)}; DupFileDetailList Qty = {len(DupFileDetailList)}; QtyTagForDel = {QtyTagForDel}; htmlReportPaginate = {htmlReportPaginate}; QtyTagForDel + htmlReportPaginate = {QtyTagForDel+htmlReportPaginate}")
-                                        fileHtmlReport.write(f"<center><table><tr><td>{homeHtmReportLink}</td><td>{prevHtmReportLink}</td></tr></table></center>")
+                                        fileHtmlReport.write(f"<center class=\"ID_NextPage_Top\" id=\"ID_NextPage_Top\"><table><tr><td>{homeHtmReportLink}</td><td>{prevHtmReportLink}</td></tr></table></center>")
+                                        fileHtmlReport.write(f"<center id=\"ID_NextPage_Top_Remote\"><table><tr><td>{homeRemoteLink}</td><td>{prevRemoteLink}</td></tr></table></center>")
                                     fileHtmlReport.write(f"{stash.Setting('htmlReportTable')}\n")
                                     if htmlIncludeVideoPreview or htmlIncludeImagePreview:
                                         fileHtmlReport.write(f"{htmlReportTableRow}{SceneTableHeader}Scene</th>{htmlReportTableHeader}Duplicate to Delete</th>{SceneTableHeader}Scene-ToKeep</th>{htmlReportTableHeader}Duplicate to Keep</th></tr>\n")
@@ -1215,18 +1234,21 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False, deleteBlack
     if fileHtmlReport != None:
         fileHtmlReport.write("</table>\n")
         if PaginateId > 0:
-            homeHtmReportLink = f"<a target=\"_self\" id=\"HomePage_Top\" iconCls=\"icon-home\" class=\"easyui-linkbutton easyui-tooltip\" title=\"Home Page\" href=\"{pathlib.Path(htmlReportNameHomePage).name}\">Home</a>"
+            homeHtmReportLink = f"<a target=\"_self\" iconCls=\"icon-home\" class=\"easyui-linkbutton easyui-tooltip\" title=\"Home Page\" href=\"{pathlib.Path(htmlReportNameHomePage).name}\">Home</a>"
+            homeRemoteLink = f"<a target=\"_self\" iconCls=\"icon-home\" class=\"easyui-linkbutton easyui-tooltip\" title=\"Home Page\" href=\"{FileLink}0\">Home</a>"
+            prevRemoteLink = f"<a target=\"_self\" iconCls=\"icon-home\" class=\"easyui-linkbutton easyui-tooltip\" title=\"Home Page\" href=\"{FileLink}{PaginateId-1}\">Home</a>"
             if PaginateId > 1:
                 prevHtmReport = htmlReportNameHomePage.replace(".html", f"_{PaginateId-1}.html")
             else:
                 prevHtmReport = htmlReportNameHomePage
             prevHtmReportLink = f"<a target=\"_self\" iconCls=\"icon-prev\" class=\"easyui-linkbutton easyui-tooltip\" title=\"Previous Page\" href=\"{pathlib.Path(prevHtmReport).name}\">Prev</a>"
-            fileHtmlReport.write(f"<center><table><tr><td>{homeHtmReportLink}</td><td>{prevHtmReportLink}</td></tr></table></center>")
+            fileHtmlReport.write(f"<center  id=\"ID_NextPage_Bottom\"><table><tr><td>{homeHtmReportLink}</td><td>{prevHtmReportLink}</td></tr></table></center>")
+            fileHtmlReport.write(f"<center  id=\"ID_NextPage_Bottom_Remote\"><table><tr><td>{homeRemoteLink}</td><td>{prevRemoteLink}</td></tr></table></center>")
         fileHtmlReport.write(f"<h2>Total Tagged for Deletion {QtyTagForDel}</h2>\n")
         fileHtmlReport.write(f"{stash.Setting('htmlReportPostfix')}")
         fileHtmlReport.close()
         if PaginateId == 0:
-            modifyPropertyToSceneClassToAllFiles("NextPage_Top", "{display : none;}")
+            modifyPropertyToSceneClassToAllFiles("NextPage_Top", "{display:none;}")
         stash.Log(f"************************************************************", printTo = stash.LogTo.STASH)
         stash.Log(f"************************************************************", printTo = stash.LogTo.STASH)
         stash.Log(f"View Stash duplicate report using Stash->Settings->Tools->[Duplicate File Report]", printTo = stash.LogTo.STASH)
@@ -1763,7 +1785,7 @@ def getLocalDupReportPath():
     apikey_json = ", 'apiKey':''"
     if 'apiKey' in stash.STASH_CONFIGURATION:
         apikey_json = f", 'apiKey':'{stash.STASH_CONFIGURATION['apiKey']}'"
-    jsonReturn = "{" + f"'LocalDupReportExist' : {htmlReportExist}, 'Path': '{localPath}', 'LocalDir': '{LocalDir}', 'ReportUrlDir': '{ReportUrlDir}', 'ReportUrl': '{ReportUrl}', 'AdvMenuUrl': '{AdvMenuUrl}', 'IS_DOCKER': '{stash.IS_DOCKER}' {apikey_json}" + "}"
+    jsonReturn = "{" + f"'LocalDupReportExist' : {htmlReportExist}, 'Path': '{localPath}', 'LocalDir': '{LocalDir}', 'ReportUrlDir': '{ReportUrlDir}', 'ReportUrl': '{ReportUrl}', 'AdvMenuUrl': '{AdvMenuUrl}', 'IS_DOCKER': '{stash.IS_DOCKER}', 'remoteReportDirURL': '{stash.Setting('remoteReportDirURL')}' {apikey_json}" + "}"
     stash.Log(f"Sending json value {jsonReturn}")
     sys.stdout.write(jsonReturn)
 
@@ -2093,6 +2115,37 @@ def flagScene():
         return
     sys.stdout.write("{" + f"{stash.PLUGIN_TASK_NAME} : 'complete', scene: '{scene}', flagType: '{flagType}'" + "}")
 
+def getReport():
+    if 'Target' not in stash.JSON_INPUT['args']:
+        stash.Error(f"Could not find Target in JSON_INPUT ({stash.JSON_INPUT['args']})")
+        return
+    PageNo = int(stash.JSON_INPUT['args']['Target'])
+    fileName = htmlReportName
+    if PageNo > 0:
+        fileName = fileName.replace(".html", f"_{PageNo}.html")
+    lines = None
+    stash.Log(f"Getting file {fileName}")
+    with open(fileName, 'r') as file:
+        lines = file.read()
+    if PageNo > 0 or lines.find(".ID_NextPage_Top{display:none;}") == -1:
+        lines = lines.replace("#ID_NextPage_Top_Remote{display:none;}", ".ID_NextPage_Top{display:none;}")
+    lines = lines.replace("#ID_NextPage_Bottom_Remote{display:none;}", "#ID_NextPage_Bottom{display:none;}")
+    # strToSrch = "<!-- StartOfBody -->"
+    # pos = lines.find(strToSrch)
+    # if pos > -1:
+        # lines = lines[pos + len(strToSrch):]
+    sys.stdout.write(lines)
+    stash.Log(f"Done getting file {fileName}.")
+
+def getAdvanceMenu():
+    fileName = f"{DupFileManagerFolder}{os.sep}advance_options.html"
+    lines = None
+    stash.Log(f"Getting file {fileName}")
+    with open(fileName, 'r') as file:
+        lines = file.read()
+    sys.stdout.write(lines)
+    stash.Log(f"Done getting file {fileName}.")
+
 # ToDo: Add to UI menu
 #    Remove all Dup tagged files (Just remove from stash, and leave file)
 #    Clear GraylistMarkForDel tag
@@ -2131,6 +2184,12 @@ try:
         stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
     elif stash.PLUGIN_TASK_NAME == "generate_phash_task":
         stash.metadata_generate({"phashes": True})
+        stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
+    elif stash.PLUGIN_TASK_NAME == "getReport":
+        getReport()
+        stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
+    elif stash.PLUGIN_TASK_NAME == "getAdvanceMenu":
+        getAdvanceMenu()
         stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
     elif stash.PLUGIN_TASK_NAME == "deleteScene":
         deleteScene()
@@ -2238,10 +2297,10 @@ try:
         manageDuplicatesTaggedOrInReport(deleteScenes=True, advanceMenuOptionSelected=True)
         stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
     else:
-        stash.Log(f"Nothing to do!!! (PLUGIN_ARGS_MODE={stash.PLUGIN_TASK_NAME})")
+        stash.Error(f"Invalid task name {stash.PLUGIN_TASK_NAME};")
+        stash.Log(f"Error: Nothing to do!!! (PLUGIN_ARGS_MODE={stash.PLUGIN_TASK_NAME})")
 except Exception as e:
     tb = traceback.format_exc()
-    
     stash.Error(f"Exception while running DupFileManager Task({stash.PLUGIN_TASK_NAME}); Error: {e}\nTraceBack={tb}")
     killScanningJobs()
     stash.convertToAscii = False

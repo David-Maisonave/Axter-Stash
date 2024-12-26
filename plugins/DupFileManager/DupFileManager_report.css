@@ -1,0 +1,28 @@
+h2 {text-align: center;}
+table, th, td {border:1px solid black;}
+.inline {
+  display: inline;
+}
+.scene-details{text-align: center;font-size: small;}
+.reason-details{text-align: left;font-size: small;}
+.link-items{text-align: center;font-size: small;}
+ul {
+  padding: 0;
+}
+li {
+  list-style-type: none;
+  padding: 1px;
+  position: relative;
+}
+.large {
+  position: absolute;
+  left: -9999px;
+}
+li:hover .large {
+  left: 20px;
+  top: -150px;
+}
+.large-image {
+  border-radius: 4px;
+   box-shadow: 1px 1px 3px 3px rgba(127, 127, 127, 0.15);;
+}

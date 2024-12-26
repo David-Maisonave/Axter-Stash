@@ -10,13 +10,12 @@ table, th, td {border:1px solid black;}
 }
 html.wait, html.wait * { cursor: wait !important; }
 </style>
-<link rel="stylesheet" type="text/css" href="https://axter.com/js/easyui/themes/black/easyui.css"> <!-- black || material-blue-->
+<link rel="stylesheet" type="text/css" href="https://axter.com/js/easyui/themes/black/easyui.css">
 <link rel="stylesheet" type="text/css" href="https://axter.com/js/easyui/themes/icon.css">
-<!-- <script type="text/javascript" src="https://axter.com/js/easyui/jquery.min.js"></script> -->
 <script type="text/javascript" src="https://axter.com/js/jquery-3.7.1.min.js"></script>
 <script type="text/javascript" src="https://axter.com/js/easyui/jquery.easyui.min.js"></script>
-<script src="https://www.axter.com/js/jquery.prompt.js"></script>
-<link rel="stylesheet" href="https://www.axter.com/js/jquery.prompt.css"/>
+<script type="text/javascript" src="https://www.axter.com/js/jquery.prompt.js"></script>
+<link rel="stylesheet" type="text/css" href="https://www.axter.com/js/jquery.prompt.css"/>
 <script>
 const isChrome = !!window.chrome;
 const urlParams = new URLSearchParams(window.location.search);
@@ -28,16 +27,17 @@ function getParam(ParamName, DefaultValue = ""){
 	return DefaultValue;
 }
 const apiKey = getParam("apiKey"); // For Stash installations with a password setup, populate this variable with the apiKey found in Stash->Settings->Security->[API Key];   	----- Or pass in the apiKey at the URL command line. Example: advance_options.html?apiKey=12345G4igiJdgssdgiwqInh5cCI6IkprewJ9hgdsfhgfdhd&GQL=http://localhost:9999/graphql
-const GraphQl_URL = getParam("GQL", "http://localhost:9999/graphql");// For Stash installations with non-standard ports or URL's, populate this variable with actual URL;   	----- Or pass in the URL at the command line using GQL param. Example: advance_options.html?GQL=http://localhost:9900/graphql
+const GQL = getParam("GQL", "http://localhost:9999/graphql");// For Stash installations with non-standard ports or URL's, populate this variable with actual URL;   	----- Or pass in the URL at the command line using GQL param. Example: advance_options.html?GQL=http://localhost:9900/graphql
 var   ReportUrlDir = getParam("ReportUrlDir")
+const IsDebugMode  = (getParam("DebugMode", "false") === "true")
 const IS_DOCKER = getParam("IS_DOCKER") === "True";
 var ReportUrl = "";
-// let stash_site = { GQL: GraphQl_URL, apiKey: apiKey, ReportUrlDir: ReportUrlDir, };
-// document.cookie = 'stash_site=' + JSON.stringify(stash_site);
-console.log(urlParams);
-console.log("GQL = " + GraphQl_URL + "; apiKey = " + apiKey + "; ReportUrlDir = " + ReportUrlDir + "; isChrome = " + isChrome + "; isAxterCom = " + isAxterCom + "; IS_DOCKER = " + IS_DOCKER + "; Cookies = " + document.cookie);
-
-// DockerWarning = "<p><b>Warning: </b>The current version of DupFileManager does not support accessing report files from Docker Stash setup.</p><p>The link in the bottom of this window will not work unless you're using a browser in the Docker OS.</p>Consider installing Firefox by using instructions in following link:<a href=\"https://collabnix.com/running-firefox-in-docker-container/\" target=\"_blank\" id=\"advance_options\">Firefox-in-Docker-Container</a><p>...</p>";
+if (isAxterCom == true){
+	let stash_site = { GQL: GQL, apiKey: apiKey, ReportUrlDir: ReportUrlDir, };
+	document.cookie = 'stash_site=' + JSON.stringify(stash_site) + "; SameSite=None; Secure";
+}
+if (IsDebugMode) console.log(urlParams);
+if (IsDebugMode) console.log("GQL = " + GQL + "; ReportUrlDir = " + ReportUrlDir + "; isChrome = " + isChrome + "; isAxterCom = " + isAxterCom + "; IS_DOCKER = " + IS_DOCKER);
 DockerWarning = "<p><b>Warning: </b>The current version of DupFileManager does not support accessing report files from Docker Stash setup.</p><p>The following link will not work unless you're using a browser in the Docker OS.</p>";
 
 function RunPluginDupFileManager(Mode, Param = 0, Async = false, TagOnlyScenes = false, DataType = "text") {
@@ -46,12 +46,12 @@ function RunPluginDupFileManager(Mode, Param = 0, Async = false, TagOnlyScenes =
 	$("body").css("cursor", "progress");
 	if (TagOnlyScenes)
 		Param += ":TagOnlyScenes";
-	console.log("GraphQl_URL = " + GraphQl_URL + "; Mode = " + Mode + "; Param = " + Param + "; DataType = " + DataType);
+	console.log("GQL = " + GQL + "; Mode = " + Mode + "; Param = " + Param + "; DataType = " + DataType);
 	if (apiKey !== ""){
-		console.log("Using apiKey = " + apiKey);
+		if (IsDebugMode) console.log("Using apiKey = " + apiKey);
 		$.ajaxSetup({beforeSend: function(xhr) {xhr.setRequestHeader('apiKey', apiKey);}});
 	}
-	const AjaxData = $.ajax({method: "POST", url: GraphQl_URL, contentType: "application/json", dataType: DataType, cache: Async, async: Async,
+	const AjaxData = $.ajax({method: "POST", url: GQL, contentType: "application/json", dataType: DataType, cache: Async, async: Async,
 	data: JSON.stringify({
 			query: `mutation RunPluginOperation($plugin_id:ID!,$args:Map!){runPluginOperation(plugin_id:$plugin_id,args:$args)}`,
 			variables: {"plugin_id": "DupFileManager", "args": { "Target" : Param, "mode":Mode}},
@@ -74,29 +74,34 @@ function RunPluginDupFileManager(Mode, Param = 0, Async = false, TagOnlyScenes =
 					else{
 						var Notice = "";
 						var Instructions = "<p>Click the below link to open report in your browser.</p>";
-						if (IS_DOCKER)
-							Instructions = DockerWarning;
-						if (isAxterCom && isChrome)
-							Notice = "<p>Note: If your browser does not support opening local file links from a non-local URL, copy and paste the above link to your browser address field.</p>";
-						$("<h2>Report complete!</h2>" + Instructions + "<a href=\"" + ReportUrl + "\" target=\"_blank\" id=\"advance_options\">" + ReportUrl + "</a>" + Notice).alert();
+						var ReportUrlLinkDisplay = ReportUrl;
+						if (isAxterCom)
+							ReportUrlLinkDisplay = "Report";
+						else{
+							if (IS_DOCKER)
+								Instructions = DockerWarning;
+							else if (isChrome)
+								Notice = "<p>Note: If your browser does not support opening local file links from a non-local URL, copy and paste the above link to your browser address field.</p>";
+						}
+						$("<h2>Report complete!</h2>" + Instructions + "<a href=\"" + ReportUrl + "\" target=\"_blank\" id=\"advance_options\">" + ReportUrlLinkDisplay + "</a>" + Notice).alert();
 					}
 				}
 			}
 			else
-				console.log("Ajax JSON results = " + JSON.stringify(result));
+				if (IsDebugMode) console.log("Ajax JSON results = " + JSON.stringify(result));
 		}, error: function(XMLHttpRequest, textStatus, errorThrown) { 
 			console.log("Ajax failed with Status: " + textStatus + "; Error: " + errorThrown); 
 			$('html').removeClass('wait');
 			$("body").css("cursor", "default");
 		}
 	});
-	console.log("Setting default cursor");
+	if (IsDebugMode) console.log("Setting default cursor");
 	if (DataType == "text"){
 		console.log(AjaxData.responseText);
 		return AjaxData.responseText;
 	}
 	JsonStr = AjaxData.responseJSON.data.runPluginOperation.replaceAll("'", "\"");
-	console.log("JSON runPluginOperation = " + JsonStr);
+	if (IsDebugMode) console.log("JSON runPluginOperation = " + JsonStr);
 	return JSON.parse(JsonStr);
 }
 
@@ -105,6 +110,8 @@ function GetReportUrlDir(){
 	console.log("LocalDuplicateReport.LocalDupReportExist = " + LocalDuplicateReport.LocalDupReportExist);
 	console.log("LocalDuplicateReport.Path = " + LocalDuplicateReport.Path);
 	ReportUrl = LocalDuplicateReport.ReportUrl;
+	if (isAxterCom)
+		ReportUrl = thisUrl.replace("advance_options.html", "file.html") ;//"file.html"; //?GQL=" + GQL + "&apiKey=" + apiKey;
 	console.log("ReportUrl = " + ReportUrl);
 	return LocalDuplicateReport.ReportUrlDir;
 }
@@ -113,7 +120,7 @@ if (ReportUrlDir === "")
 console.log("ReportUrlDir = " + ReportUrlDir);
 
 function GetStashTabUrl(Tab){
-	var Url = GraphQl_URL;
+	var Url = GQL;
 	Url = Url.replace("graphql", "settings?tab=" + Tab);
 	console.log("Url = " + Url);
 	return Url;
@@ -157,14 +164,15 @@ function ProcessClick(This_){
 	}
 	else if (ID === "viewreport")
 	{
-		if (IS_DOCKER)
-			$(DockerWarning + "<a href=\"" + ReportUrl + "\" target=\"_blank\" id=\"advance_options\">" + ReportUrl + "</a>").alert();
-		else if (isAxterCom){
-			if (isChrome)
-				$("<p>This browser does not support local file links from a non-local URL. To open the report, copy and paste the following link to your browser address bar.</p><a href=\"" + ReportUrl + "\" target=\"_blank\" id=\"advance_options\">" + ReportUrl + "</a>").alert();
-			else
-				$("<p>If this browser supports local file links from a non-local URL, you can click on the following link to open your report. Other wise to open the report, copy and paste the link to your browser address bar.</p><a href=\"" + ReportUrl + "\" target=\"_blank\" id=\"advance_options\">" + ReportUrl + "</a>").alert();
+		if (isAxterCom){
+			//if (isChrome)
+			//	$("<p>This browser does not support local file links from a non-local URL. To open the report, copy and paste the following link to your browser address bar.</p><a href=\"" + ReportUrl + "\" target=\"_blank\" id=\"advance_options\">" + ReportUrl + "</a>").alert();
+			//else
+			//	$("<p>If this browser supports local file links from a non-local URL, you can click on the following link to open your report. Other wise to open the report, copy and paste the link to your browser address bar.</p><a href=\"" + ReportUrl + "\" target=\"_blank\" id=\"advance_options\">" + ReportUrl + "</a>").alert();
+			window.open(ReportUrl, "_blank");
 		}
+		else if (IS_DOCKER)
+			$(DockerWarning + "<a href=\"" + ReportUrl + "\" target=\"_blank\" id=\"advance_options\">" + ReportUrl + "</a>").alert();
 		else
 			window.open(ReportUrl, "_blank");
 	}

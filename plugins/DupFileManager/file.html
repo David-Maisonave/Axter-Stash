@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Duplicate Files Report</title>
+<style>
+h2 {text-align: center;}
+table, th, td {border:1px solid black;}
+.inline {
+  display: inline;
+}
+html.wait, html.wait * { cursor: wait !important; }
+</style>
+<link rel="stylesheet" type="text/css" href="https://axter.com/js/easyui/themes/black/easyui.css"> <!-- black || material-blue-->
+<link rel="stylesheet" type="text/css" href="https://axter.com/js/easyui/themes/icon.css">
+<script type="text/javascript" src="https://axter.com/js/jquery-3.7.1.min.js"></script>
+<script type="text/javascript" src="https://axter.com/js/easyui/jquery.easyui.min.js"></script>
+<script src="https://www.axter.com/js/jquery.prompt.js"></script>
+<link rel="stylesheet" href="https://www.axter.com/js/jquery.prompt.css"/>
+<script>
+class StashPlugin {
+	#urlParams 	= new URLSearchParams(window.location.search);
+	#apiKey		= "";
+	#doApiLog	= true;
+	constructor(PluginID, doApiLog = true, DataType = "json", Async = false) {
+		this.#doApiLog 	= doApiLog;
+		this.PluginID 	= PluginID;
+		this.DataType 	= DataType;
+		this.Async 		= Async;
+		this.#apiKey = this.getParam("apiKey"); // For Stash installations with a password setup, populate this variable with the apiKey found in Stash->Settings->Security->[API Key];   	----- Or pass in the apiKey at the URL command line. Example: advance_options.html?apiKey=12345G4igiJdgssdgiwqInh5cCI6IkprewJ9hgdsfhgfdhd&GQL=http://localhost:9999/graphql
+		this.GraphQl_URL = this.getParam("GQL", "http://localhost:9999/graphql");// For Stash installations with non-standard ports or URL's, populate this variable with actual URL;   	----- Or pass in the URL at the command line using GQL param. Example: advance_options.html?GQL=http://localhost:9900/graphql
+		console.log("GQL = " + this.GraphQl_URL + "; apiKey = " + this.#apiKey + "; urlParams = " + this.#urlParams + "; Cookies = " + document.cookie);
+	}
+	getParam(ParamName, DefaultValue = ""){
+		if (this.#urlParams.get(ParamName) != null && this.#urlParams.get(ParamName) !== "")
+			return this.#urlParams.get(ParamName);
+		return DefaultValue;
+	}
+	CallBackOnSuccess(result, Args, This){ // Only called on asynchronous calls
+		console.log("Ajax success."); 
+	}
+	CallBackOnFail(textStatus, errorThrown, This){
+		console.log("Ajax failed with Status: " + textStatus + "; Error: " + errorThrown); 
+		alert("Error on StashPlugin Ajax call!!!\nReturn-Status: " + textStatus + "\nThrow-Error: " + errorThrown);
+	}
+	RunPluginOperation(Args = {}, OnSuccess = this.CallBackOnSuccess, OnFail = this.CallBackOnFail) {
+		console.log("PluginID = " + this.PluginID + "; Args = " + Args + "; GQL = " + this.GraphQl_URL + "; DataType = " + this.DataType + "; Async = " + this.Async);
+		if (this.#apiKey !== ""){
+			if (this.#doApiLog) console.log("Using apiKey = " + this.#apiKey);
+			const apiKey = this.#apiKey;
+			$.ajaxSetup({beforeSend: function(xhr) {xhr.setRequestHeader('apiKey', apiKey);}});
+		}
+		const AjaxData = $.ajax({method: "POST", url: this.GraphQl_URL, contentType: "application/json", dataType: this.DataType, cache: this.Async, async: this.Async,
+		data: JSON.stringify({
+				query: `mutation RunPluginOperation($plugin_id:ID!,$args:Map!){runPluginOperation(plugin_id:$plugin_id,args:$args)}`,
+				variables: {"plugin_id": this.PluginID, "args": Args},
+			}), success: function(result){
+				if (this.Async == true) OnSuccess(result, Args, this); 
+			}, error: function(jqXHR, textStatus, errorThrown) { 
+				OnFail(textStatus, errorThrown, this);
+			}
+		});
+		if (this.Async == true) // Make sure to use callback functions for asynchronous calls.
+			return;
+		if (this.DataType == "text")
+			return AjaxData.responseText;
+		return AjaxData.responseJSON.data.runPluginOperation;
+	}
+};
+class PluginDupFileManager extends StashPlugin{
+	constructor() {
+		super("DupFileManager");
+		this.IS_DOCKER = this.getParam("IS_DOCKER") === "True";
+		this.PageNo = parseInt(this.getParam("PageNo", "0"));
+	}
+	GetFile(Mode = "getReport") {
+		var results = this.RunPluginOperation({ "Target" : this.PageNo, "mode":Mode});
+		const strResults = JSON.stringify(results);
+		if (strResults.indexOf("INF: 'Error: Nothing to do!!!") > -1){
+			console.log("Ajax failed for function " + Mode +" and page " + this.PageNo + " with results = " + JSON.stringify(results)); 
+			return "<p>Failed to get report do to ajax error!!!</p>";
+		}
+		return results;
+	}
+}
+
+
+var plugindupfilemanager = new PluginDupFileManager();
+const html = plugindupfilemanager.GetFile();
+$(document).ready(function(){
+	$( "#report" ).append( html );
+	//$( "#top_report_menu" ).remove();
+	//$( ".ID_NextPage_Top" ).remove();
+	//$( ".ID_NextPage_Bottom" ).remove();
+});
+</script>
+</head>
+<body>
+<div id="report"></div>
+</body></html>
+
+
