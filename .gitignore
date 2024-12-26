@@ -21,7 +21,6 @@ desktop.ini
 *.user
 *.7z
 *.swp
-*.zip
 data.csv
 /boost
 /scintilla
