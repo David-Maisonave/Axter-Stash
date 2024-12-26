@@ -3,9 +3,9 @@
   metadata:
     description: Manages duplicate files.
   version: 1.1.3
-  date: 2024-12-26 13:00:00
+  date: 2024-12-26 13:30:00
   path: DupFileManager.zip
-  sha256: 7c5e199e06ea608401378642ebdbc4207def777dd5142b748f918f0835452be0
+  sha256: f1eb1ae42ebe02e2e320814b5c08cfd2ddb041d63ccc140ff68fdcf1b1849612
 
 - id: filemonitor
   name: FileMonitor

@@ -184,6 +184,8 @@
 				React.createElement("p", null),
 				GetCreateReportButton("Create Duplicate-File Report with Tagging"),
 				React.createElement("p", null),
+				GetAdvanceMenuButton(),
+				React.createElement("p", null),
 				ToolsMenuOptionButton
 			));
     };
