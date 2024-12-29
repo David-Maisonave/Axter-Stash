@@ -75,7 +75,7 @@ class PluginDupFileManager extends StashPlugin{
 	GetFile(Mode = "getReport") {
 		var results = this.RunPluginOperation({ "Target" : this.PageNo, "mode":Mode});
 		if (this.IS_DOCKER){
-			GqlRoot = this.GraphQl_URL.replace("/graphql", "");
+			const GqlRoot = this.GraphQl_URL.replace("/graphql", "");
 			results = results.replaceAll("http://127.0.0.1:9999", GqlRoot);
 		}
 		const strResults = JSON.stringify(results);
