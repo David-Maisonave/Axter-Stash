@@ -103,5 +103,7 @@
   - On Stash installation using passwords or non-standard URL, the file.html link should be accessed from the advance menu or from the Stash->Tools->[DupFileManager Report Menu].
 - Added fields remoteReportDirURL and js_DirURL to allow users to setup their own private or alternate remote path for javascript files.
 - On Stash installations having password, the Advance Menu can now be accessed from the Stash->Tools->[DupFileManager Report Menu].
+### 1.1.4
+- Fixed Docker issue when displaying report on Docker having port forwarding configured.
 
 

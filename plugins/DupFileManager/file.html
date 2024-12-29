@@ -74,6 +74,7 @@ class PluginDupFileManager extends StashPlugin{
 	}
 	GetFile(Mode = "getReport") {
 		var results = this.RunPluginOperation({ "Target" : this.PageNo, "mode":Mode});
+		results = results.replace("var GraphQl_URL = ", "var OrigGQL_URL = ");
 		const strResults = JSON.stringify(results);
 		if (strResults.indexOf("INF: 'Error: Nothing to do!!!") > -1){
 			console.log("Ajax failed for function " + Mode +" and page " + this.PageNo + " with results = " + JSON.stringify(results)); 
@@ -86,11 +87,9 @@ class PluginDupFileManager extends StashPlugin{
 
 var plugindupfilemanager = new PluginDupFileManager();
 const html = plugindupfilemanager.GetFile();
+var GraphQl_URL = plugindupfilemanager.GraphQl_URL;
 $(document).ready(function(){
 	$( "#report" ).append( html );
-	//$( "#top_report_menu" ).remove();
-	//$( ".ID_NextPage_Top" ).remove();
-	//$( ".ID_NextPage_Bottom" ).remove();
 });
 </script>
 </head>
