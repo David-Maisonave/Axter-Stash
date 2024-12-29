@@ -77,6 +77,7 @@ class PluginDupFileManager extends StashPlugin{
 		if (this.IS_DOCKER){
 			const GqlRoot = this.GraphQl_URL.replace("/graphql", "");
 			results = results.replaceAll("http://127.0.0.1:9999", GqlRoot);
+			results = results.replaceAll("http://localhost:9999", GqlRoot);
 		}
 		const strResults = JSON.stringify(results);
 		if (strResults.indexOf("INF: 'Error: Nothing to do!!!") > -1){
@@ -90,7 +91,6 @@ class PluginDupFileManager extends StashPlugin{
 
 var plugindupfilemanager = new PluginDupFileManager();
 const html = plugindupfilemanager.GetFile();
-var GraphQl_URL = plugindupfilemanager.GraphQl_URL;
 $(document).ready(function(){
 	$( "#report" ).append( html );
 });
