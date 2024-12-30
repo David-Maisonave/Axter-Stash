@@ -133,6 +133,7 @@ Users can setup a private or alternate remote site by changing variables **remot
 
 ### Future Planned Features, Changes, or Fixes
 - Scheduled Changes
+  - Add option to report to avoid reloading page after updating report. Planned for 1.2.0 Version.
   - Remove [Max Dup Process] from the Stash->Plugins GUI. This option already exist in advance menu. Planned for 1.2.0 Version.
   - Add chat icon to report which on hover, displays a popup window showing scene details content. Planned for 1.2.0 Version.
   - Add image icon to report; on hover show scene cover image. Planned for 1.2.0 Version.
@@ -156,8 +157,7 @@ Users can setup a private or alternate remote site by changing variables **remot
   - Add report directly to the Stash->Settings->Tools menu. (This change does not look doable!!!)
   - Create cookies for the options in the [**Advance Duplicate File Menu**].
   - Add doulbe strike-through option to flagging.
-  - Add option to report to avoid reloading page after updating report.
-  - Add option to report to automatically strip width & height from name on rename.
+  - Add option to report to automatically strip width & height from name on rename. Example: foofoo - 1920x1080P.mp4
   - Add link to version history to [**Advance Duplicate File Menu**] and to [DupFileManager Tools and Utilities]
   - Move [Merge Duplicate Tags], [Whitelist Delete In Same Folder], and [Swap Better **] field options from the Stash->Plugins GUI to the advance menu.
     
