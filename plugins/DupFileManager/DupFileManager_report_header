@@ -120,8 +120,11 @@ var GraphQl_URL = "http://localhost:9999/graphql";
 		</div>
     </div>
 </td>
-<td><input type="checkbox" id="RemoveValidatePrompt" name="RemoveValidatePrompt"><label for="RemoveValidatePrompt" title="Disable notice for task completion (Popup).">Disable Complete Confirmation</label><br></td>
-<td><input type="checkbox" id="RemoveToKeepConfirm" name="RemoveToKeepConfirm"><label for="RemoveToKeepConfirm" title="Disable confirmation prompts for delete scenes">Disable Delete Confirmation</label><br></td>
+<td>
+	<input type="checkbox" id="RemoveValidatePrompt" name="RemoveValidatePrompt"><label for="RemoveValidatePrompt" title="Disable notice for task completion (Popup).">Disable Complete Confirmation</label>
+	<input type="checkbox" id="RemoveToKeepConfirm" name="RemoveToKeepConfirm"><label for="RemoveToKeepConfirm" title="Disable confirmation prompts for delete scenes">Disable Delete Confirmation</label>
+</td>
+<td><input type="checkbox" id="DisableReloadPage" name="DisableReloadPage"><label for="DisableReloadPage" title="Disable reloading/updating page when making single scene changes.">Disable Updating Page</label><br></td>
 
 </tr></table></td>
 </tr></table></center>

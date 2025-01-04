@@ -134,6 +134,7 @@ Users can setup a private or alternate remote site by changing variables **remot
 ### Future Planned Features, Changes, or Fixes
 - Scheduled Changes
   - Add option to report to avoid reloading page after updating report. Planned for 1.2.0 Version.
+  - After deleting scene from report, disable preview for the deleted scene on the report. Planned for 1.2.0 Version.
   - Remove [Max Dup Process] from the Stash->Plugins GUI. This option already exist in advance menu. Planned for 1.2.0 Version.
   - Add chat icon to report which on hover, displays a popup window showing scene details content. Planned for 1.2.0 Version.
   - Add image icon to report; on hover show scene cover image. Planned for 1.2.0 Version.

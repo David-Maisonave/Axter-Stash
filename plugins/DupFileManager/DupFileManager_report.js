@@ -3,21 +3,27 @@ var OrgNextPage = null;
 var OrgHomePage = null;
 var RemoveToKeepConfirmValue = null;
 var RemoveValidatePromptValue = null;
+var DisableReloadPageValue = null;
 let thisUrl = "" + window.location;
 const isAxterCom = (thisUrl.search("axter.com") > -1);
 console.log("Cookies = " + document.cookie);
 const StrRemoveToKeepConfirm = "RemoveToKeepConfirm=";
 const StrRemoveValidatePrompt = "RemoveValidatePrompt=";
+const StrDisableReloadPage = "DisableReloadPage=";
 function SetPaginateButtonChange(){
     var chkBxRemoveValid = document.getElementById("RemoveValidatePrompt");
     var chkBxDisableDeleteConfirm = document.getElementById("RemoveToKeepConfirm");
+    var chkBxDisableReloadPage = document.getElementById("DisableReloadPage");
     RemoveToKeepConfirmValue = StrRemoveToKeepConfirm + "false";
     RemoveValidatePromptValue = StrRemoveValidatePrompt + "false";
+    DisableReloadPageValue = StrDisableReloadPage + "false";
     if (chkBxRemoveValid.checked)
         RemoveToKeepConfirmValue = StrRemoveToKeepConfirm + "true";
     if (chkBxDisableDeleteConfirm.checked)
         RemoveValidatePromptValue = StrRemoveValidatePrompt + "true";
-    document.cookie = RemoveToKeepConfirmValue + "&" + RemoveValidatePromptValue + "; SameSite=None; Secure";
+    if (chkBxDisableReloadPage != null && chkBxDisableReloadPage.checked)
+        DisableReloadPageValue = StrDisableReloadPage + "true";
+    document.cookie = RemoveToKeepConfirmValue + "&" + RemoveValidatePromptValue + "&" + DisableReloadPageValue + "; SameSite=None; Secure";
     console.log("Cookies = " + document.cookie);
 }
 function trim(str, ch) {
@@ -48,9 +54,11 @@ function RunPluginOperation(Mode, ActionID, button, asyncAjax){ // Mode=Value an
                 $('html').removeClass('wait');
                 $("body").css("cursor", "default");
             }
-            if (Mode.startsWith("copyScene") || Mode.startsWith("renameFile") || Mode === "clearAllSceneFlags" || Mode.startsWith("clearFlag") || Mode.startsWith("mergeScene") || Mode.startsWith("mergeTags") || (Mode !== "deleteScene" && Mode.startsWith("deleteScene")))
-                window.location.reload();
-			else if (!chkBxRemoveValid.checked && Mode !== "flagScene") alert("Action " + Mode + " for scene(s) ID# " + ActionID + " complete.\\n\\nResults=" + result);
+            if (Mode.startsWith("copyScene") || Mode.startsWith("renameFile") || Mode === "clearAllSceneFlags" || Mode.startsWith("clearFlag") || Mode.startsWith("mergeScene") || Mode.startsWith("mergeTags") || (Mode !== "deleteScene" && Mode.startsWith("deleteScene"))){
+                const chkBxDisableReloadPage = document.getElementById("DisableReloadPage");
+				if (chkBxDisableReloadPage == null || !chkBxDisableReloadPage.checked)
+					window.location.reload();
+			} else if (!chkBxRemoveValid.checked && Mode !== "flagScene") alert("Action " + Mode + " for scene(s) ID# " + ActionID + " complete.\\n\\nResults=" + result);
 		}, error: function(XMLHttpRequest, textStatus, errorThrown) { 
 			console.log("Ajax failed with Status: " + textStatus + "; Error: " + errorThrown); 
             if (asyncAjax){
@@ -118,6 +126,8 @@ $(document).ready(function(){
     console.log("urlParams = " + urlParams);
     RemoveToKeepConfirmValue = StrRemoveToKeepConfirm + "false";
     RemoveValidatePromptValue = StrRemoveValidatePrompt + "false";
+    DisableReloadPageValue = StrDisableReloadPage + "false";
+	const chkBxDisableReloadPage = document.getElementById("DisableReloadPage");
     var FetchCookies = true;
     if (urlParams.get('RemoveToKeepConfirm') != null && urlParams.get('RemoveToKeepConfirm') !== ""){
         FetchCookies = false;
@@ -135,6 +145,15 @@ $(document).ready(function(){
             $( "#RemoveValidatePrompt" ).prop("checked", true);
         else
             $( "#RemoveValidatePrompt" ).prop("checked", false);
+    }
+    if (chkBxDisableReloadPage != null && urlParams.get('DisableReloadPage') != null && urlParams.get('DisableReloadPage') !== ""){
+        FetchCookies = false;
+        DisableReloadPageValue = StrDisableReloadPage + urlParams.get('DisableReloadPage');
+        console.log("DisableReloadPageValue = " + DisableReloadPageValue);
+		if (urlParams.get('DisableReloadPage') === "true")
+			$( "#DisableReloadPage" ).prop("checked", true);
+		else
+			$( "#DisableReloadPage" ).prop("checked", false);
     }
     if (FetchCookies){
         console.log("Cookies = " + document.cookie);
@@ -156,6 +175,15 @@ $(document).ready(function(){
                 $( "#RemoveValidatePrompt" ).prop("checked", true);
             else
                 $( "#RemoveValidatePrompt" ).prop("checked", false);
+        }
+        if (chkBxDisableReloadPage != null && cookies.indexOf(StrDisableReloadPage) > -1){
+            var idx = cookies.indexOf(StrDisableReloadPage) + StrDisableReloadPage.length;
+            var s = cookies.substring(idx);
+            console.log("StrDisableReloadPage Cookie = " + s);
+			if (s.startsWith("true"))
+				$( "#DisableReloadPage" ).prop("checked", true);
+			else
+				$( "#DisableReloadPage" ).prop("checked", false);
         }
     }
     SetPaginateButtonChange();
@@ -252,6 +280,9 @@ $(document).ready(function(){
         SetPaginateButtonChange();
     });
     $("#RemoveToKeepConfirm").change(function() {
+        SetPaginateButtonChange();
+    });
+    $("#DisableReloadPage").change(function() {
         SetPaginateButtonChange();
     });
 });
