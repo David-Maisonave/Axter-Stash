@@ -186,9 +186,9 @@ Please use the following link to report FileMonitor Feature Request:[FileMonitor
 Please do **NOT** use the feature request to include any problems associated with errors. Instead use the bug report for error issues.
 
 ## Docker
-FileMonitor requires watchdog module in order to work. Although the watchdog module loads and runs on Docker, it fails to function because Docker fails to report file changes.
-FileMonitor can work with Docker Stash setup if it's executed externally on the host OS. Start FileMonitor on the command line and pass the Stash URL.
-For more information, see [Using FileMonitor as a script](https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor#Using-FileMonitor-as-a-script)
+- FileMonitor requires watchdog module in order to work. Although the watchdog module loads and runs on Docker, it fails to function because Docker fails to report file changes.
+- FileMonitor can work with Docker Stash setup if it's executed externally on the host OS. Start FileMonitor on the command line and pass the Stash URL.
+  - For more information, see [Using FileMonitor as a script](https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor#Using-FileMonitor-as-a-script)
 
 
 ### Future Planned Features or Fixes
