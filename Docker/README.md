@@ -47,6 +47,6 @@ Then use a DOS window to change to the **ws1** directory before calling the scri
   - Use the following link to download Docker
   - [https://www.docker.com/products/docker-desktop/](https://www.docker.com/products/docker-desktop/)
 - Stash Image
-  - The CreateContainer.cmd script can download the Image before creating the container by adding **PULL** at the end of the command line.
-  - Example: `CreateContainer.cmd ver0272 "stashapp/stash:v0.27.2" 9999 PULL`
+  - The CreateContainer.cmd script can download the Image before creating the container by adding **IMAGE** at the end of the command line.
+  - Example: `CreateContainer.cmd ver0272 "stashapp/stash:v0.27.2" 9999 IMAGE`
   - To see what Stash images are available, see the following link: [https://hub.docker.com/r/stashapp/stash/tags](https://hub.docker.com/r/stashapp/stash/tags).
