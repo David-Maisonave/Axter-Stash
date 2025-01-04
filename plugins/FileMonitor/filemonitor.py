@@ -37,6 +37,7 @@ parser.add_argument('--kill_que', '-k', dest='kill_job_task_que', type=str, help
 parser.add_argument('--restart', '-r', dest='restart', action='store_true', help='Restart FileMonitor.')
 parser.add_argument('--silent', '--quit', '-q', dest='quit', action='store_true', help='Run in silent mode. No output to console or stderr. Use this when running from pythonw.exe')
 parser.add_argument('--apikey', '-a', dest='apikey', type=str, help='API Key')
+parser.add_argument('--docker', '-d', dest='docker', type=str, help='Docker compose YML file.')
 parse_args = parser.parse_args()
 
 

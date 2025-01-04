@@ -185,7 +185,7 @@ Please use the following link to report FileMonitor Feature Request:[FileMonitor
 
 Please do **NOT** use the feature request to include any problems associated with errors. Instead use the bug report for error issues.
 
-## Docker
+## Docker (Not yet supported!!!)
 - FileMonitor requires watchdog module in order to work. Although the watchdog module loads and runs on Docker, it fails to function because Docker fails to report file changes.
 - FileMonitor can work with Docker Stash setup if it's executed externally on the host OS. Start FileMonitor on the command line and pass the Stash URL.
   - For more information, see [Using FileMonitor as a script](https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor#Using-FileMonitor-as-a-script)
@@ -193,3 +193,4 @@ Please do **NOT** use the feature request to include any problems associated wit
 
 ### Future Planned Features or Fixes
 - Have the FileMonitor running status ICON update the icon without having to go to the Settings->Tools->FileMonitor page. Planned for version 1.2.0.
+- Add Docker support externally by adding docker command line argument that will take the docker-compose.yml file path.
