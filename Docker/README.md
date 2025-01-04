@@ -21,9 +21,9 @@ Then use a DOS window to change to the **ws1** directory before calling the scri
 - Example with shared mount paths with write access: 
   - `CreateContainer.cmd ContainerName1 "stashapp/stash:latest" 9991 C:\MyShared  WRITE`
 - Example adding Stash **Image** and container:
-  - `CreateContainer.cmd v0.27.2 "stashapp/stash:v0.27.2" 9997 IMAGE`
+  - `CreateContainer.cmd NewContainer27.2 "stashapp/stash:v0.27.2" 9997 IMAGE`
 - Example with DLNA:
-  - `CreateContainer.cmd v272 "stashapp/stash:v0.27.2" 9996 C:\downloads DLNA`
+  - `CreateContainer.cmd MyDLNA272 "stashapp/stash:v0.27.2" 9996 C:\downloads DLNA`
 - Example skipping docker-compose:
   - `CreateContainer.cmd ContainerName "stashapp/stash:v0.26.2" 9992 C:\Videos SKIP`
 
