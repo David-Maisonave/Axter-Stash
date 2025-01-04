@@ -188,9 +188,16 @@ Please do **NOT** use the feature request to include any problems associated wit
 ## Docker
 - FileMonitor requires watchdog module in order to work. Although the watchdog module loads and runs on Docker, it fails to function because Docker fails to report file changes.
 - FileMonitor can work with Docker Stash setup if it's executed externally on the host OS. Start FileMonitor on the command line and pass the Stash URL and --docker.
-  - Example:
-    - python filemonitor.py --url http://localhost:9999 --docker "C:\Users\MyUser\AppData\Local\Docker\wsl\Stash27.2\docker-compose.yml"
-  - For more information, see [Using FileMonitor as a script](https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor#Using-FileMonitor-as-a-script)
+- Example1:
+```
+python filemonitor.py --url http://localhost:9999 --docker "C:\Users\MyUser\AppData\Local\Docker\wsl\Stash27.2\docker-compose.yml"
+```
+- Example2: (with ApiKey)
+```
+python filemonitor.py --url http://localhost:9999 --docker "C:\Users\MyUser\AppData\Local\Docker\wsl\Stash27.2\docker-compose.yml" --apikey "zNDU0MDk3N30.4nZVLk3xikjJZfZ0JTPA_Fic8JveycCI6IkpXVCJ9.eyJ1aWQiOiJheHRlJhbGciOiJIUzI1NiIsInR5I6IkFQSUtleSIsImlhdCI6MTcFx3DZe5U21ZDcC3c"
+```
+- The **docker-compose.yml** file should be located in the folder associated with the Docker Stash container, and it list the mapped paths which FileMonitor uses to determine the host path which is mapped to the Docker path.
+- For more information, see [Using FileMonitor as a script](https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor#Using-FileMonitor-as-a-script)
 
 
 ### Future Planned Features or Fixes
