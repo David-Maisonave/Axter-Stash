@@ -21,9 +21,9 @@ Then use a DOS window to change to the **ws1** directory before calling the scri
 - Example with shared mount paths with write access: 
   - `CreateContainer.cmd ContainerName1 "stashapp/stash:latest" 9991 C:\MyShared  WRITE`
 - Example adding Stash **Image** and container:
-  - `CreateContainer.cmd v0.27.2 "stashapp/stash:v0.27.2" 9997 PULL`
+  - `CreateContainer.cmd NewContainer27.2 "stashapp/stash:v0.27.2" 9997 IMAGE`
 - Example with DLNA:
-  - `CreateContainer.cmd v272 "stashapp/stash:v0.27.2" 9996 C:\downloads DLNA`
+  - `CreateContainer.cmd MyDLNA272 "stashapp/stash:v0.27.2" 9996 C:\downloads DLNA`
 - Example skipping docker-compose:
   - `CreateContainer.cmd ContainerName "stashapp/stash:v0.26.2" 9992 C:\Videos SKIP`
 
@@ -47,6 +47,6 @@ Then use a DOS window to change to the **ws1** directory before calling the scri
   - Use the following link to download Docker
   - [https://www.docker.com/products/docker-desktop/](https://www.docker.com/products/docker-desktop/)
 - Stash Image
-  - The CreateContainer.cmd script can download the Image before creating the container by adding **PULL** at the end of the command line.
-  - Example: `CreateContainer.cmd ver0272 "stashapp/stash:v0.27.2" 9999 PULL`
+  - The CreateContainer.cmd script can download the Image before creating the container by adding **IMAGE** at the end of the command line.
+  - Example: `CreateContainer.cmd ver0272 "stashapp/stash:v0.27.2" 9999 IMAGE`
   - To see what Stash images are available, see the following link: [https://hub.docker.com/r/stashapp/stash/tags](https://hub.docker.com/r/stashapp/stash/tags).

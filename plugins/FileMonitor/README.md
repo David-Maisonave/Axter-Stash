@@ -185,5 +185,10 @@ Please use the following link to report FileMonitor Feature Request:[FileMonitor
 
 Please do **NOT** use the feature request to include any problems associated with errors. Instead use the bug report for error issues.
 
+## Docker not supported
+FileMonitor requires watchdog module in order to work. Although the watchdog module loads and runs on Docker, it fails to function because Docker fails to report file changes.
+Because of this Docker failure, FileMonitor does not support Docker Stash installation.
+
+
 ### Future Planned Features or Fixes
 - Have the FileMonitor running status ICON update the icon without having to go to the Settings->Tools->FileMonitor page. Planned for version 1.2.0.
