@@ -107,6 +107,30 @@ excludePathChanges = stash.pluginConfig['excludePathChanges']
 turnOnSchedulerDeleteDup = stash.pluginSettings['turnOnSchedulerDeleteDup']
 NotInLibraryTagName = stash.pluginConfig['NotInLibraryTagName']
 
+dockerMapVolumes = {}
+dockerReverseMapVolumes = {}
+if not parse_args.docker == None and len(parse_args.docker) > 0:
+    stash.Log(f"Docker compose YML file = {parse_args.docker}")
+    ModulesValidate.modulesInstalled(["pyyaml"], silent=True)
+    import yaml
+    dockerStashPath = pathlib.Path(parse_args.docker).resolve().parent
+    with open(parse_args.docker) as stream:
+        try:
+            data_loaded = yaml.safe_load(stream)
+            for volume in data_loaded['services']['stash']['volumes']:
+                volSplit = volume.replace(":ro", "").split(":/")
+                hostPath = volSplit[0]
+                if volSplit[0].startswith("./"):
+                    hostPath = f"{dockerStashPath}{hostPath[1:]}"
+                elif volSplit[0].startswith("/"):
+                    continue
+                dockerMapVolumes[hostPath] = f"/{volSplit[1]}"
+                dockerReverseMapVolumes[f"/{volSplit[1]}"] = hostPath
+            for hostPath in dockerMapVolumes:
+                stash.Log(f"Host-Path = {hostPath}, Docker-Path = {dockerMapVolumes[hostPath]}")
+        except yaml.YAMLError as exc:
+            stash.Error(exc)
+
 if stash.DRY_RUN:
     stash.Log("Dry run mode is enabled.")
 stash.Trace(f"(SCAN_MODIFIED={SCAN_MODIFIED}) (SCAN_ON_ANY_EVENT={SCAN_ON_ANY_EVENT}) (RECURSIVE={RECURSIVE})")
@@ -610,8 +634,16 @@ def start_library_monitor():
     
     # Iterate through includePathChanges
     for path in includePathChanges:
-        observer.schedule(event_handler, path, recursive=RECURSIVE)
-        stash.Log(f"Observing {path}")
+        pathToObserve = path
+        if not parse_args.docker == None and len(parse_args.docker) > 0:
+            if path in dockerReverseMapVolumes:
+                pathToObserve = dockerReverseMapVolumes[path]
+            for dockerPath in dockerReverseMapVolumes:
+                if path.startswith(f"{dockerPath}/"):
+                    pathToObserve = path.replace(f"{dockerPath}/", f"{dockerReverseMapVolumes[dockerPath]}/")
+                    break            
+        observer.schedule(event_handler, pathToObserve, recursive=RECURSIVE)
+        stash.Log(f"Observing {pathToObserve}")
     observer.schedule(event_handler, SPECIAL_FILE_DIR, recursive=RECURSIVE)
     stash.Trace(f"Observing FileMonitor path {SPECIAL_FILE_DIR}")
     observer.start()
