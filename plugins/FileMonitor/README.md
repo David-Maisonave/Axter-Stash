@@ -185,9 +185,9 @@ Please use the following link to report FileMonitor Feature Request:[FileMonitor
 
 Please do **NOT** use the feature request to include any problems associated with errors. Instead use the bug report for error issues.
 
-## Docker not supported
+## Docker
 FileMonitor requires watchdog module in order to work. Although the watchdog module loads and runs on Docker, it fails to function because Docker fails to report file changes.
-Because of this Docker failure, FileMonitor does not support Docker Stash installation.
+FileMonitor can work with Docker Stash setup if it's executed externally on the host OS. Start FileMonitor on the command line and pass the Stash URL.
 
 
 ### Future Planned Features or Fixes
