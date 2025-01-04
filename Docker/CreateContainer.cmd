@@ -29,7 +29,7 @@ set VariableArg=%9
 set SkipDockerCompose=
 set DLNAFunctionality="no"
 set PullDockerStashImage=
-set MountAccess=":ro"
+set MountAccess=:ro
 if /I [%SharedMountPath%]==[DLNA] 	(set DLNAFunctionality=yes) & (set SharedMountPath=)
 if /I [%SharedMountPath%]==[SKIP] 	(set SkipDockerCompose=yes) & (set SharedMountPath=)
 if /I [%SharedMountPath%]==[IMAGE]	(set PullDockerStashImage=yes) & (set SharedMountPath=)
