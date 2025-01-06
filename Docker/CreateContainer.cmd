@@ -26,7 +26,11 @@ set SharedMountPath3=%6
 set SharedMountPath4=%7
 set SharedMountPath5=%8
 set SharedMountPath6=%9
-shift /n 5
+shift
+shift
+shift
+shift
+shift
 set SharedMountPath7=%5
 set SharedMountPath8=%6
 set SharedMountPath9=%7
