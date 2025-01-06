@@ -9,6 +9,7 @@
 #           To test, uninstall packages via command line: pip uninstall -y watchdog schedule requests
 import sys, os, pathlib, platform, traceback
 # ToDo: Add logic to optionally pull package requirements from requirements.txt file.
+#       Add logic to report error sys.exit(126) --  126 (0x7E) ERROR_MOD_NOT_FOUND: The specified module could not be found.
 
 def modulesInstalled(moduleNames, install=True, silent=False):
     retrnValue = True
