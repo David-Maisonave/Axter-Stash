@@ -111,6 +111,9 @@ dockerMapVolumes = {}
 dockerReverseMapVolumes = {}
 dockerObservedPaths = {}
 if not parse_args.docker == None and len(parse_args.docker) > 0:
+    if stash.IS_DOCKER:
+        stash.Error("You are running this script from within Docker. This is NOT supported.  Run this script in the host machine instead. Performing early exit due to unsupported action.")
+        sys.exit(50) # ERROR_NOT_SUPPORTED: The request is not supported.
     stash.Log(f"Docker compose YML file = {parse_args.docker}")
     ModulesValidate.modulesInstalled(["pyyaml"], silent=True)
     import yaml
@@ -139,6 +142,13 @@ if not parse_args.docker == None and len(parse_args.docker) > 0:
             import traceback
             tb = traceback.format_exc()
             stash.Error(f"Exception while parsing Docker file {parse_args.docker}; Error: {e}\nTraceBack={tb}")
+
+if stash.IS_DOCKER:
+    stash.Error("You are running this script from within Docker. This is NOT supported.  Run this script in the host machine instead.")
+    stash.Warn("For more information on running FileMonitor on host machine see following link:\n https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor#Docker")
+    stash.Warn("Performing early exit because FileMonitor has to run on the host machine, and can NOT run on Docker directly.")
+    sys.exit(10) # ERROR_BAD_ENVIRONMENT: The environment is incorrect.
+    # Alternate error:  sys.exit(160) # ERROR_BAD_ARGUMENTS: One or more arguments are not correct.
 
 if stash.DRY_RUN:
     stash.Log("Dry run mode is enabled.")

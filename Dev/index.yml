@@ -11,10 +11,10 @@
   name: FileMonitor
   metadata:
     description: Monitors the Stash library folders, and updates Stash if any changes occurs in the Stash library paths.
-  version: 1.0.0
+  version: 1.0.1
   date: 2024-12-26 13:00:00
   path: filemonitor.zip
-  sha256: e0b3f9c526593590adccf6c004fac63868abb517641a7e0ac049ab2b06bd51ec
+  sha256: 8800b061f0e2bb7f5f42a91eb1a27efef4f6b823739162c67380feb21d9a395d
 
 - id: renamefile
   name: RenameFile

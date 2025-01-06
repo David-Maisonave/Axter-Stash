@@ -473,7 +473,7 @@ def rename_files_task():
     all_scenes = scene_result['allScenes']
     if not all_scenes:
         stash.Error("No scenes found.")
-        exit()
+        sys.exit(13)
     # Find the scene with the latest updated_at timestamp
     latest_scene = max(all_scenes, key=lambda scene: scene['updated_at'])
     # Extract the ID of the latest scene

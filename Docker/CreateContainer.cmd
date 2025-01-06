@@ -25,7 +25,7 @@ set SharedMountPath2=%5
 set SharedMountPath3=%6
 set SharedMountPath4=%7
 set SharedMountPath5=%8
-set VariableArg=%9
+set SharedMountPath6=%9
 set SkipDockerCompose=
 set DLNAFunctionality="no"
 set PullDockerStashImage=
@@ -54,16 +54,16 @@ if /I [%SharedMountPath5%]==[SKIP] 	(set SkipDockerCompose=yes) & (set SharedMou
 if /I [%SharedMountPath5%]==[IMAGE] (set PullDockerStashImage=yes) & (set SharedMountPath5=)
 if /I [%SharedMountPath5%]==[PULL] 	(set PullDockerStashImage=yes) & (set SharedMountPath5=)
 if /I [%SharedMountPath5%]==[WRITE]	(set MountAccess=) & (set SharedMountPath5=)
-if /I [%VariableArg%]==[DLNA] 		(set DLNAFunctionality=yes)
-if /I [%VariableArg%]==[SKIP] 		(set SkipDockerCompose=yes)
-if /I [%VariableArg%]==[IMAGE]		(set PullDockerStashImage=yes)
-if /I [%VariableArg%]==[PULL] 		(set PullDockerStashImage=yes)
-if /I [%VariableArg%]==[WRITE] 		(set MountAccess=)
+if /I [%SharedMountPath6%]==[DLNA] 	(set DLNAFunctionality=yes) & (set SharedMountPath6=)
+if /I [%SharedMountPath6%]==[SKIP] 	(set SkipDockerCompose=yes) & (set SharedMountPath6=)
+if /I [%SharedMountPath6%]==[IMAGE]	(set PullDockerStashImage=yes) & (set SharedMountPath6=)
+if /I [%SharedMountPath6%]==[PULL] 	(set PullDockerStashImage=yes) & (set SharedMountPath6=)
+if /I [%SharedMountPath6%]==[WRITE] (set MountAccess=) & (set SharedMountPath6=)
 :: If user incorrectly enters below arguments instead of Stash-Port, fetch the values, and let CHECK_STASH_PORT get the required Stash-Port.
-if /I [%STASH_PORT%]==[DLNA] 	(set DLNAFunctionality=yes) & (set SharedMountPath=)
-if /I [%STASH_PORT%]==[SKIP] 	(set SkipDockerCompose=yes) & (set SharedMountPath=)
-if /I [%STASH_PORT%]==[IMAGE]	(set PullDockerStashImage=yes) & (set SharedMountPath=)
-if /I [%STASH_PORT%]==[PULL] 	(set PullDockerStashImage=yes) & (set SharedMountPath=)
+if /I [%STASH_PORT%]==[DLNA] 	(set DLNAFunctionality=yes) & (set STASH_PORT=)
+if /I [%STASH_PORT%]==[SKIP] 	(set SkipDockerCompose=yes) & (set STASH_PORT=)
+if /I [%STASH_PORT%]==[IMAGE]	(set PullDockerStashImage=yes) & (set STASH_PORT=)
+if /I [%STASH_PORT%]==[PULL] 	(set PullDockerStashImage=yes) & (set STASH_PORT=)
 echo SkipDockerCompose = %SkipDockerCompose% ; DLNAFunctionality = %DLNAFunctionality%
 set DockerComposeFile="docker-compose.yml"
 
@@ -71,14 +71,14 @@ if [%NewContainerName%]==[] goto :MissingArgumentNewContainerName
 goto :HaveVariableNewContainerName
 :MissingArgumentNewContainerName
 set /p NewContainerName="Enter the new container name: "
-if [%NewContainerName%]==[] goto :eof
+if [%NewContainerName%]==[] call:ExitWithError 160 "ERROR_BAD_ARGUMENTS"
 :HaveVariableNewContainerName
 
 if [%Image%]==[] goto :MissingArgumentImage
 goto :HaveVariableImage
 :MissingArgumentImage
 set /p Image="Enter the image name: "
-if [%Image%]==[] goto :eof
+if [%Image%]==[] call:ExitWithError 160 "ERROR_BAD_ARGUMENTS"
 :HaveVariableImage
 
 :CHECK_STASH_PORT
@@ -91,7 +91,7 @@ echo Argument #3 requires a numeric value for Stash-Port.  You entered "%STASH_P
 :MissingArgumentSTASH_PORT
 set STASH_PORT=
 set /p STASH_PORT="Enter the Stash port number: "
-if [%STASH_PORT%]==[] Goto :eof
+if [%STASH_PORT%]==[] call:ExitWithError 160 "ERROR_BAD_ARGUMENTS"
 goto :CHECK_STASH_PORT
 :HaveVariableSTASH_PORT
 
@@ -149,6 +149,8 @@ if [%SharedMountPath4%]==[] goto :SkipSharedMountPaths
 echo       - %SharedMountPath4%:/external4%MountAccess%>> %DockerComposeFile%
 if [%SharedMountPath5%]==[] goto :SkipSharedMountPaths
 echo       - %SharedMountPath5%:/external5%MountAccess%>> %DockerComposeFile%
+if [%SharedMountPath6%]==[] goto :SkipSharedMountPaths
+echo       - %SharedMountPath6%:/external5%MountAccess%>> %DockerComposeFile%
 :SkipSharedMountPaths
 
 if [%SkipDockerCompose%] NEQ [] goto :DoNot_DockerCompose
@@ -158,4 +160,9 @@ docker pull %Image%
 docker-compose up -d
 :DoNot_DockerCompose
 cd ..
+Goto :eof
 
+:ExitWithError
+Echo Error: Exiting with error code %1 and error message %2
+Exit %~1
+Goto :eof
