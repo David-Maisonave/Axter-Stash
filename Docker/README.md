@@ -13,6 +13,8 @@ Then use a DOS window to change to the **ws1** directory before calling the scri
 - Image Name
 - Stash Port Number
 
+If any of the above arguments are missing, the script will prompt user for each missing argument before proceeding.
+
 ### Example Commands:
 - Example usage with minumum arguments:
   - `CreateContainer.cmd MyContainerName "stashapp/stash:latest" 9998`
