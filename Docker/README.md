@@ -20,8 +20,9 @@ Then use a DOS window to change to the **ws1** directory before calling the scri
   - `CreateContainer.cmd MyStashContainer "stashapp/stash:latest" 9997 IMAGE`
 - Example with shared mount paths: 
   - `CreateContainer.cmd NewContainer27.2 "stashapp/stash:v0.27.2" 9991 C:\MySharedMountPath C:\Another\Shared\Folder`
-  - The script support up to 5 mount paths.
-    - `CreateContainer.cmd ManyMntContainer "stashapp/stash:latest" 9991 C:\downloads C:\tmp C:\img c:\share c:\vids`
+  - The script supports up to 6 shared mount paths.
+    - `CreateContainer.cmd ManyMntContainer "stashapp/stash:latest" 9991 C:\downloads C:\tmp C:\img c:\share c:\vids c:\vid2`
+    - The container gets the mount paths mounted to /external /external2 /external3 /external4 /external5 and /external6
 - Example with shared mount paths with write access: 
   - `CreateContainer.cmd ContainerName1 "stashapp/stash:latest" 9991 C:\MyShared  WRITE`
 - Example with DLNA:
