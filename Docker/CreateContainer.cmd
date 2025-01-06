@@ -150,7 +150,7 @@ echo       - %SharedMountPath4%:/external4%MountAccess%>> %DockerComposeFile%
 if [%SharedMountPath5%]==[] goto :SkipSharedMountPaths
 echo       - %SharedMountPath5%:/external5%MountAccess%>> %DockerComposeFile%
 if [%SharedMountPath6%]==[] goto :SkipSharedMountPaths
-echo       - %SharedMountPath6%:/external5%MountAccess%>> %DockerComposeFile%
+echo       - %SharedMountPath6%:/external6%MountAccess%>> %DockerComposeFile%
 :SkipSharedMountPaths
 
 if [%SkipDockerCompose%] NEQ [] goto :DoNot_DockerCompose
