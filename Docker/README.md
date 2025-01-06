@@ -22,7 +22,7 @@ If any of the above arguments are missing, the script will prompt user for each 
   - `CreateContainer.cmd MyStashContainer "stashapp/stash:latest" 9997 IMAGE`
 - Example with shared mount paths: 
   - `CreateContainer.cmd NewContainer27.2 "stashapp/stash:v0.27.2" 9991 C:\MySharedMountPath C:\Another\Shared\Folder`
-  - The script supports up to 6 shared mount paths.
+  - The script supports up to 11 shared mount paths.
     - `CreateContainer.cmd StashCnt "stashapp/stash:latest" 9991 C:\downloads C:\tmp\foo C:\img C:\share\vid E:\vids G:\vid2`
 - Example with shared mount paths with write access: 
   - `CreateContainer.cmd ContainerName1 "stashapp/stash:latest" 9991 C:\MyShared  WRITE`
@@ -32,8 +32,8 @@ If any of the above arguments are missing, the script will prompt user for each 
   - `CreateContainer.cmd ContainerName "stashapp/stash:v0.26.2" 9992 C:\Videos SKIP`
 
 ### Shared Mount Paths
-- CreateContainer.cmd can create 1-6 shared mount paths on the container. A shared mount path is a path that is a HOST path that is mounted on the container, which allows the container to access the files on the host machine.
-  - The container gets the mount paths mounted to /external /external2 /external3 /external4 /external5 and /external6
+- CreateContainer.cmd can create up to 11 shared mount paths on the container. A shared mount path is a HOST path that is mounted on the container, which allows the container to access the files on the host machine.
+  - The container gets the mount paths mounted to /external /external2 /external3 /external4 /external5 /external6, etc....
 - By default the shared mount is READ-ONLY, but by appending **WRITE** to the command line, the script will make all the shared mounts with read-write access.
   - Example:  `CreateContainer.cmd ContainerName1 "stashapp/stash:latest" 9999 C:\MySharedMountPath WRITE`
 
