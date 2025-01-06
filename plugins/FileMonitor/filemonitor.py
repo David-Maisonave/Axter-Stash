@@ -759,6 +759,17 @@ def start_library_monitor():
                             if taskqueue.tooManyScanOnTaskQueue(7):
                                 stash.Log(f"[metadata_scan] Skipping updating Stash for paths '{TmpTargetPaths}', because too many scans on Task Queue.")
                             else:
+                                if not parse_args.docker == None and len(parse_args.docker) > 0:
+                                    CpyTmpTargetPaths = list(set(TmpTargetPaths))
+                                    TmpTargetPaths = []
+                                    for CpyTmpTargetPath in CpyTmpTargetPaths:
+                                        for key in dockerObservedPaths:
+                                            if CpyTmpTargetPath.startswith(key):
+                                                HostTmpTargetPath = CpyTmpTargetPath
+                                                CpyTmpTargetPath = f"{dockerObservedPaths[key]}/{CpyTmpTargetPath[len(key):]}"
+                                                stash.Log(f"Converted Host-Path {HostTmpTargetPath} to Docker-Path {CpyTmpTargetPath}")
+                                                TmpTargetPaths += [CpyTmpTargetPath]
+                                                break
                                 stash.Trace(f"[metadata_scan] Calling metadata_scan for paths '{TmpTargetPaths}'")
                                 lastScanJob['id'] = int(stash.metadata_scan(paths=TmpTargetPaths))
                                 lastScanJob['TargetPaths'] = TmpTargetPaths
