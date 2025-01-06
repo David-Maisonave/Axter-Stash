@@ -20,6 +20,7 @@ desktop.ini
 *.tlog
 *.user
 *.7z
+*.zip
 *.swp
 data.csv
 /boost

@@ -159,6 +159,9 @@ To configure the schedule or to add new task, edit the **task_scheduler** sectio
   - `pip install requests`
   - `pip install watchdog`
   - `pip install schedule`
+  - `pip install pyyaml`
+
+Note: pyyaml is only needed for a Docker setup.
 
 ## Installation
 
