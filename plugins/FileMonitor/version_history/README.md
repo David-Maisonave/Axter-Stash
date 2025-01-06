@@ -2,3 +2,5 @@
 ### 1.0.0
 - Added Tools-UI option to get FileMonitor running status.
 - Added Stash toolbar icon to get FileMonitor running status.
+### 1.0.1
+- Added Docker support.
