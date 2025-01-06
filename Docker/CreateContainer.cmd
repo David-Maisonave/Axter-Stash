@@ -26,39 +26,72 @@ set SharedMountPath3=%6
 set SharedMountPath4=%7
 set SharedMountPath5=%8
 set SharedMountPath6=%9
+shift /n 5
+set SharedMountPath7=%5
+set SharedMountPath8=%6
+set SharedMountPath9=%7
+set SharedMountPath10=%8
+set SharedMountPath11=%9
 set SkipDockerCompose=
 set DLNAFunctionality="no"
 set PullDockerStashImage=
 set MountAccess=:ro
-if /I [%SharedMountPath%]==[DLNA] 	(set DLNAFunctionality=yes) & (set SharedMountPath=)
-if /I [%SharedMountPath%]==[SKIP] 	(set SkipDockerCompose=yes) & (set SharedMountPath=)
-if /I [%SharedMountPath%]==[IMAGE]	(set PullDockerStashImage=yes) & (set SharedMountPath=)
-if /I [%SharedMountPath%]==[PULL] 	(set PullDockerStashImage=yes) & (set SharedMountPath=)
-if /I [%SharedMountPath2%]==[DLNA] 	(set DLNAFunctionality=yes) & (set SharedMountPath2=)
-if /I [%SharedMountPath2%]==[SKIP] 	(set SkipDockerCompose=yes) & (set SharedMountPath2=)
-if /I [%SharedMountPath2%]==[IMAGE] (set PullDockerStashImage=yes) & (set SharedMountPath2=)
-if /I [%SharedMountPath2%]==[PULL] 	(set PullDockerStashImage=yes) & (set SharedMountPath2=)
-if /I [%SharedMountPath2%]==[WRITE]	(set MountAccess=) & (set SharedMountPath2=)
-if /I [%SharedMountPath3%]==[DLNA] 	(set DLNAFunctionality=yes) & (set SharedMountPath3=)
-if /I [%SharedMountPath3%]==[SKIP] 	(set SkipDockerCompose=yes) & (set SharedMountPath3=)
-if /I [%SharedMountPath3%]==[IMAGE] (set PullDockerStashImage=yes) & (set SharedMountPath3=)
-if /I [%SharedMountPath3%]==[PULL] 	(set PullDockerStashImage=yes) & (set SharedMountPath3=)
-if /I [%SharedMountPath3%]==[WRITE]	(set MountAccess=) & (set SharedMountPath3=)
-if /I [%SharedMountPath4%]==[DLNA] 	(set DLNAFunctionality=yes) & (set SharedMountPath4=)
-if /I [%SharedMountPath4%]==[SKIP] 	(set SkipDockerCompose=yes) & (set SharedMountPath4=)
-if /I [%SharedMountPath4%]==[IMAGE] (set PullDockerStashImage=yes) & (set SharedMountPath4=)
-if /I [%SharedMountPath4%]==[PULL] 	(set PullDockerStashImage=yes) & (set SharedMountPath4=)
-if /I [%SharedMountPath4%]==[WRITE]	(set MountAccess=) & (set SharedMountPath4=)
-if /I [%SharedMountPath5%]==[DLNA] 	(set DLNAFunctionality=yes) & (set SharedMountPath5=)
-if /I [%SharedMountPath5%]==[SKIP] 	(set SkipDockerCompose=yes) & (set SharedMountPath5=)
-if /I [%SharedMountPath5%]==[IMAGE] (set PullDockerStashImage=yes) & (set SharedMountPath5=)
-if /I [%SharedMountPath5%]==[PULL] 	(set PullDockerStashImage=yes) & (set SharedMountPath5=)
-if /I [%SharedMountPath5%]==[WRITE]	(set MountAccess=) & (set SharedMountPath5=)
-if /I [%SharedMountPath6%]==[DLNA] 	(set DLNAFunctionality=yes) & (set SharedMountPath6=)
-if /I [%SharedMountPath6%]==[SKIP] 	(set SkipDockerCompose=yes) & (set SharedMountPath6=)
-if /I [%SharedMountPath6%]==[IMAGE]	(set PullDockerStashImage=yes) & (set SharedMountPath6=)
-if /I [%SharedMountPath6%]==[PULL] 	(set PullDockerStashImage=yes) & (set SharedMountPath6=)
-if /I [%SharedMountPath6%]==[WRITE] (set MountAccess=) & (set SharedMountPath6=)
+if /I [%SharedMountPath%]==[DLNA] 	 (set DLNAFunctionality=yes) & (set SharedMountPath=)
+if /I [%SharedMountPath%]==[SKIP] 	 (set SkipDockerCompose=yes) & (set SharedMountPath=)
+if /I [%SharedMountPath%]==[IMAGE]	 (set PullDockerStashImage=yes) & (set SharedMountPath=)
+if /I [%SharedMountPath%]==[PULL] 	 (set PullDockerStashImage=yes) & (set SharedMountPath=)
+if /I [%SharedMountPath2%]==[DLNA] 	 (set DLNAFunctionality=yes) & (set SharedMountPath2=)
+if /I [%SharedMountPath2%]==[SKIP] 	 (set SkipDockerCompose=yes) & (set SharedMountPath2=)
+if /I [%SharedMountPath2%]==[IMAGE]  (set PullDockerStashImage=yes) & (set SharedMountPath2=)
+if /I [%SharedMountPath2%]==[PULL] 	 (set PullDockerStashImage=yes) & (set SharedMountPath2=)
+if /I [%SharedMountPath2%]==[WRITE]	 (set MountAccess=) & (set SharedMountPath2=)
+if /I [%SharedMountPath3%]==[DLNA] 	 (set DLNAFunctionality=yes) & (set SharedMountPath3=)
+if /I [%SharedMountPath3%]==[SKIP] 	 (set SkipDockerCompose=yes) & (set SharedMountPath3=)
+if /I [%SharedMountPath3%]==[IMAGE]  (set PullDockerStashImage=yes) & (set SharedMountPath3=)
+if /I [%SharedMountPath3%]==[PULL] 	 (set PullDockerStashImage=yes) & (set SharedMountPath3=)
+if /I [%SharedMountPath3%]==[WRITE]	 (set MountAccess=) & (set SharedMountPath3=)
+if /I [%SharedMountPath4%]==[DLNA] 	 (set DLNAFunctionality=yes) & (set SharedMountPath4=)
+if /I [%SharedMountPath4%]==[SKIP] 	 (set SkipDockerCompose=yes) & (set SharedMountPath4=)
+if /I [%SharedMountPath4%]==[IMAGE]  (set PullDockerStashImage=yes) & (set SharedMountPath4=)
+if /I [%SharedMountPath4%]==[PULL] 	 (set PullDockerStashImage=yes) & (set SharedMountPath4=)
+if /I [%SharedMountPath4%]==[WRITE]	 (set MountAccess=) & (set SharedMountPath4=)
+if /I [%SharedMountPath5%]==[DLNA] 	 (set DLNAFunctionality=yes) & (set SharedMountPath5=)
+if /I [%SharedMountPath5%]==[SKIP] 	 (set SkipDockerCompose=yes) & (set SharedMountPath5=)
+if /I [%SharedMountPath5%]==[IMAGE]  (set PullDockerStashImage=yes) & (set SharedMountPath5=)
+if /I [%SharedMountPath5%]==[PULL] 	 (set PullDockerStashImage=yes) & (set SharedMountPath5=)
+if /I [%SharedMountPath5%]==[WRITE]	 (set MountAccess=) & (set SharedMountPath5=)
+if /I [%SharedMountPath6%]==[DLNA] 	 (set DLNAFunctionality=yes) & (set SharedMountPath6=)
+if /I [%SharedMountPath6%]==[SKIP] 	 (set SkipDockerCompose=yes) & (set SharedMountPath6=)
+if /I [%SharedMountPath6%]==[IMAGE]	 (set PullDockerStashImage=yes) & (set SharedMountPath6=)
+if /I [%SharedMountPath6%]==[PULL] 	 (set PullDockerStashImage=yes) & (set SharedMountPath6=)
+if /I [%SharedMountPath6%]==[WRITE]  (set MountAccess=) & (set SharedMountPath6=)
+if /I [%SharedMountPath7%]==[DLNA] 	 (set DLNAFunctionality=yes) & (set SharedMountPath7=)
+if /I [%SharedMountPath7%]==[SKIP] 	 (set SkipDockerCompose=yes) & (set SharedMountPath7=)
+if /I [%SharedMountPath7%]==[IMAGE]	 (set PullDockerStashImage=yes) & (set SharedMountPath7=)
+if /I [%SharedMountPath7%]==[PULL] 	 (set PullDockerStashImage=yes) & (set SharedMountPath7=)
+if /I [%SharedMountPath7%]==[WRITE]  (set MountAccess=) & (set SharedMountPath7=)
+if /I [%SharedMountPath8%]==[DLNA] 	 (set DLNAFunctionality=yes) & (set SharedMountPath8=)
+if /I [%SharedMountPath8%]==[SKIP] 	 (set SkipDockerCompose=yes) & (set SharedMountPath8=)
+if /I [%SharedMountPath8%]==[IMAGE]	 (set PullDockerStashImage=yes) & (set SharedMountPath8=)
+if /I [%SharedMountPath8%]==[PULL] 	 (set PullDockerStashImage=yes) & (set SharedMountPath8=)
+if /I [%SharedMountPath8%]==[WRITE]  (set MountAccess=) & (set SharedMountPath8=)
+if /I [%SharedMountPath9%]==[DLNA] 	 (set DLNAFunctionality=yes) & (set SharedMountPath9=)
+if /I [%SharedMountPath9%]==[SKIP] 	 (set SkipDockerCompose=yes) & (set SharedMountPath9=)
+if /I [%SharedMountPath9%]==[IMAGE]	 (set PullDockerStashImage=yes) & (set SharedMountPath9=)
+if /I [%SharedMountPath9%]==[PULL] 	 (set PullDockerStashImage=yes) & (set SharedMountPath9=)
+if /I [%SharedMountPath9%]==[WRITE]  (set MountAccess=) & (set SharedMountPath9=)
+if /I [%SharedMountPath10%]==[DLNA]  (set DLNAFunctionality=yes) & (set SharedMountPath10=)
+if /I [%SharedMountPath10%]==[SKIP]  (set SkipDockerCompose=yes) & (set SharedMountPath10=)
+if /I [%SharedMountPath10%]==[IMAGE] (set PullDockerStashImage=yes) & (set SharedMountPath10=)
+if /I [%SharedMountPath10%]==[PULL]  (set PullDockerStashImage=yes) & (set SharedMountPath10=)
+if /I [%SharedMountPath10%]==[WRITE] (set MountAccess=) & (set SharedMountPath10=)
+if /I [%SharedMountPath11%]==[DLNA]  (set DLNAFunctionality=yes) & (set SharedMountPath11=)
+if /I [%SharedMountPath11%]==[SKIP]  (set SkipDockerCompose=yes) & (set SharedMountPath11=)
+if /I [%SharedMountPath11%]==[IMAGE] (set PullDockerStashImage=yes) & (set SharedMountPath11=)
+if /I [%SharedMountPath11%]==[PULL]  (set PullDockerStashImage=yes) & (set SharedMountPath11=)
+if /I [%SharedMountPath11%]==[WRITE] (set MountAccess=) & (set SharedMountPath11=)
+
+
 :: If user incorrectly enters below arguments instead of Stash-Port, fetch the values, and let CHECK_STASH_PORT get the required Stash-Port.
 if /I [%STASH_PORT%]==[DLNA] 	(set DLNAFunctionality=yes) & (set STASH_PORT=)
 if /I [%STASH_PORT%]==[SKIP] 	(set SkipDockerCompose=yes) & (set STASH_PORT=)
@@ -151,6 +184,16 @@ if [%SharedMountPath5%]==[] goto :SkipSharedMountPaths
 echo       - %SharedMountPath5%:/external5%MountAccess%>> %DockerComposeFile%
 if [%SharedMountPath6%]==[] goto :SkipSharedMountPaths
 echo       - %SharedMountPath6%:/external6%MountAccess%>> %DockerComposeFile%
+if [%SharedMountPath7%]==[] goto :SkipSharedMountPaths
+echo       - %SharedMountPath7%:/external7%MountAccess%>> %DockerComposeFile%
+if [%SharedMountPath8%]==[] goto :SkipSharedMountPaths
+echo       - %SharedMountPath8%:/external8%MountAccess%>> %DockerComposeFile%
+if [%SharedMountPath9%]==[] goto :SkipSharedMountPaths
+echo       - %SharedMountPath9%:/external9%MountAccess%>> %DockerComposeFile%
+if [%SharedMountPath10%]==[] goto :SkipSharedMountPaths
+echo       - %SharedMountPath10%:/external10%MountAccess%>> %DockerComposeFile%
+if [%SharedMountPath11%]==[] goto :SkipSharedMountPaths
+echo       - %SharedMountPath11%:/external11%MountAccess%>> %DockerComposeFile%
 :SkipSharedMountPaths
 
 if [%SkipDockerCompose%] NEQ [] goto :DoNot_DockerCompose
