@@ -201,7 +201,8 @@ python filemonitor.py --url http://localhost:9999 --docker "C:\Users\MyUser\AppD
 ```
 - The **docker-compose.yml** file should be located in the folder associated with the Docker Stash container, and it list the mapped paths which FileMonitor uses to determine the host path which is mapped to the Docker path.
 - For more information, see [Using FileMonitor as a script](https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor#Using-FileMonitor-as-a-script)
-
+- For more information on creating a Docker Stash setup, see 
+(https://github.com/David-Maisonave/Axter-Stash/tree/main/Docker)
 
 ### Future Planned Features or Fixes
 - Have the FileMonitor running status ICON update the icon without having to go to the Settings->Tools->FileMonitor page. Planned for version 1.2.0.
