@@ -16,6 +16,8 @@
     const { Link, NavLink, } = PluginApi.libraries.ReactRouterDOM;
 	var iconToUse = faFileCircleXmark;
 	var FileMonitorRunningStatusStr = "";
+	var IS_DOCKER = false;
+	var DockerWarning = null;
 	function RunPluginFileMonitor(Mode, ActionID = 0, DataType = "text", Async = false) {
 		console.log("Mode = " + Mode);
 		const AjaxData = $.ajax({method: "POST", url: "/graphql", contentType: "application/json",  dataType: DataType, cache: Async, async: Async,
@@ -32,6 +34,13 @@
 					else {
 						iconToUse = faFileCircleXmark;
 						FileMonitorRunningStatusStr = "FileMonitor is NOT running!!!";
+					}
+					if (result.indexOf("IS_DOCKER:'True'") > 0){
+						IS_DOCKER = true;
+						DockerWarning = React.createElement("div", null, 
+							React.createElement("h4", null, "Must run FileMonitor on host machine. Do not run directly in Docker! For more information see following link:"),
+							React.createElement("a", {href: "https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor#Docker", style:{color:"pink"}, target:"_blank"}, "https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor#Docker"));
+						console.log("FileMonitor must run on host machine. Do NOT run FileMonitor directly in Docker. See following link for more details.\n https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor#Docker");
 					}
 					console.log(FileMonitorRunningStatusStr);
 					if (ActionID == 0)
@@ -57,15 +66,6 @@
 				$("body").css("cursor", "default");
 			}
 		});
-		// if (Async == true)
-			// return true;
-		// if (DataType == "text")
-		// {
-			// console.log(AjaxData.responseText);
-			// return AjaxData.responseText;
-		// }
-		// console.log(AjaxData.responseJSON);
-		// return JSON.parse(AjaxData.responseJSON.data.runPluginOperation.replaceAll("'", "\""));
 	}
 	RunPluginFileMonitor("getFileMonitorRunningStatus");
     const HomePage = () => {
@@ -76,7 +76,8 @@
 				MyHeader,
 				React.createElement("p", null),
 				React.createElement("p", null),
-				React.createElement("h4", null, FileMonitorRunningStatusStr)
+				React.createElement("h4", null, FileMonitorRunningStatusStr),
+				DockerWarning
 			));
     };
 	PluginApi.register.route("/FileMonitor", HomePage);

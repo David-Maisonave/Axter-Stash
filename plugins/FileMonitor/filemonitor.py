@@ -143,7 +143,7 @@ if not parse_args.docker == None and len(parse_args.docker) > 0:
             tb = traceback.format_exc()
             stash.Error(f"Exception while parsing Docker file {parse_args.docker}; Error: {e}\nTraceBack={tb}")
 
-if stash.IS_DOCKER:
+if stash.IS_DOCKER and stash.PLUGIN_TASK_NAME != "stop_library_monitor" and not parse_args.stop and stash.PLUGIN_TASK_NAME != "getFileMonitorRunningStatus":
     stash.Error("You are running this script from within Docker. This is NOT supported.  Run this script in the host machine instead.")
     stash.Warn("For more information on running FileMonitor on host machine see following link:\n https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor#Docker")
     stash.Warn("Performing early exit because FileMonitor has to run on the host machine, and can NOT run on Docker directly.")
@@ -937,7 +937,7 @@ def getFileMonitorRunningStatus():
         pass
         stash.Log("FileMonitor is NOT running!!!")
     stash.Log(f"{stash.PLUGIN_TASK_NAME} complete")
-    sys.stdout.write("{" + f"{stash.PLUGIN_TASK_NAME} : 'complete', FileMonitorStatus:'{FileMonitorStatus}'" + "}")
+    sys.stdout.write("{" + f"{stash.PLUGIN_TASK_NAME} : 'complete', FileMonitorStatus:'{FileMonitorStatus}', IS_DOCKER:'{stash.IS_DOCKER}'" + "}")
 
 try:
     if parse_args.stop or parse_args.restart or stash.PLUGIN_TASK_NAME == "stop_library_monitor":
