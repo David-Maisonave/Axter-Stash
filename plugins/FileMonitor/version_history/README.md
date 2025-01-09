@@ -4,3 +4,5 @@
 - Added Stash toolbar icon to get FileMonitor running status.
 ### 1.0.1
 - Added Docker support.
+### 1.0.2
+- Added ability to monitor host file system for multiple Docker Stash installations.
