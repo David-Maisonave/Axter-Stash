@@ -192,12 +192,13 @@ Please do **NOT** use the feature request to include any problems associated wit
 ### Single Stash Docker Installation
 **Note:** This section is for users who have a single instance of Stash Docker installed, and do NOT have Stash installed on the host machine.
 - FileMonitor requires watchdog module in order to work. Although the watchdog module loads and runs on Docker, it fails to function because Docker fails to report file changes.
-- FileMonitor can work with Docker Stash setup if it's executed externally on the host OS. Start FileMonitor on the command line and pass the Stash URL and --docker.
+- FileMonitor can work with Docker Stash setup if it's executed externally on the host OS. Start FileMonitor on the command line and pass the Stash URL and docker YML file. (**--url** and **--docker**)
 - Example1:
 ```
 python filemonitor.py --url http://localhost:9999 --docker "C:\Users\MyUser\AppData\Local\Docker\wsl\Stash27.2\docker-compose.yml"
 ```
 - Example2: (with ApiKey)
+  - If Stash Docker is configured with a password, an ApiKey is needed, and has to be passed on the command line (**--apikey**).
 ```
 python filemonitor.py --url http://localhost:9999 --docker "C:\Users\MyUser\AppData\Local\Docker\wsl\Stash27.2\docker-compose.yml" --apikey "zNDU0MDk3N30.4nZVLk3xikjJZfZ0JTPA_Fic8JveycCI6IkpXVCJ9.eyJ1aWQiOiJheHRlJhbGciOiJIUzI1NiIsInR5I6IkFQSUtleSIsImlhdCI6MTcFx3DZe5U21ZDcC3c"
 ```
@@ -205,9 +206,38 @@ python filemonitor.py --url http://localhost:9999 --docker "C:\Users\MyUser\AppD
 - For more information, see [Using FileMonitor as a script](https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor#Using-FileMonitor-as-a-script)
 - For more information on creating a Docker Stash setup, see (https://github.com/David-Maisonave/Axter-Stash/tree/main/Docker)
 ### Multiple Stash Docker Configuration
-**Note:** This section applies to users who have multiple Stash Docker instances running, and also have Stash installed and running on the host machine as well.
+**Note:** This section applies to users who have multiple Stash Docker instances running, and also have Stash installed and running on the host machine.
 - FileMonitor can be configured to run on the host machine, and update all the Stash Docker instances when a file change occurs. To activate this option change the filemonitor_config.py file by setting the **dockers** field with the information associated with each Stash Docker instance.
 - There are three examples which are commented out in the **dockers** field, which users can easily modify to configure for thier particular Stash Docker instances.
+- The following is the uncommented example from the **filemonitor_config.py** file.
+``` Python
+    # Docker notification from host machine
+    "dockers": [
+        # Example Stash Docker configurations. For more details see https://github.com/David-Maisonave/Axter-Stash/blob/main/plugins/FileMonitor#Multiple-Stash-Docker-Configuration
+        {"GQL":"http://localhost:9995", "apiKey":"", "bindMounts":[
+                {r"C:\Users\admin3\AppData\Local\Docker\wsl\Stash3\data":"/data"},
+                {r"C:\Video":"/mnt/Video"},
+            ]
+        },
+        {"GQL":"http://localhost:9997", "apiKey":"", "bindMounts":[
+                {r"C:\Users\admin3\AppData\Local\Docker\wsl\ManyMnt\data":"/data"},
+                {r"C:\Users\admin3\Videos":"/external"},
+                {r"C:\Users\admin3\Pictures":"/external2"},
+                {r"C:\Users\admin3\Downloads":"/external3"},
+                {r"E:\Downloads":"/external4"},
+                {r"E:\Celeb":"/external5"},
+                {r"F:\Hentai":"/external6"},
+                {r"Z:\Temp":"/external7"},
+            ]
+        },
+        {"GQL":"http://localhost:9994", "apiKey":"eyJhb3676zgdUzI1NiIsInR5cCI6IwfXVCJ9.ewJ1aWQiOiJheHRlweIsInN1YiI6IkFQSUtleSIsImlhdewrweczNDU0MDk3N30.4nZVLk3xikjJZfZ0JTPA_Fic8JvFx3DZe5U21Zasdag", "bindMounts":[
+                {r"C:\Users\admin3\AppData\Local\Docker\wsl\MyStashContainer\data":"/data"},
+                {r"C:\Vid":"/mnt/Vid"},
+                {r"C:\Users\admin3\Downloads":"/mnt/Downloads"},
+            ]
+        },
+    ],
+```
 
 ### Future Planned Features or Fixes
 - Have the FileMonitor running status ICON update the icon without having to go to the Settings->Tools->FileMonitor page. Planned for version 1.2.0.
