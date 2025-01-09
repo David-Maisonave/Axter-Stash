@@ -207,8 +207,8 @@ python filemonitor.py --url http://localhost:9999 --docker "C:\Users\MyUser\AppD
 - For more information on creating a Docker Stash setup, see (https://github.com/David-Maisonave/Axter-Stash/tree/main/Docker)
 ### Multiple Stash Docker Configuration
 **Note:** This section applies to users who have multiple Stash Docker instances running, and also have Stash installed and running on the host machine.
-- FileMonitor can be configured to run on the host machine, and update all the Stash Docker instances when a file change occurs. To activate this option change the filemonitor_config.py file by setting the **dockers** field with the information associated with each Stash Docker instance.
-- There are three examples which are commented out in the **dockers** field, which users can easily modify to configure for their particular Stash Docker instances.
+- FileMonitor can be configured to run on the host machine, and update all the Stash Docker instances when an associated file change occurs. To activate this option change the filemonitor_config.py file by setting the **dockers** field with the information associated with each Stash Docker instance.
+- There are three examples that are commented out in the **dockers** field, which users can easily modify to configure for their particular Stash Docker instances.
 - The following is the uncommented example from the **filemonitor_config.py** file.
 ```Python
     # Docker notification from host machine
@@ -255,4 +255,3 @@ python filemonitor.py --url http://localhost:9999 --docker "C:\Users\MyUser\AppD
 
 ### Future Planned Features or Fixes
 - Have the FileMonitor running status ICON update the icon without having to go to the Settings->Tools->FileMonitor page. Planned for version 1.2.0.
-- Add Docker support externally by adding docker command line argument that will take the docker-compose.yml file path.
