@@ -20,7 +20,7 @@ From the GUI, FileMonitor can be started as a service or as a plugin. The recomm
   - ![Screenshot 2024-11-29 073833](https://github.com/user-attachments/assets/397615f1-871f-4c1c-ac6e-6b517233e734)
   - When FileMonitor is not running, the icon has an **X**.
   - ![Screenshot 2024-11-29 074154](https://github.com/user-attachments/assets/e8b117fa-9842-40b2-91d4-182c8b4cd528)
-  - However, this icon is not very pratical, since the user still has to go to the Settings->Tools->FileMonitor page to force it to update the icon.
+  - However, this icon is not very practical, since the user still has to go to the Settings->Tools->FileMonitor page to force it to update the icon.
 
 
 
@@ -51,10 +51,10 @@ To enable the scheduler go to **Stash->Settings->Plugins->Plugins->FileMonitor**
   - Auto Tag -> [Auto Tag] (Daily)
   - Maintenance -> [Clean] (every 2 days)
   - Maintenance -> [Clean Generated Files] (every 2 days)
-  - Maintenance -> [Optimise Database] (Daily)
+  - Maintenance -> [Optimize Database] (Daily)
   - Generated Content-> [Generate] (Every Sunday at 7AM)
   - Library -> [Scan] (Weekly) (Every Sunday at 3AM)
-  - Backup -> [Backup] 2nd sunday of the month at 1AM
+  - Backup -> [Backup] 2nd Sunday of the month at 1AM
 - The example tasks are disabled by default because they either have a zero frequency value or the time field is set to **DISABLED**.
 
 To configure the schedule or to add new task, edit the **task_scheduler** section in the **filemonitor_config.py** file.
@@ -106,7 +106,7 @@ To configure the schedule or to add new task, edit the **task_scheduler** sectio
     - The **validateDir** field can be used to define the plugin sub directory, which is checked to see if it exist before running the task.
     - **taskName** field is used to name the task to call for the associated plugin. It can not be used with "taskQue":False
     - **taskQue** field is used to call the plugin without using the Task Queue. I.E. "taskQue":False. When this field is set to False, the taskName field can NOT be used. Instead use taskMode to identify the task to call.
-    - **taskMode** field is used in order to run the plugin without using the Task Queue. The plugin runs immediatly. Be careful not to confuse taskMode with taskName. Look in the plugin \*.yml file under the **tasks** section where it defines both the task-name and the task-mode.
+    - **taskMode** field is used in order to run the plugin without using the Task Queue. The plugin runs immediately. Be careful not to confuse taskMode with taskName. Look in the plugin \*.yml file under the **tasks** section where it defines both the task-name and the task-mode.
 - Task can be scheduled to run monthly, weekly, hourly, and by minutes.
 - The scheduler list uses two types of syntax. One is **weekday** based, and the other is **frequency** based.
 
@@ -208,7 +208,7 @@ python filemonitor.py --url http://localhost:9999 --docker "C:\Users\MyUser\AppD
 ### Multiple Stash Docker Configuration
 **Note:** This section applies to users who have multiple Stash Docker instances running, and also have Stash installed and running on the host machine.
 - FileMonitor can be configured to run on the host machine, and update all the Stash Docker instances when a file change occurs. To activate this option change the filemonitor_config.py file by setting the **dockers** field with the information associated with each Stash Docker instance.
-- There are three examples which are commented out in the **dockers** field, which users can easily modify to configure for thier particular Stash Docker instances.
+- There are three examples which are commented out in the **dockers** field, which users can easily modify to configure for their particular Stash Docker instances.
 - The following is the uncommented example from the **filemonitor_config.py** file.
 ```Python
     # Docker notification from host machine
@@ -238,10 +238,10 @@ python filemonitor.py --url http://localhost:9999 --docker "C:\Users\MyUser\AppD
         },
     ],
 ```
-- Each Stash Docker instance requires three fields.
+- Each Stash Docker instance requires three fields, which are case sensitive.
   - **GQL**: This is the Stash URL which is used by the host machine to access the particular Stash Docker instance. Note: Do **NOT** include graphql in the URL.
   - **apiKey**: This is a required field, but the value can be empty if the Stash instances doesn't require a password.
-  - **bindMounts**: Atleast one bind mount path must be specified.
+  - **bindMounts**: At least one bind mount path must be specified.
     - The first string defines the host path (**C:\Video**), and the second string defines the Docker mount path (**/mnt/Video**). These paths are listed on Docker-Desktop under Containers->ContainerName->[Bind Mounts] tab.
       - The host path must be a fully qualified host local path. It can **not** be a relative path **(./../Videos)** and it can **not** be a URL with a local network domain name **(\\MyComputerName\SharedPath\MyFolder)**.
       - If the host path contains a backslash, start the string with an r. Example: **r"C:\Vid"**
