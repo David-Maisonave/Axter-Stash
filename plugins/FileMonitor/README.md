@@ -215,7 +215,6 @@ python filemonitor.py --url http://localhost:9999 --docker "C:\Users\MyUser\AppD
     "dockers": [
         # Example Stash Docker configurations.
         {"GQL":"http://localhost:9995", "apiKey":"", "bindMounts":[
-                {r"C:\Users\admin3\AppData\Local\Docker\wsl\Stash3\data":"/data"},
                 {r"C:\Video":"/mnt/Video"},
             ]
         },
@@ -238,6 +237,19 @@ python filemonitor.py --url http://localhost:9999 --docker "C:\Users\MyUser\AppD
         },
     ],
 ```
+- Each Stash Docker instance requires three fields.
+  - **GQL**: This is the Stash URL which is used by the host machine to access the particular Stash Docker instance. Note: Do **NOT** include graphql in the URL.
+  - **apiKey**: This is a required field, but the value can be empty if the Stash instances doesn't require a password.
+  - **bindMounts**: Atleast one bind mount path must be specified.
+    - The first string defines the host path (**C:\Video**), and the second string defines the Docker mount path (**/mnt/Video**). These paths are listed on Docker-Desktop under Containers->ContainerName->[Bind Mounts] tab.
+      - The host path must be a fully qualified host local path. It can **not** be a relative path **(./../Videos)** and it can **not** be a URL with a local network domain name **(\\MyComputerName\SharedPath\MyFolder)**.
+    - If any of the below mount paths are included, they will be ignored because they could trigger a feedback loop.
+      - /etc/localtime:/etc/localtime:ro
+      - ./config:/root/.stash
+      - ./metadata:/metadata
+      - ./cache:/cache
+      - ./blobs:/blobs
+      - ./generated:/generated
 
 ### Future Planned Features or Fixes
 - Have the FileMonitor running status ICON update the icon without having to go to the Settings->Tools->FileMonitor page. Planned for version 1.2.0.
