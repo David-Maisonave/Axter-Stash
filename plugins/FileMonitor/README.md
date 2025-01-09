@@ -192,7 +192,7 @@ Please do **NOT** use the feature request to include any problems associated wit
 ### Single Stash Docker Installation
 **Note:** This section is for users who have a single instance of Stash Docker installed, and do NOT have Stash installed on the host machine.
 - FileMonitor requires watchdog module in order to work. Although the watchdog module loads and runs on Docker, it fails to function because Docker fails to report file changes.
-- FileMonitor can work with Docker Stash setup if it's executed externally on the host OS. Start FileMonitor on the command line and pass the Stash URL and docker YML file. (**--url** and **--docker**)
+- FileMonitor can work with Docker Stash setup if it's executed externally on the host OS. To do this, start FileMonitor on the command line and pass the Stash URL and docker YML file. (**--url** and **--docker**)
 - Example1:
 ```
 python filemonitor.py --url http://localhost:9999 --docker "C:\Users\MyUser\AppData\Local\Docker\wsl\Stash27.2\docker-compose.yml"
