@@ -243,7 +243,7 @@ python filemonitor.py --url http://localhost:9999 --docker "C:\Users\MyUser\AppD
   - **apiKey**: This is a required field, but the value can be empty if the Stash instances doesn't require a password.
   - **bindMounts**: At least one bind mount path must be specified.
     - The first string defines the host path (**C:\Video**), and the second string defines the Docker mount path (**/mnt/Video**). These paths are listed on Docker-Desktop under Containers->ContainerName->[Bind Mounts] tab.
-      - The host path must be a fully qualified host local path. It can **not** be a relative path **(./../Videos)** and it can **not** be a URL with a local network domain name **(\\MyComputerName\SharedPath\MyFolder)**.
+      - The host path must be a fully qualified host local path. It can **not** be a relative path **(./../Videos)** and it can **not** be a URL with a local network domain name **(\\\\MyComputerName\\SharedPath\\MyFolder)**.
       - If the host path contains a backslash, start the string with an r. Example: **r"C:\Vid"**
     - If any of the below mount paths are included, they will be ignored because they could trigger a feedback loop.
       - /etc/localtime:/etc/localtime:ro
