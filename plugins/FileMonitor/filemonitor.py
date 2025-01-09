@@ -103,10 +103,18 @@ if CREATE_SPECIAL_FILE_TO_EXIT and os.path.isfile(SPECIAL_FILE_NAME):
 
 fileExtTypes = stash.pluginConfig['fileExtTypes'].split(",") if stash.pluginConfig['fileExtTypes'] != "" else []
 includePathChanges = stash.pluginConfig['includePathChanges'] if len(stash.pluginConfig['includePathChanges']) > 0 else stash.STASH_PATHS
+includePathChanges = includePathChanges[:] # Make a copy of the list, and not a reference
+hostIncludePathChanges = includePathChanges[:]
 excludePathChanges = stash.pluginConfig['excludePathChanges']
 turnOnSchedulerDeleteDup = stash.pluginSettings['turnOnSchedulerDeleteDup']
 NotInLibraryTagName = stash.pluginConfig['NotInLibraryTagName']
 
+filemonitor_config_dev_file = f"{stash.PLUGINS_PATH}{os.sep}FileMonitor{os.sep}filemonitor_config_dev.py"
+if os.path.exists(filemonitor_config_dev_file):
+    stash.Log(f"Getting {filemonitor_config_dev_file} configuration settings.")
+    from filemonitor_config_dev import config_dev
+    config['dockers'] = config_dev['dockers']
+    
 dockerMapVolumes = {}
 dockerReverseMapVolumes = {}
 dockerObservedPaths = {}
@@ -125,6 +133,9 @@ if not parse_args.docker == None and len(parse_args.docker) > 0:
                 for volume in data_loaded['services'][service]['volumes']:
                     volSplit = volume.replace(":ro", "").split(":/")
                     hostPath = volSplit[0]
+                    # Do not scan Stash interanl working folders
+                    if volSplit[1] == "root/.stash" or volSplit[1] == "metadata" or volSplit[1] == "cache" or volSplit[1] == "blobs" or volSplit[1] == "generated":
+                        continue
                     if volSplit[0].startswith("./../../"):
                         dockerStashParentPath = pathlib.Path(dockerStashPath).resolve().parent
                         hostPath = f"{pathlib.Path(dockerStashParentPath).resolve().parent}{hostPath[8:]}"
@@ -149,6 +160,32 @@ if stash.IS_DOCKER and stash.PLUGIN_TASK_NAME != "stop_library_monitor" and not 
     stash.Warn("Performing early exit because FileMonitor has to run on the host machine, and can NOT run on Docker directly.")
     sys.exit(10) # ERROR_BAD_ENVIRONMENT: The environment is incorrect.
     # Alternate error:  sys.exit(160) # ERROR_BAD_ARGUMENTS: One or more arguments are not correct.
+
+dockerStashes = {}
+for docker in stash.pluginConfig['dockers']:
+    stash.Log(f"Adding monitoring to Docker Stash {docker['GQL']}")
+    dockerStashes[docker['GQL']] = StashPluginHelper(
+            stash_url=docker['GQL'],
+            debugTracing=parse_args.trace,
+            settings=settings,
+            config=config,
+            logToErrSet=logToErrSet,
+            logToNormSet=8,
+            maxbytes=5*1024*1024,
+            apiKey=docker['apiKey']
+            )
+    for bindMount in docker['bindMounts']:
+        for key in bindMount:
+            if len(key) == 0:
+                continue
+            # Do not scan Stash interanl working folders
+            if bindMount[key] == "/root/.stash" or bindMount[key] == "/metadata" or bindMount[key] == "/cache" or bindMount[key] == "/blobs" or bindMount[key] == "/generated":
+                continue
+            stash.Log(f"Adding monitoring for host path '{key}' which is Docker mount path '{bindMount[key]}' for Stash {docker['GQL']}")
+            includePathChanges += [key]
+stash.Log(f"This Stash instance GQL = {stash.STASH_URL}")
+# for path in includePathChanges:
+    # stash.Log(f"[post] includePathChange = {path}")
 
 if stash.DRY_RUN:
     stash.Log("Dry run mode is enabled.")
@@ -667,6 +704,9 @@ def start_library_monitor():
             pathToObserve = pathToObserve.replace('/', os.sep)
             dockerObservedPaths[f"{pathToObserve}{os.sep}"] = path
         stash.Log(f"Observing {pathToObserve}")
+        if not os.path.exists(pathToObserve):
+            stash.Error(f"Skipping path '{pathToObserve}' because it does not exist!!!")
+            continue
         observer.schedule(event_handler, pathToObserve, recursive=RECURSIVE)
     observer.schedule(event_handler, SPECIAL_FILE_DIR, recursive=RECURSIVE)
     stash.Trace(f"Observing FileMonitor path {SPECIAL_FILE_DIR}")
@@ -780,6 +820,15 @@ def start_library_monitor():
                                                 stash.Log(f"Converted Host-Path {HostTmpTargetPath} to Docker-Path {CpyTmpTargetPath}")
                                                 TmpTargetPaths += [CpyTmpTargetPath]
                                                 break
+                                if len(stash.pluginConfig['dockers']) > 0:
+                                    for TmpTargetPath in TmpTargetPaths:
+                                        for docker in stash.pluginConfig['dockers']:
+                                            for bindMount in docker['bindMounts']:
+                                                for key in bindMount:
+                                                    if TmpTargetPath.startswith(key):
+                                                        stash.Log(f"Sending notification to Stash Docker {docker['GQL']} for file system change in path '{bindMount[key]}' which is host path {key}.")
+                                                        dockerStashes[docker['GQL']].Log(f"File system change in path '{bindMount[key]}' which is host path {key}.")
+                                                        dockerStashes[docker['GQL']].metadata_scan(paths=bindMount[key])
                                 stash.Trace(f"[metadata_scan] Calling metadata_scan for paths '{TmpTargetPaths}'")
                                 lastScanJob['id'] = int(stash.metadata_scan(paths=TmpTargetPaths))
                                 lastScanJob['TargetPaths'] = TmpTargetPaths

@@ -22,6 +22,7 @@ desktop.ini
 *.7z
 *.zip
 *.swp
+*_config_dev.py
 data.csv
 /boost
 /scintilla

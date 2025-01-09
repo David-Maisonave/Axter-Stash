@@ -89,6 +89,31 @@ config = {
     "createSpecFileToExit": True,
     # Enable to delete special file immediately after it's created in stop process.
     "deleteSpecFileInStop": False,
+    # Docker notification from host machine
+    "dockers": [
+        # Example configurations:
+        # {"GQL":"http://localhost:9995", "apiKey":"", "bindMounts":[
+                # {r"C:\Users\admin3\AppData\Local\Docker\wsl\Stash3\data":"/data"},
+                # {r"C:\Video":"/mnt/Video"},
+            # ]
+        # },
+        # {"GQL":"http://localhost:9997", "apiKey":"", "bindMounts":[
+                # {r"C:\Users\admin3\AppData\Local\Docker\wsl\ManyMnt\data":"/data"},
+                # {r"C:\Casting":"/external"},
+                # {r"C:\Celeb":"/external2"},
+                # {r"C:\Hentai":"/external3"},
+                # {r"C:\Teens":"/external4"},
+                # {r"C:\Temp":"/external5"},
+                # {r"C:\Downloads":"/external6"},
+            # ]
+        # },
+        # {"GQL":"http://localhost:9994", "apiKey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJheHRlciIsInN1YiI6IkFQSUtleSIsImlhdCI6MTczNDU0MDk3N30.4nZVLk3xikjJZfZ0JTPA_Fic8JvFx3DZe5U21ZDcC3c", "bindMounts":[
+                # {r"C:\Users\admin3\AppData\Local\Docker\wsl\MyStashContainer\data":"/data"},
+                # {r"E:\Vid":"/external"},
+                # {r"E:\Downloads":"/external2"},
+            # ]
+        # },
+    ],
     
     # Below are place holders for **possible** future features.
     # !!! Not yet implemented !!!
