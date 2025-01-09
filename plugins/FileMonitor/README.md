@@ -213,11 +213,10 @@ python filemonitor.py --url http://localhost:9999 --docker "C:\Users\MyUser\AppD
 ```Python
     # Docker notification from host machine
     "dockers": [
-        # Example Stash Docker configurations.
-        {"GQL":"http://localhost:9995", "apiKey":"", "bindMounts":[
-                {r"C:\Video":"/mnt/Video"},
-            ]
-        },
+        # A simple basic example with only one bind mount path.
+        {"GQL":"http://localhost:9995", "apiKey":"", "bindMounts":[{r"C:\Video":"/mnt/Video"}]},
+        
+        # Example having 8 bind mount paths.
         {"GQL":"http://localhost:9997", "apiKey":"", "bindMounts":[
                 {r"C:\Users\admin3\AppData\Local\Docker\wsl\ManyMnt\data":"/data"},
                 {r"C:\Users\admin3\Videos":"/external"},
@@ -229,6 +228,8 @@ python filemonitor.py --url http://localhost:9999 --docker "C:\Users\MyUser\AppD
                 {r"Z:\Temp":"/external7"},
             ]
         },
+        
+        # Example using the apiKey for a password configured Stash installation.
         {"GQL":"http://localhost:9994", "apiKey":"eyJhb3676zgdUzI1NiIsInR5cCI6IwfXVCJ9.ewJ1aWQiOiJheHRlweIsInN1YiI6IkFQSUtleSIsImlhdewrweczNDU0MDk3N30.4nZVLk3xikjJZfZ0JTPA_Fic8JvFx3DZe5U21Zasdag", "bindMounts":[
                 {r"C:\Users\admin3\AppData\Local\Docker\wsl\MyStashContainer\data":"/data"},
                 {r"C:\Vid":"/mnt/Vid"},
