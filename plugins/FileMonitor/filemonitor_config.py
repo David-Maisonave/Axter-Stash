@@ -90,27 +90,28 @@ config = {
     # Enable to delete special file immediately after it's created in stop process.
     "deleteSpecFileInStop": False,
     # Docker notification from host machine
-    "dockers": [
-        # Example configurations:
-        # {"GQL":"http://localhost:9995", "apiKey":"", "bindMounts":[
-                # {r"C:\Users\admin3\AppData\Local\Docker\wsl\Stash3\data":"/data"},
-                # {r"C:\Video":"/mnt/Video"},
-            # ]
-        # },
+    "dockers": # Example Stash Docker configurations. For more details see https://github.com/David-Maisonave/Axter-Stash/blob/main/plugins/FileMonitor#Multiple-Stash-Docker-Configuration[
+        # # A simple basic example with only one bind mount path.
+        # {"GQL":"http://localhost:9995", "apiKey":"", "bindMounts":[{r"C:\Video":"/mnt/Video"}]},
+        
+        # # Example having 8 bind mount paths.
         # {"GQL":"http://localhost:9997", "apiKey":"", "bindMounts":[
                 # {r"C:\Users\admin3\AppData\Local\Docker\wsl\ManyMnt\data":"/data"},
-                # {r"C:\Casting":"/external"},
-                # {r"C:\Celeb":"/external2"},
-                # {r"C:\Hentai":"/external3"},
-                # {r"C:\Teens":"/external4"},
-                # {r"C:\Temp":"/external5"},
-                # {r"C:\Downloads":"/external6"},
+                # {r"C:\Users\admin3\Videos":"/external"},
+                # {r"C:\Users\admin3\Pictures":"/external2"},
+                # {r"C:\Users\admin3\Downloads":"/external3"},
+                # {r"E:\Downloads":"/external4"},
+                # {r"E:\Celeb":"/external5"},
+                # {r"F:\Hentai":"/external6"},
+                # {r"Z:\Temp":"/external7"},
             # ]
         # },
+        
+        # # Example using the apiKey for a password configured Stash installation.
         # {"GQL":"http://localhost:9994", "apiKey":"eyJhb3676zgdUzI1NiIsInR5cCI6IwfXVCJ9.ewJ1aWQiOiJheHRlweIsInN1YiI6IkFQSUtleSIsImlhdewrweczNDU0MDk3N30.4nZVLk3xikjJZfZ0JTPA_Fic8JvFx3DZe5U21Zasdag", "bindMounts":[
                 # {r"C:\Users\admin3\AppData\Local\Docker\wsl\MyStashContainer\data":"/data"},
-                # {r"E:\Vid":"/external"},
-                # {r"E:\Downloads":"/external2"},
+                # {r"C:\Vid":"/mnt/Vid"},
+                # {r"C:\Users\admin3\Downloads":"/mnt/Downloads"},
             # ]
         # },
     ],

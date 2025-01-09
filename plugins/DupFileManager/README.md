@@ -5,7 +5,7 @@ It has both **task** and **tools-UI** components.
 
 ### Features
 
-- Creates a duplicate file report which can be accessed from the Stash->Settings->Tools menu options.The report is created as an HTML file and stored in local path under plugins\DupFileManager\report\DuplicateTagScenes.html.
+- Creates a duplicate file report which can be accessed from the Stash->Settings->Tools menu options. The report is created as an HTML file and stored in local path under plugins\DupFileManager\report\DuplicateTagScenes.html.
   - See screenshot at the bottom of this page for example report.
   - Items on the left side of the report are the primary duplicates designated for deletion. By default, these duplicates are given a special _duplicate tag.
   - Items on the right side of the report are designated as primary duplicates to keep. They usually have higher resolution, duration and/or preferred paths.
@@ -16,7 +16,7 @@ It has both **task** and **tools-UI** components.
     - Copy: Copy file from left (source) to right (to-keep).
     - Move: Copy file and metadata left to right.
     - Cpy-Name: Copy file name left to right.
-    - Add-Exclude: Add exclude tag to scene,so that scene is excluded from deletion.
+    - Add-Exclude: Add exclude tag to scene, so that scene is excluded from deletion.
     - Remove-Tag: Remove duplicate tag from scene.
     - Flag-Scene: Flag (mark) scene in report as reviewed (or as requiring further review). Optional flags (yellow, green, orange, cyan, pink, red, strike-through, & disable-scene)
     - Merge: Copy Metadata (tags, performers,& studios) from left to right.
@@ -120,7 +120,7 @@ Users can setup a private or alternate remote site by changing variables **remot
   - ![Screenshot 2024-11-22 225359](https://github.com/user-attachments/assets/dc705b24-e2d7-4663-92fd-1516aa7aacf5)
   - If there's a scene on the left side that has a higher resolution or duration, it gets a yellow highlight on the report.
   - There's an optional setting that allows both preview videos and preview images to be displayed on the report. See settings **htmlIncludeImagePreview** in the **DupFileManager_report_config.py** file.
-  - There are many more options available for how the report is created. These options are targeted for more advanced users.  The options are all available in the **DupFileManager_report_config.py** file, and the settings have commented descriptions preceeding them. See the **DupFileManager_report_config.py** file in the DupFileManager plugin folder for more details.
+  - There are many more options available for how the report is created. These options are targeted for more advanced users.  The options are all available in the **DupFileManager_report_config.py** file, and the settings have commented descriptions preceding them. See the **DupFileManager_report_config.py** file in the DupFileManager plugin folder for more details.
 - Tools UI Menu
 ![Screenshot 2024-11-22 145512](https://github.com/user-attachments/assets/03e166eb-ddaa-4eb8-8160-4c9180ca1323)
   - Can access either **Duplicate File Report (DupFileManager)** or **DupFileManager Tools and Utilities** menu options.
@@ -152,12 +152,12 @@ Users can setup a private or alternate remote site by changing variables **remot
 - Unscheduled Changes
   - Change splitbutton so it hides tooltip when hovering over dropdown side of the button.
   - Fix errors on HTML page listed in https://validator.w3.org.
-  - Add logic to merge performers and galaries seperatly from tag merging on report.
+  - Add logic to merge performers and galleries separately from tag merging on report.
   - Add logic to merge group metadata when selecting merge option on report.
   - Add advanced menu directly to the Stash->Settings->Tools menu. (This change does not look doable!!!)
   - Add report directly to the Stash->Settings->Tools menu. (This change does not look doable!!!)
   - Create cookies for the options in the [**Advance Duplicate File Menu**].
-  - Add doulbe strike-through option to flagging.
+  - Add double strike-through option to flagging.
   - Add option to report to automatically strip width & height from name on rename. Example: foofoo - 1920x1080P.mp4
   - Add link to version history to [**Advance Duplicate File Menu**] and to [DupFileManager Tools and Utilities]
   - Move [Merge Duplicate Tags], [Whitelist Delete In Same Folder], and [Swap Better **] field options from the Stash->Plugins GUI to the advance menu.
