@@ -253,5 +253,8 @@ python filemonitor.py --url http://localhost:9999 --docker "C:\Users\MyUser\AppD
       - ./blobs:/blobs
       - ./generated:/generated
 
-### Future Planned Features or Fixes
+### Stash Docker Installer
+If you need help installing Stash Docker, use the Stash Docker installer in the following link: (https://github.com/David-Maisonave/Axter-Stash/tree/main/Docker)
+
+## Future Planned Features or Fixes
 - Have the FileMonitor running status ICON update the icon without having to go to the Settings->Tools->FileMonitor page. Planned for version 1.2.0.
