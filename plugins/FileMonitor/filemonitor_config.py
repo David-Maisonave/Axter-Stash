@@ -107,7 +107,7 @@ config = {
                 # {r"C:\Downloads":"/external6"},
             # ]
         # },
-        # {"GQL":"http://localhost:9994", "apiKey":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJheHRlciIsInN1YiI6IkFQSUtleSIsImlhdCI6MTczNDU0MDk3N30.4nZVLk3xikjJZfZ0JTPA_Fic8JvFx3DZe5U21ZDcC3c", "bindMounts":[
+        # {"GQL":"http://localhost:9994", "apiKey":"eyJhb3676zgdUzI1NiIsInR5cCI6IwfXVCJ9.ewJ1aWQiOiJheHRlweIsInN1YiI6IkFQSUtleSIsImlhdewrweczNDU0MDk3N30.4nZVLk3xikjJZfZ0JTPA_Fic8JvFx3DZe5U21Zasdag", "bindMounts":[
                 # {r"C:\Users\admin3\AppData\Local\Docker\wsl\MyStashContainer\data":"/data"},
                 # {r"E:\Vid":"/external"},
                 # {r"E:\Downloads":"/external2"},
