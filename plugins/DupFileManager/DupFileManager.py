@@ -1903,7 +1903,7 @@ def updateScenesInReport(fileName, scene):
                     idx = line.find(strToFind, idx) + len(strToFind)
                     id = line[idx:]
                     stash.Debug(f"id = {id}, idx = {idx}")
-                    id = id[:id.find('"')]
+                    id = stash.getNum(id[:id.find('"')])
                     stash.Debug(f"id = {id}")
                     if scene1 == -1:
                         scene1 = int(id)

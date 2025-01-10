@@ -882,6 +882,9 @@ class StashPluginHelper(StashInterface):
             return True
         return False
     
+    def getNum(self, data):
+        return ''.join(filter(lambda i: i.isdigit(), data))
+    
     # ############################################################################################################
     # Functions which are candidates to be added to parent class use snake_case naming convention.
     # ############################################################################################################
