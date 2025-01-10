@@ -105,5 +105,8 @@
 - On Stash installations having password, the Advance Menu can now be accessed from the Stash->Tools->[DupFileManager Report Menu].
 ### 1.1.4
 - Fixed Docker issue when displaying report on Docker having port forwarding configured.
+### 1.1.5
+- After deleting scene from report, disable preview for the deleted scene on the report.
+- Add option to report to avoid reloading page after updating report.
 
 
