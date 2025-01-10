@@ -90,7 +90,7 @@ config = {
     # Enable to delete special file immediately after it's created in stop process.
     "deleteSpecFileInStop": False,
     # Docker notification from host machine
-    "dockers": # Example Stash Docker configurations. For more details see https://github.com/David-Maisonave/Axter-Stash/blob/main/plugins/FileMonitor#Multiple-Stash-Docker-Configuration[
+    "dockers": [ # Example Stash Docker configurations. For more details see https://github.com/David-Maisonave/Axter-Stash/blob/main/plugins/FileMonitor#Multiple-Stash-Docker-Configuration
         # # A simple basic example with only one bind mount path.
         # {"GQL":"http://localhost:9995", "apiKey":"", "bindMounts":[{r"C:\Video":"/mnt/Video"}]},
         

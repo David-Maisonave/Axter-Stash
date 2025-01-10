@@ -693,12 +693,12 @@ def writeRowToHtmlReport(fileHtmlReport, DupFile, DupFileToKeep, itemIndex, tagD
     dupFileExist = True if os.path.isfile(DupFile['files'][0]['path']) else False
     toKeepFileExist = True if os.path.isfile(DupFileToKeep['files'][0]['path']) else False
     fileHtmlReport.write(f"{htmlReportTableRow}")
-    videoPreview = f"<video {htmlReportVideoPreview} poster=\"{DupFile['paths']['screenshot']}\"><source src=\"{DupFile['paths'][htmlPreviewOrStream]}\" type=\"video/mp4\"></video>"
+    videoPreview = f"<video class=\"ID_{DupFile['id']}_preview\" {htmlReportVideoPreview} poster=\"{DupFile['paths']['screenshot']}\"><source src=\"{DupFile['paths'][htmlPreviewOrStream]}\" type=\"video/mp4\"></video>"
     if htmlIncludeImagePreview:
         spanPreviewImage = ""
         if htmlImagePreviewPopupEnable:
-            spanPreviewImage = f"<span class=\"large\"><img src=\"{DupFile['paths']['sprite']}\" class=\"large-image\" alt=\"\" width=\"{htmlImagePreviewPopupSize}\"></span>"
-        imagePreview = f"<ul><li><img src=\"{DupFile['paths']['sprite']}\" alt=\"\" width=\"{htmlImagePreviewSize}\">{spanPreviewImage}</li></ul>"
+            spanPreviewImage = f"<span class=\"large\"><img class=\"ID_{DupFile['id']}_preview\" src=\"{DupFile['paths']['sprite']}\" class=\"large-image\" alt=\"\" width=\"{htmlImagePreviewPopupSize}\"></span>"
+        imagePreview = f"<ul><li><img class=\"ID_{DupFile['id']}_preview\" src=\"{DupFile['paths']['sprite']}\" alt=\"\" width=\"{htmlImagePreviewSize}\">{spanPreviewImage}</li></ul>"
         if htmlIncludeVideoPreview:
             fileHtmlReport.write(f"{getSceneID(DupFile)}<table><tr><td>{videoPreview}</td><td>{imagePreview}</td></tr></table></td>")
         else:
@@ -846,12 +846,12 @@ def writeRowToHtmlReport(fileHtmlReport, DupFile, DupFileToKeep, itemIndex, tagD
     fileHtmlReport.write("</p></td>")
     # ///////////////////////////////
     
-    videoPreview = f"<video {htmlReportVideoPreview} poster=\"{DupFileToKeep['paths']['screenshot']}\"><source src=\"{DupFileToKeep['paths'][htmlPreviewOrStream]}\" type=\"video/mp4\"></video>"
+    videoPreview = f"<video class=\"ID_{DupFileToKeep['id']}_preview\" {htmlReportVideoPreview} poster=\"{DupFileToKeep['paths']['screenshot']}\"><source src=\"{DupFileToKeep['paths'][htmlPreviewOrStream]}\" type=\"video/mp4\"></video>"
     if htmlIncludeImagePreview:
         spanPreviewImage = ""
         if htmlImagePreviewPopupEnable:
-            spanPreviewImage = f"<span class=\"large\"><img src=\"{DupFileToKeep['paths']['sprite']}\" class=\"large-image\" alt=\"\" width=\"{htmlImagePreviewPopupSize}\"></span>"
-        imagePreview = f"<ul><li><img src=\"{DupFileToKeep['paths']['sprite']}\" alt=\"\" width=\"{htmlImagePreviewSize}\">{spanPreviewImage}</li></ul>"
+            spanPreviewImage = f"<span class=\"large\"><img class=\"ID_{DupFileToKeep['id']}_preview\" src=\"{DupFileToKeep['paths']['sprite']}\" class=\"large-image\" alt=\"\" width=\"{htmlImagePreviewPopupSize}\"></span>"
+        imagePreview = f"<ul><li><img class=\"ID_{DupFileToKeep['id']}_preview\" src=\"{DupFileToKeep['paths']['sprite']}\" alt=\"\" width=\"{htmlImagePreviewSize}\">{spanPreviewImage}</li></ul>"
         if htmlIncludeVideoPreview:
             fileHtmlReport.write(f"{getSceneID(DupFileToKeep)}<table><tr><td>{videoPreview}</td><td>{imagePreview}</td></tr></table></td>")
         else:
@@ -2021,6 +2021,7 @@ def deleteScene(disableInReport=True, deleteFile=True, scene=None, writeToStdOut
         modifyPropertyToSceneClassToAllFiles(scene, "remove highlight")
         modifyPropertyToSceneClassToAllFiles(scene, "{background-color:" + deleteSceneFlagBgColor + ";pointer-events:none;}", button_property)
     updateDuplicateCandidateForDeletionList(scene, removeScene = True)
+    modifyPropertyToSceneClassToAllFiles(f"{scene}_preview", "{display:none;}")
     if writeToStdOut:
         stash.Log(f"{stash.PLUGIN_TASK_NAME} complete for scene {scene} with results = {result}")
         sys.stdout.write("{" + f"{stash.PLUGIN_TASK_NAME} : 'complete', id: '{scene}', result: '{result}'" + "}")
