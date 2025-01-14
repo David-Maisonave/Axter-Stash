@@ -156,7 +156,6 @@ Users can setup a private or alternate remote site by changing variables **remot
   - Create cookies for the options in the [**Advance Duplicate File Menu**].
   - Add double strike-through option to flagging.
   - Add option to report to automatically strip width & height from name on rename. Example: foofoo - 1920x1080P.mp4
-  - Add link to version history to [**Advance Duplicate File Menu**] and to [DupFileManager Tools and Utilities]
   - Move [Merge Duplicate Tags], [Whitelist Delete In Same Folder], and [Swap Better **] field options from the Stash->Plugins GUI to the advance menu.
     
   

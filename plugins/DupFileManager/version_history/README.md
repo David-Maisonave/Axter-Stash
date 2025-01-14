@@ -118,5 +118,5 @@ Note: This is a beta version, because not all of the javascript ajax functions h
 - When deleting scene using Report, replaced completion prompt with scene background set to gray.
 - In Report, when rename occurs, the scene gets renamed inline, without having to reload report page.
 - Added GetRunPluginOperationJson to DupFileManager_report.js which allows result to safely be converted to json. If fails, it gracefully returns null.
-
+- Added link to version history to [**Advance Duplicate File Menu**]
 
