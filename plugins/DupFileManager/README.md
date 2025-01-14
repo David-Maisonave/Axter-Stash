@@ -153,7 +153,6 @@ Users can setup a private or alternate remote site by changing variables **remot
   - Add logic to merge group metadata when selecting merge option on report.
   - Add advanced menu directly to the Stash->Settings->Tools menu. (This change does not look doable!!!)
   - Add report directly to the Stash->Settings->Tools menu. (This change does not look doable!!!)
-  - Create cookies for the options in the [**Advance Duplicate File Menu**].
   - Add double strike-through option to flagging.
   - Add option to report to automatically strip width & height from name on rename. Example: foofoo - 1920x1080P.mp4
   - Move [Merge Duplicate Tags], [Whitelist Delete In Same Folder], and [Swap Better **] field options from the Stash->Plugins GUI to the advance menu.
