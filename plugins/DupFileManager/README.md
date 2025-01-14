@@ -129,7 +129,7 @@ Users can setup a private or alternate remote site by changing variables **remot
 - DupFileManager Tools and Utilities
   - ![Screenshot 2024-11-22 152023](https://github.com/user-attachments/assets/4daaea9e-f603-4619-b536-e6609135bab1)
 - Full bottom extended portion of the Advanced Menu screen.
-  - ![Screenshot 2024-11-22 232208](https://github.com/user-attachments/assets/bf1f3021-3a8c-4875-9737-60ee3d7fe675)
+  - ![Screenshot 2025-01-14 141613](https://github.com/user-attachments/assets/77928538-e6f2-47b7-8717-45db054ffbf5)
 
 ### Future Planned Features, Changes, or Fixes
 - Scheduled Changes
