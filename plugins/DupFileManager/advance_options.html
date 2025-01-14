@@ -69,7 +69,7 @@ function RunPluginDupFileManager(Mode, Param = 0, Async = false, TagOnlyScenes =
 				}
 				console.log("Ajax success with result = " + result);
 				if (Mode === "tag_duplicates_task" || Mode === "create_duplicate_report_task"){
-					if (result.indexOf("\"Report complete\"") == -1)
+					if (result.indexOf("Report complete") == -1)
 						alert("Stash RunPluginOperation returned unexpected results.\nNot sure if report completed successfully.\n\nResults = " + result);
 					else{
 						var Notice = "";
@@ -128,7 +128,7 @@ function GetStashTabUrl(Tab){
 function GetReportCreateOptions(Value){
 	if (Value === "-1")
 		return "";
-	const param = Value + ":" + $("#significantTimeDiff").val() + ":" + $("#IncludePreviewImage").prop('checked') + ":" + $("#scenesPerPage").val() + ":" + $("#ImagePreviewSize").val() + ":" + $("#ImagePreviewPopupSize").val() + ":" + $("#TimeDiffHighlight").val() + ":" + $("#maxDupToProcess").val() + ":" + $("#streamOverPreview").prop('checked') + ":" + $("#SupperHighlight").val() + ":" + $("#DetailDiffTextColor").val() + ":" + $("#LowerHighlight").val() + ":" + $("#ReportBackgroundColor").val() + ":" + $("#ReportTextColor").val() + ":" + $("#VideoPreviewWidth").val() + ":" + $("#VideoPreviewHeight").val() + ":" + $("#IncludePreviewVideo").prop('checked');
+	const param = Value + ":" + $("#significantTimeDiff").val() + ":" + $("#IncludePreviewImage").prop('checked') + ":" + $("#scenesPerPage").val() + ":" + $("#ImagePreviewSize").val() + ":" + $("#ImagePreviewPopupSize").val() + ":" + $("#TimeDiffHighlight").val() + ":" + $("#maxDupToProcess").val() + ":" + $("#streamOverPreview").prop('checked') + ":" + $("#SupperHighlight").val() + ":" + $("#DetailDiffTextColor").val() + ":" + $("#LowerHighlight").val() + ":" + $("#ReportBackgroundColor").val() + ":" + $("#ReportTextColor").val() + ":" + $("#VideoPreviewWidth").val() + ":" + $("#VideoPreviewHeight").val() + ":" + $("#IncludePreviewVideo").prop('checked') + ":" + $("#IncludeWebpPreviewImage").prop('checked') + ":" + $("#IncludeSceneCoverPreviewImage").prop('checked');
 	console.log("param = " + param);
 	return param;
 }
@@ -294,19 +294,24 @@ $(document).ready(function(){
 		$("#ImagePreviewPopupSize").prop('disabled', false);
 	}
 	else{
-		$("#ImagePreviewSize").prop('disabled', true);
+		if ($("#IncludeSceneCoverPreviewImage").prop('checked'))
+			$("#ImagePreviewSize").prop('disabled', false);
+		else
+			$("#ImagePreviewSize").prop('disabled', true);
 		$("#ImagePreviewPopupSize").prop('disabled', true);
 	}
-	if ($("#IncludePreviewVideo").prop('checked')){
-		$("#streamOverPreview").prop('disabled', false);
+	if ($("#IncludePreviewVideo").prop('checked') || $("#IncludeWebpPreviewImage").prop('checked')){
 		$("#VideoPreviewWidth").prop('disabled', false);
 		$("#VideoPreviewHeight").prop('disabled', false);
 	}
 	else{
-		$("#streamOverPreview").prop('disabled', true);
 		$("#VideoPreviewWidth").prop('disabled', true);
 		$("#VideoPreviewHeight").prop('disabled', true);
 	}
+	if ($("#IncludePreviewVideo").prop('checked'))
+		$("#streamOverPreview").prop('disabled', false);
+	else
+		$("#streamOverPreview").prop('disabled', true);
 	$("button").click(function(){
 		ProcessClick(this);
 	});
@@ -324,9 +329,18 @@ $(document).ready(function(){
 			$("#ImagePreviewPopupSize").prop('disabled', false);
 		}
 		else{
-			$("#ImagePreviewSize").prop('disabled', true);
+			if ($("#IncludeSceneCoverPreviewImage").prop('checked'))
+				$("#ImagePreviewSize").prop('disabled', false);
+			else
+				$("#ImagePreviewSize").prop('disabled', true);
 			$("#ImagePreviewPopupSize").prop('disabled', true);
 		}
+	});
+	$("#IncludeSceneCoverPreviewImage").change(function() {
+		if(this.checked || $("#IncludePreviewImage").prop('checked'))
+			$("#ImagePreviewSize").prop('disabled', false);
+		else
+			$("#ImagePreviewSize").prop('disabled', true);
 	});
 	$("#IncludePreviewVideo").change(function() {
 		if(this.checked){
@@ -336,6 +350,22 @@ $(document).ready(function(){
 		}
 		else{
 			$("#streamOverPreview").prop('disabled', true);
+			if ($("#IncludeWebpPreviewImage").prop('checked')){
+				$("#VideoPreviewWidth").prop('disabled', false);
+				$("#VideoPreviewHeight").prop('disabled', false);
+			}
+			else {
+				$("#VideoPreviewWidth").prop('disabled', true);
+				$("#VideoPreviewHeight").prop('disabled', true);
+			}
+		}
+	});
+	$("#IncludeWebpPreviewImage").change(function() {
+		if(this.checked || $("#IncludePreviewVideo").prop('checked')){
+			$("#VideoPreviewWidth").prop('disabled', false);
+			$("#VideoPreviewHeight").prop('disabled', false);
+		}
+		else{
 			$("#VideoPreviewWidth").prop('disabled', true);
 			$("#VideoPreviewHeight").prop('disabled', true);
 		}
@@ -2023,13 +2053,14 @@ function DeleteDupInPath(){
 	</tr>
 	<tr>
 		<td>
-			<div class="easyui-tooltip" title="Create report with preview image."><label for="IncludePreviewImage">Include Preview Image:</label><input type="checkbox" id="IncludePreviewImage" name="IncludePreviewImage" value="true"></div>
+			<div class="easyui-tooltip" title="Create report with a collage preview image."><label for="IncludePreviewImage">Collage preview image:</label><input type="checkbox" id="IncludePreviewImage" name="IncludePreviewImage" value="true"></div>
+			<div class="easyui-tooltip" title="Create report with scene cover preview image. Requires DupFileManger version 1.1.6 or higher."><label for="IncludeSceneCoverPreviewImage">Scene cover preview image:</label><input type="checkbox" id="IncludeSceneCoverPreviewImage" name="IncludeSceneCoverPreviewImage" value="true"></div>
 		</td>
 		<td>
-			<div class="easyui-tooltip" title="This value is the size of preview image. Default value is 140."><label for="ImagePreviewSize">Preview Image Size:</label><input type="number" min="50" max="600" step="10" id="ImagePreviewSize" name="ImagePreviewSize" value="140"></div>	
+			<div class="easyui-tooltip" title="This value is the width size of the preview image. Default value is 160."><label for="ImagePreviewSize">Preview image width:</label><input type="number" min="50" max="600" step="10" id="ImagePreviewSize" name="ImagePreviewSize" value="160"></div>	
 		</td>
 		<td>
-			<div class="easyui-tooltip" title="This value is the size of the popup window when mouse hovers over the image. Default value is 600."><label for="ImagePreviewPopupSize">Image Popup Size:</label><input type="number" min="200" max="3000" step="100" id="ImagePreviewPopupSize" name="ImagePreviewPopupSize" value="600"></div>	
+			<div class="easyui-tooltip" title="This value is the size of the collage popup window when mouse hovers over the image. Default value is 600."><label for="ImagePreviewPopupSize">Collage Image Popup Size:</label><input type="number" min="200" max="3000" step="100" id="ImagePreviewPopupSize" name="ImagePreviewPopupSize" value="600"></div>	
 		</td>
 	</tr>
 	<tr><td colspan="3">
@@ -2061,7 +2092,8 @@ function DeleteDupInPath(){
 	</tr>
 	<tr>
 		<td rowspan="2">
-			<div class="easyui-tooltip" title="Create report with preview video."><label for="IncludePreviewVideo">Include Preview Video:</label><input type="checkbox" id="IncludePreviewVideo" name="IncludePreviewVideo" value="true" checked></div>
+			<div class="easyui-tooltip" title="Create report with preview video."><label for="IncludePreviewVideo">Preview video:</label><input type="checkbox" id="IncludePreviewVideo" name="IncludePreviewVideo" value="true" checked></div>
+			<div class="easyui-tooltip" title="Create report with Webp preview video. Requires DupFileManger version 1.1.6 or higher."><label for="IncludeWebpPreviewImage">Webp preview video:</label><input type="checkbox" id="IncludeWebpPreviewImage" name="IncludeWebpPreviewImage" value="true"></div>
 		</td>
 		<td colspan="2">
 			<div class="easyui-tooltip" title="Create report with full video available in the preview section instead of a partial video. This option works in Chrome, but does not work so well in firefox."><label for="streamOverPreview">For preview, display full stream video instead of partial preview video:</label><input type="checkbox" id="streamOverPreview" name="streamOverPreview" value="true"></div>
@@ -2203,5 +2235,4 @@ function DeleteDupInPath(){
 </div>
 <div id="div1"></div>
 </body></html>
-
 

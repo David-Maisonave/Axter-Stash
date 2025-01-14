@@ -69,6 +69,14 @@ stash = StashPluginHelper(
         )
 stash.convertToAscii = True
 dry_run = stash.Setting("zzdryRun")
+DupFileManagerPyVer = "1.1"
+
+taskName_deleteScene = "deleteScene"
+taskName_copyScene = "copyScene"
+taskName_moveScene = "moveScene"
+taskName_mergeScene = "mergeScene"
+taskName_addExcludeTag = "addExcludeTag"
+taskName_clearFlag = "clearFlag"
 
 advanceMenuOptions = [  "applyCombo", "applyComboPinklist", "applyComboGraylist", "applyComboBlacklist", "pathToDelete", "pathToDeleteBlacklist", "sizeToDeleteLess", "sizeToDeleteGreater", "sizeToDeleteBlacklistLess", "sizeToDeleteBlacklistGreater", "durationToDeleteLess", "durationToDeleteGreater", "durationToDeleteBlacklistLess", "durationToDeleteBlacklistGreater", 
                         "commonResToDeleteLess", "commonResToDeleteEq", "commonResToDeleteGreater", "commonResToDeleteBlacklistLess", "commonResToDeleteBlacklistEq", "commonResToDeleteBlacklistGreater", "resolutionToDeleteLess", "resolutionToDeleteEq", "resolutionToDeleteGreater", 
@@ -78,8 +86,10 @@ advanceMenuOptions = [  "applyCombo", "applyComboPinklist", "applyComboGraylist"
 doJsonReturnModeTypes = ["tag_duplicates_task", "removeDupTag", "addExcludeTag", "removeExcludeTag", "mergeTags", "getLocalDupReportPath", 
                          "createDuplicateReportWithoutTagging", "deleteLocalDupReportHtmlFiles", "clear_duplicate_tags_task",
                          "deleteAllDupFileManagerTags", "deleteBlackListTaggedDuplicatesTask", "deleteTaggedDuplicatesLwrResOrLwrDuration",
-                         "deleteBlackListTaggedDuplicatesLwrResOrLwrDuration", "create_duplicate_report_task", "copyScene"]
+                         "deleteBlackListTaggedDuplicatesLwrResOrLwrDuration", "create_duplicate_report_task", "copyScene", "renameFile", "deleteScene",
+                         "removeScene", "flagScene", "flagScene", "moveScene"]
 javascriptModeTypes  = ["getReport", "getAdvanceMenu"]
+startsWithCommands   = [taskName_deleteScene, taskName_copyScene, taskName_moveScene, taskName_mergeScene, taskName_addExcludeTag, taskName_clearFlag]
 javascriptModeTypes += advanceMenuOptions
 javascriptModeTypes += doJsonReturnModeTypes
 doJsonReturn = False
@@ -89,6 +99,9 @@ def isReportOrAdvMenu():
             return True
         if stash.PLUGIN_TASK_NAME.endswith("Flag"):
             return True
+        for startsWithCommand in startsWithCommands:
+            if stash.PLUGIN_TASK_NAME.startswith(startsWithCommand):
+                return True
     return False
 
 if isReportOrAdvMenu():
@@ -160,6 +173,8 @@ reportHeader                = f"{DupFileManagerFolder}{os.sep}DupFileManager_rep
 
 excludeFromReportIfSignificantTimeDiff = False
 htmlReportPaginate          = stash.Setting('htmlReportPaginate')
+htmlIncludeCoverImage       = stash.Setting('htmlIncludeCoverImage')
+htmlIncludeWebpPreview      = stash.Setting('htmlIncludeWebpPreview')
 htmlIncludeImagePreview     = stash.Setting('htmlIncludeImagePreview')
 htmlIncludeVideoPreview     = stash.Setting('htmlIncludeVideoPreview')
 htmlHighlightTimeDiff       = stash.Setting('htmlHighlightTimeDiff')
@@ -220,6 +235,15 @@ if (stash.PLUGIN_TASK_NAME == "tag_duplicates_task" or stash.PLUGIN_TASK_NAME ==
                 htmlIncludeVideoPreview = True
             else:
                 htmlIncludeVideoPreview = False
+            if len(targets) > 18:
+                if targets[17] == "true":
+                    htmlIncludeWebpPreview = True
+                else:
+                    htmlIncludeWebpPreview = False
+                if targets[18] == "true":
+                    htmlIncludeCoverImage = True
+                else:
+                    htmlIncludeCoverImage = False
     logTraceForAdvanceMenuOpt   = True
 
 if htmlIncludeImagePreview and (htmlImagePreviewSize == htmlImagePreviewPopupSize):
@@ -242,7 +266,7 @@ if significantTimeDiff < .25:
     significantTimeDiff = float(0.25)
 
 if logTraceForAdvanceMenuOpt:
-    stash.Trace(f"PLUGIN_TASK_NAME={stash.PLUGIN_TASK_NAME}; matchDupDistance={matchDupDistance}; matchPhaseDistanceText={matchPhaseDistanceText}; matchPhaseDistance={matchPhaseDistance}; significantTimeDiff={significantTimeDiff}; htmlReportPaginate={htmlReportPaginate}; htmlIncludeImagePreview={htmlIncludeImagePreview}; htmlIncludeVideoPreview={htmlIncludeVideoPreview}; maxDupToProcess={maxDupToProcess}; htmlHighlightTimeDiff={htmlHighlightTimeDiff}; htmlImagePreviewSize={htmlImagePreviewSize}; htmlImagePreviewPopupSize={htmlImagePreviewPopupSize}; htmlImagePreviewPopupEnable={htmlImagePreviewPopupEnable}; htmlPreviewOrStream={htmlPreviewOrStream};")
+    stash.Trace(f"PLUGIN_TASK_NAME={stash.PLUGIN_TASK_NAME}; matchDupDistance={matchDupDistance}; matchPhaseDistanceText={matchPhaseDistanceText}; matchPhaseDistance={matchPhaseDistance}; significantTimeDiff={significantTimeDiff}; htmlReportPaginate={htmlReportPaginate}; htmlIncludeCoverImage={htmlIncludeCoverImage}; htmlIncludeImagePreview={htmlIncludeImagePreview}; htmlIncludeVideoPreview={htmlIncludeVideoPreview}; maxDupToProcess={maxDupToProcess}; htmlHighlightTimeDiff={htmlHighlightTimeDiff}; htmlImagePreviewSize={htmlImagePreviewSize}; htmlImagePreviewPopupSize={htmlImagePreviewPopupSize}; htmlImagePreviewPopupEnable={htmlImagePreviewPopupEnable}; htmlPreviewOrStream={htmlPreviewOrStream};")
 
 duplicateMarkForDeletion = stash.Setting('DupFileTag')
 if duplicateMarkForDeletion == "":
@@ -576,7 +600,7 @@ def getPath(Scene, getParent = False):
     path = path.replace("'", "")
     path = path.replace("\\\\", "\\")
     if getParent:
-        return pathlib.Path(path).resolve().parent
+        return pathlib.Path(path).parent
     return path
 
 htmlReportPrefix = None
@@ -678,6 +702,26 @@ itemIndexSrchStr            = "::itemIndex="
 ToDeleteSceneIDSrchStr      = "<!-- ::DuplicateToDelete_SceneID="
 ToKeepSceneIDSrchStr        = "::DuplicateToKeep_SceneID="
 
+def writePreview(fileHtmlReport, scene):
+    videoPreview  = ""
+    imagePreview  = ""
+    SceneCoverImg = ""
+    webpPreview   = ""
+    if htmlIncludeVideoPreview:
+        videoPreview = f"<td><video class=\"ID_{scene['id']}_preview\" {htmlReportVideoPreview} poster=\"{scene['paths']['screenshot']}\"><source src=\"{scene['paths'][htmlPreviewOrStream]}\" type=\"video/mp4\"></video></td>"
+    if htmlIncludeWebpPreview:
+        webpPreview = f"<td><img class=\"ID_{scene['id']}_preview\" {htmlReportVideoPreview} src=\"{scene['paths']['webp']}\" alt=\"\"></td>"
+    if htmlIncludeCoverImage:
+        SceneCoverImg = f"<td><img class=\"ID_{scene['id']}_preview\" width=\"{htmlImagePreviewSize}\" src=\"{scene['paths']['screenshot']}\" alt=\"\"></td>"
+    if htmlIncludeImagePreview:
+        spanPreviewImage = ""
+        if htmlImagePreviewPopupEnable:
+            spanPreviewImage = f"<span class=\"large\"><img class=\"ID_{scene['id']}_preview\" src=\"{scene['paths']['sprite']}\" class=\"large-image\" alt=\"\" width=\"{htmlImagePreviewPopupSize}\"></span>"
+        imagePreview = f"<td><ul><li><img class=\"ID_{scene['id']}_preview\" src=\"{scene['paths']['sprite']}\" alt=\"\" width=\"{htmlImagePreviewSize}\">{spanPreviewImage}</li></ul></td>"
+    if htmlIncludeVideoPreview or htmlIncludeCoverImage or htmlIncludeImagePreview or htmlIncludeWebpPreview:
+        fileHtmlReport.write(f"{getSceneID(scene)}<table><tr>{videoPreview}{webpPreview}{imagePreview}{SceneCoverImg}</tr></table></td>")
+
+
 # //////////////////////////////////////////////////////////////////////////////
 # //////////////////////////////////////////////////////////////////////////////
 def writeRowToHtmlReport(fileHtmlReport, DupFile, DupFileToKeep, itemIndex, tagDuplicates = False, doTraceDetails = False):
@@ -693,18 +737,9 @@ def writeRowToHtmlReport(fileHtmlReport, DupFile, DupFileToKeep, itemIndex, tagD
     dupFileExist = True if os.path.isfile(DupFile['files'][0]['path']) else False
     toKeepFileExist = True if os.path.isfile(DupFileToKeep['files'][0]['path']) else False
     fileHtmlReport.write(f"{htmlReportTableRow}")
-    videoPreview = f"<video class=\"ID_{DupFile['id']}_preview\" {htmlReportVideoPreview} poster=\"{DupFile['paths']['screenshot']}\"><source src=\"{DupFile['paths'][htmlPreviewOrStream]}\" type=\"video/mp4\"></video>"
-    if htmlIncludeImagePreview:
-        spanPreviewImage = ""
-        if htmlImagePreviewPopupEnable:
-            spanPreviewImage = f"<span class=\"large\"><img class=\"ID_{DupFile['id']}_preview\" src=\"{DupFile['paths']['sprite']}\" class=\"large-image\" alt=\"\" width=\"{htmlImagePreviewPopupSize}\"></span>"
-        imagePreview = f"<ul><li><img class=\"ID_{DupFile['id']}_preview\" src=\"{DupFile['paths']['sprite']}\" alt=\"\" width=\"{htmlImagePreviewSize}\">{spanPreviewImage}</li></ul>"
-        if htmlIncludeVideoPreview:
-            fileHtmlReport.write(f"{getSceneID(DupFile)}<table><tr><td>{videoPreview}</td><td>{imagePreview}</td></tr></table></td>")
-        else:
-            fileHtmlReport.write(f"{getSceneID(DupFile)}{imagePreview}</td>")
-    elif htmlIncludeVideoPreview:
-        fileHtmlReport.write(f"{getSceneID(DupFile)}{videoPreview}</td>")
+    writePreview(fileHtmlReport, DupFile)
+    
+    
     fileHtmlReport.write(f"{getSceneID(DupFile)}<a href=\"{stash.STASH_URL}/scenes/{DupFile['id']}\" target=\"_blank\" rel=\"noopener noreferrer\" {fileNameClassID(DupFile)}>{getPath(DupFile)}</a>")
     fileHtmlReport.write(f"<p><table><tr class=\"scene-details\"><th>{getMarker(getRes(DupFile), getRes(DupFileToKeep))}Res</th><th>{getMarker(DupFile['files'][0]['duration'], DupFileToKeep['files'][0]['duration'], True)}Durration</th><th>BitRate</th><th>Codec</th><th>FrameRate</th><th>size</th><th>ID</th><th>index</th></tr>")
     fileHtmlReport.write(f"<tr class=\"scene-details\"><td {getColor(getRes(DupFile), getRes(DupFileToKeep), True)}>{DupFile['files'][0]['width']}x{DupFile['files'][0]['height']}</td><td {getColor(DupFile['files'][0]['duration'], DupFileToKeep['files'][0]['duration'], True, True, htmlHighlightTimeDiff)}>{DupFile['files'][0]['duration']}</td><td {getColor(DupFile['files'][0]['bit_rate'], DupFileToKeep['files'][0]['bit_rate'])}>{DupFile['files'][0]['bit_rate']}</td><td {getColor(DupFile['files'][0]['video_codec'], DupFileToKeep['files'][0]['video_codec'])}>{DupFile['files'][0]['video_codec']}</td><td {getColor(DupFile['files'][0]['frame_rate'], DupFileToKeep['files'][0]['frame_rate'])}>{DupFile['files'][0]['frame_rate']}</td><td {getColor(DupFile['files'][0]['size'], DupFileToKeep['files'][0]['size'])}>{DupFile['files'][0]['size']}</td><td>{DupFile['id']}</td><td>{itemIndex}</td></tr>")
@@ -846,18 +881,8 @@ def writeRowToHtmlReport(fileHtmlReport, DupFile, DupFileToKeep, itemIndex, tagD
     fileHtmlReport.write("</p></td>")
     # ///////////////////////////////
     
-    videoPreview = f"<video class=\"ID_{DupFileToKeep['id']}_preview\" {htmlReportVideoPreview} poster=\"{DupFileToKeep['paths']['screenshot']}\"><source src=\"{DupFileToKeep['paths'][htmlPreviewOrStream]}\" type=\"video/mp4\"></video>"
-    if htmlIncludeImagePreview:
-        spanPreviewImage = ""
-        if htmlImagePreviewPopupEnable:
-            spanPreviewImage = f"<span class=\"large\"><img class=\"ID_{DupFileToKeep['id']}_preview\" src=\"{DupFileToKeep['paths']['sprite']}\" class=\"large-image\" alt=\"\" width=\"{htmlImagePreviewPopupSize}\"></span>"
-        imagePreview = f"<ul><li><img class=\"ID_{DupFileToKeep['id']}_preview\" src=\"{DupFileToKeep['paths']['sprite']}\" alt=\"\" width=\"{htmlImagePreviewSize}\">{spanPreviewImage}</li></ul>"
-        if htmlIncludeVideoPreview:
-            fileHtmlReport.write(f"{getSceneID(DupFileToKeep)}<table><tr><td>{videoPreview}</td><td>{imagePreview}</td></tr></table></td>")
-        else:
-            fileHtmlReport.write(f"{getSceneID(DupFileToKeep)}{imagePreview}</td>")
-    elif htmlIncludeVideoPreview:
-        fileHtmlReport.write(f"{getSceneID(DupFileToKeep)}{videoPreview}</td>")
+    writePreview(fileHtmlReport, DupFileToKeep)
+    
     fileHtmlReport.write(f"{getSceneID(DupFileToKeep)}<a href=\"{stash.STASH_URL}/scenes/{DupFileToKeep['id']}\" target=\"_blank\" rel=\"noopener noreferrer\" {fileNameClassID(DupFileToKeep)}>{getPath(DupFileToKeep)}</a>")
     fileHtmlReport.write(f"<p><table><tr class=\"scene-details\"><th>Res</th><th>Durration</th><th>BitRate</th><th>Codec</th><th>FrameRate</th><th>size</th><th>ID</th></tr>")
     fileHtmlReport.write(f"<tr class=\"scene-details\"><td>{DupFileToKeep['files'][0]['width']}x{DupFileToKeep['files'][0]['height']}</td><td>{DupFileToKeep['files'][0]['duration']}</td><td>{DupFileToKeep['files'][0]['bit_rate']}</td><td>{DupFileToKeep['files'][0]['video_codec']}</td><td>{DupFileToKeep['files'][0]['frame_rate']}</td><td>{DupFileToKeep['files'][0]['size']}</td><td>{DupFileToKeep['id']}</td></tr></table>")
@@ -949,7 +974,7 @@ def writeRowToHtmlReport(fileHtmlReport, DupFile, DupFileToKeep, itemIndex, tagD
     fileHtmlReport.write(f"</tr>{ToDeleteSceneIDSrchStr}{DupFile['id']}{ToKeepSceneIDSrchStr}{DupFileToKeep['id']}{itemIndexSrchStr}{itemIndex}:: -->\n")
 
 fragmentForSceneDetails = 'id tags {id name ignore_auto_tag} groups {group {name} } performers {name} galleries {id} files {path width height duration size video_codec bit_rate frame_rate} details '
-htmlFileData = " paths {screenshot sprite " + htmlPreviewOrStream + "} "
+htmlFileData = " paths {screenshot sprite webp " + htmlPreviewOrStream + "} "
 mergeFieldData = " code director title rating100 date studio {id name} urls "
 fragmentForSceneDetails += mergeFieldData + htmlFileData
 DuplicateCandidateForDeletionList = f"{htmlReportNameFolder}{os.sep}DuplicateCandidateForDeletionList.txt"
@@ -1266,7 +1291,7 @@ def mangeDupFiles(merge=False, deleteDup=False, tagDuplicates=False, deleteBlack
         stash.optimise_database()
     if doGeneratePhash:
         stash.metadata_generate({"phashes": True})
-    sys.stdout.write("Report complete")
+    sys.stdout.write(f"{{'Report-Status' : 'Report complete', 'DupFileManagerPyVer': '{DupFileManagerPyVer}'}}")
 
 def findCurrentTagId(tagNames):
     # tagNames = [i for n, i in enumerate(tagNames) if i not in tagNames[:n]]
@@ -1681,7 +1706,7 @@ def removeDupTag():
     stash.Log(f"Processing scene ID# {scene}")
     stash.removeTag(scene, duplicateMarkForDeletion)
     stash.Log(f"Done removing tag from scene {scene}.")
-    jsonReturn = "{'removeDupTag' : 'complete', 'id': '" + f"{scene}" + "'}"
+    jsonReturn = f"{{'removeDupTag' : 'complete', 'id': '{scene}', 'DupFileManagerPyVer': '{DupFileManagerPyVer}'}}"
     stash.Log(f"Sending json value {jsonReturn}")
     sys.stdout.write(jsonReturn)
 
@@ -1693,7 +1718,7 @@ def addExcludeTag():
     stash.Log(f"Processing scene ID# {scene}")
     stash.addTag(scene, excludeDupFileDeleteTag)
     stash.Log(f"Done adding exclude tag to scene {scene}.")
-    sys.stdout.write("{" + f"addExcludeTag : 'complete', id: '{scene}'" + "}")
+    sys.stdout.write(f"{{'addExcludeTag' : 'complete', 'id': '{scene}', 'DupFileManagerPyVer': '{DupFileManagerPyVer}'}}")
 
 def removeExcludeTag():
     if 'Target' not in stash.JSON_INPUT['args']:
@@ -1703,7 +1728,7 @@ def removeExcludeTag():
     stash.Log(f"Processing scene ID# {scene}")
     stash.removeTag(scene, excludeDupFileDeleteTag)
     stash.Log(f"Done removing exclude tag from scene {scene}.")
-    sys.stdout.write("{" + f"removeExcludeTag : 'complete', id: '{scene}'" + "}")
+    sys.stdout.write(f"{{'removeExcludeTag' : 'complete', 'id': '{scene}', 'DupFileManagerPyVer': '{DupFileManagerPyVer}'}}")
 
 def getParseData(getSceneDetails1=True, getSceneDetails2=True, checkIfNotSplitValue=False):
     if 'Target' not in stash.JSON_INPUT['args']:
@@ -1754,7 +1779,7 @@ def mergeMetadataForAll(ReportName = htmlReportName):
                 break
             mergeMetadataInThisFile(fileName)
     stash.Log(f"Done merging metadata for all scenes")
-    sys.stdout.write("{mergeTags : 'complete'}")
+    sys.stdout.write(f"{{'mergeTags' : 'complete', 'DupFileManagerPyVer': '{DupFileManagerPyVer}'}}")
 
 # ToDo: Rename mergeTags to mergeMetadata
 def mergeTags(inputScene1=None):
@@ -1764,7 +1789,7 @@ def mergeTags(inputScene1=None):
             if scene1 == "mergeMetadataForAll":
                 mergeMetadataForAll()
             else:
-                sys.stdout.write("{" + f"mergeTags : 'failed', id1: '{scene1}', id2: '{scene2}'" + "}")
+                sys.stdout.write(f"{{'mergeTags' : 'failed', 'id1': '{scene1}', 'id2': '{scene2}', 'DupFileManagerPyVer': '{DupFileManagerPyVer}'}}")
             return
     else:
         scene1 = inputScene1
@@ -1773,7 +1798,7 @@ def mergeTags(inputScene1=None):
     updateScenesInReports(scene2['id'])
     stash.Log(f"Done merging scenes for scene {scene1['id']} and scene {scene2['id']}")
     if inputScene1 == None:
-        sys.stdout.write("{" + f"mergeTags : 'complete', id1: '{scene1['id']}', id2: '{scene2['id']}'" + "}")
+        sys.stdout.write(f"{{'mergeTags' : 'complete', 'id1': '{scene1['id']}', 'id2': '{scene2['id']}', 'DupFileManagerPyVer': '{DupFileManagerPyVer}'}}")
 
 def getLocalDupReportPath():
     htmlReportExist = "true" if os.path.isfile(htmlReportName) else "false"
@@ -1785,7 +1810,7 @@ def getLocalDupReportPath():
     apikey_json = ", 'apiKey':''"
     if 'apiKey' in stash.STASH_CONFIGURATION:
         apikey_json = f", 'apiKey':'{stash.STASH_CONFIGURATION['apiKey']}'"
-    jsonReturn = "{" + f"'LocalDupReportExist' : {htmlReportExist}, 'Path': '{localPath}', 'LocalDir': '{LocalDir}', 'ReportUrlDir': '{ReportUrlDir}', 'ReportUrl': '{ReportUrl}', 'AdvMenuUrl': '{AdvMenuUrl}', 'IS_DOCKER': '{stash.IS_DOCKER}', 'remoteReportDirURL': '{stash.Setting('remoteReportDirURL')}' {apikey_json}" + "}"
+    jsonReturn = f"{{'LocalDupReportExist' : {htmlReportExist}, 'Path': '{localPath}', 'LocalDir': '{LocalDir}', 'ReportUrlDir': '{ReportUrlDir}', 'ReportUrl': '{ReportUrl}', 'AdvMenuUrl': '{AdvMenuUrl}', 'IS_DOCKER': '{stash.IS_DOCKER}', 'remoteReportDirURL': '{stash.Setting('remoteReportDirURL')}', 'DupFileManagerPyVer': '{DupFileManagerPyVer}' {apikey_json}}}"
     stash.Log(f"Sending json value {jsonReturn}")
     sys.stdout.write(jsonReturn)
 
@@ -1804,7 +1829,7 @@ def deleteLocalDupReportHtmlFiles(doJsonOutput = True):
     else:
         stash.Log(f"Report file does not exist: {htmlReportName}")
     if doJsonOutput:
-        jsonReturn = "{'LocalDupReportExist' : " + f"{htmlReportExist}" + ", 'Path': '" + f"{htmlReportName}" + "', 'qty': '" + f"{x}" + "'}"
+        jsonReturn = f"{{'LocalDupReportExist' : {htmlReportExist}, 'Path': '{htmlReportName}', 'qty': '{x}', 'DupFileManagerPyVer': '{DupFileManagerPyVer}'}}"
         stash.Log(f"Sending json value {jsonReturn}")
         sys.stdout.write(jsonReturn)
 
@@ -1836,7 +1861,7 @@ def removeAllDupTagsFromAllScenes(deleteTags=False):
         if removeTagFromAllScenes(tagToClear, deleteTags):
             validTags +=[tagToClear]
     if doJsonReturn:
-        jsonReturn = "{'removeAllDupTagFromAllScenes' : " + f"{duplicateMarkForDeletion}" + ", 'OtherTags': '" + f"{validTags}" + "'}"
+        jsonReturn = f"{{'removeAllDupTagFromAllScenes' : '{duplicateMarkForDeletion}', 'OtherTags': '{validTags}', 'DupFileManagerPyVer': '{DupFileManagerPyVer}'}}"
         stash.Log(f"Sending json value {jsonReturn}")
         sys.stdout.write(jsonReturn)
     else:
@@ -2024,19 +2049,19 @@ def deleteScene(disableInReport=True, deleteFile=True, scene=None, writeToStdOut
     modifyPropertyToSceneClassToAllFiles(f"{scene}_preview", "{display:none;}")
     if writeToStdOut:
         stash.Log(f"{stash.PLUGIN_TASK_NAME} complete for scene {scene} with results = {result}")
-        sys.stdout.write("{" + f"{stash.PLUGIN_TASK_NAME} : 'complete', id: '{scene}', result: '{result}'" + "}")
+        sys.stdout.write(f"{{'{stash.PLUGIN_TASK_NAME}' : 'complete', 'id': '{scene}', 'result': '{result}', 'DupFileManagerPyVer': '{DupFileManagerPyVer}'}}")
     return result
 
 def clearAllSceneFlags(flagColor=None):
     modifyPropertyToSceneClassToAllFiles(None, flagColor)
     stash.Log(f"{stash.PLUGIN_TASK_NAME} complete for all scenes")
-    sys.stdout.write("{" + f"{stash.PLUGIN_TASK_NAME} : 'complete'" + "}")
+    sys.stdout.write(f"{{'{stash.PLUGIN_TASK_NAME}' : 'complete', 'DupFileManagerPyVer': '{DupFileManagerPyVer}'}}")
 
 def copyScene(moveScene=False, inputScene1=None):
     if inputScene1 == None:
         scene1, scene2 = getParseData()
         if scene1 == None or scene2 == None:
-            sys.stdout.write("{" + f"{stash.PLUGIN_TASK_NAME} : 'failed', id1: '{scene1}', id2: '{scene2}'" + "}")
+            sys.stdout.write(f"{{'{stash.PLUGIN_TASK_NAME}' : 'failed', 'id1': '{scene1}', 'id2': '{scene2}', 'DupFileManagerPyVer': '{DupFileManagerPyVer}'}}")
             return
     else:
         scene1 = inputScene1
@@ -2061,16 +2086,16 @@ def copyScene(moveScene=False, inputScene1=None):
     updateScenesInReports(scene2['id'])
     stash.Log(f"{actionStr} complete for scene {scene1['id']} and {scene2['id']}")
     if inputScene1 == None:
-        sys.stdout.write("{" + f"{stash.PLUGIN_TASK_NAME} : 'complete', id1: '{scene1['id']}', id2: '{scene2['id']}', result: '{result}'" + "}")
+        sys.stdout.write(f"{{'{stash.PLUGIN_TASK_NAME}' : 'complete', 'id1': '{scene1['id']}', 'id2': '{scene2['id']}', 'result': '{result}', 'DupFileManagerPyVer': '{DupFileManagerPyVer}'}}")
 
 def renameFile():
     scene, newName = getParseData(getSceneDetails2=False)
     if scene == None or newName == None:
-        sys.stdout.write("{" + f"{stash.PLUGIN_TASK_NAME} : 'failed', scene: '{scene}', newName: '{newName}'" + "}")
+        sys.stdout.write(f"{{'{stash.PLUGIN_TASK_NAME}' : 'failed', 'scene': '{scene}', 'newName': '{newName}', 'DupFileManagerPyVer': '{DupFileManagerPyVer}'}}")
         return
     newName = newName.strip("'")
     ext = pathlib.Path(scene['files'][0]['path']).suffix
-    newNameFull = f"{pathlib.Path(scene['files'][0]['path']).resolve().parent}{os.sep}{newName}{ext}"
+    newNameFull = f"{pathlib.Path(scene['files'][0]['path']).parent}{os.sep}{newName}{ext}"
     newNameFull = newNameFull.strip("'")
     newNameFull = newNameFull.replace("\\\\", "\\")
     oldNameFull = scene['files'][0]['path']
@@ -2080,13 +2105,14 @@ def renameFile():
     result = os.rename(oldNameFull, newNameFull)
     stash.renameFileNameInDB(scene['files'][0]['id'], pathlib.Path(oldNameFull).stem, f"{newName}{ext}", UpdateUsingIdOnly = True)
     updateScenesInReports(scene['id'])
-    stash.Log(f"{stash.PLUGIN_TASK_NAME} complete for scene {scene['id']} ;renamed to {newName}; result={result}")
-    sys.stdout.write("{" + f"{stash.PLUGIN_TASK_NAME} : 'complete', scene: '{scene['id']}', newName: '{newName}', result: '{result}'" + "}")
+    stash.Log(f"{stash.PLUGIN_TASK_NAME} complete for scene {scene['id']} ;renamed to {newNameFull}; result={result}")
+    # newNameFull = newNameFull.replace("\\", "\\\\")
+    sys.stdout.write(f"{{'{stash.PLUGIN_TASK_NAME}' : 'complete', 'scene': '{scene['id']}', 'newName': '{newNameFull}', 'result': '{result}', 'DupFileManagerPyVer': '{DupFileManagerPyVer}'}}")
     
 def flagScene():
     scene, flagType = getParseData(False, False)
     if scene == None or flagType == None:
-        sys.stdout.write("{" + f"{stash.PLUGIN_TASK_NAME} : 'failed', scene: '{scene}', flagType: '{flagType}'" + "}")
+        sys.stdout.write(f"{{'{stash.PLUGIN_TASK_NAME}' : 'failed', 'scene': '{scene}', 'flagType': '{flagType}', 'DupFileManagerPyVer': '{DupFileManagerPyVer}'}}")
         return
     
     if " highlight" in flagType:
@@ -2112,9 +2138,9 @@ def flagScene():
         modifyPropertyToSceneClassToAllFiles(scene, "")
     else:
         stash.Log(f"Invalid flagType ({flagType})")
-        sys.stdout.write("{" + f"{stash.PLUGIN_TASK_NAME} : 'failed', scene: '{scene}', flagType: '{flagType}'" + "}")
+        sys.stdout.write(f"{{'{stash.PLUGIN_TASK_NAME}' : 'failed', 'scene': '{scene}', 'flagType': '{flagType}', 'DupFileManagerPyVer': '{DupFileManagerPyVer}'}}")
         return
-    sys.stdout.write("{" + f"{stash.PLUGIN_TASK_NAME} : 'complete', scene: '{scene}', flagType: '{flagType}'" + "}")
+    sys.stdout.write(f"{{'{stash.PLUGIN_TASK_NAME}' : 'complete', 'scene': '{scene}', 'flagType': '{flagType}', 'DupFileManagerPyVer': '{DupFileManagerPyVer}'}}")
 
 def getReport():
     if 'Target' not in stash.JSON_INPUT['args']:
@@ -2157,12 +2183,6 @@ def getAdvanceMenu():
 #    Remove only graylist dup
 #    Exclude graylist from delete
 #    Include graylist in delete
-taskName_deleteScene = "deleteScene"
-taskName_copyScene = "copyScene"
-taskName_moveScene = "moveScene"
-taskName_mergeScene = "mergeScene"
-taskName_addExcludeTag = "addExcludeTag"
-taskName_clearFlag = "clearFlag"
 
 try:
     if stash.PLUGIN_TASK_NAME == "tag_duplicates_task":
@@ -2307,6 +2327,7 @@ except Exception as e:
     stash.convertToAscii = False
     stash.Error(f"Error: {e}\nTraceBack={tb}")
     if doJsonReturn:
-        sys.stdout.write("{" + f"Exception : '{e}; See log file for TraceBack' " + "}")
+        errStr = e.replace("'", "`")
+        sys.stdout.write(f"{{'Exception' : '{errStr}; See log file for TraceBack', 'DupFileManagerPyVer': '{DupFileManagerPyVer}'}}")
 
 stash.Log("\n*********************************\nEXITING   ***********************\n*********************************")

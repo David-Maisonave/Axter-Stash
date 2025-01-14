@@ -1,4 +1,4 @@
-# DupFileManager: Ver 1.1.5 (By David Maisonave)
+# DupFileManager: Ver 1.1.6 beta (By David Maisonave)
 
 DupFileManager is a [Stash](https://github.com/stashapp/stash) plugin which manages duplicate files in the Stash system.
 It has both **task** and **tools-UI** components.
@@ -135,7 +135,6 @@ Users can setup a private or alternate remote site by changing variables **remot
 - Scheduled Changes
   - Remove [Max Dup Process] from the Stash->Plugins GUI. This option already exist in advance menu. Planned for 1.2.0 Version.
   - Add chat icon to report which on hover, displays a popup window showing scene details content. Planned for 1.2.0 Version.
-  - Add image icon to report; on hover show scene cover image. Planned for 1.2.0 Version.
   - Add studio icon to report; on hover show studio name. Planned for 1.2.0 Version.
   - Add option on report to view rating and change it. Use an icon with a number on it to show rating. Planned for 1.2.0 Version.
   - On report make flag toggle logic. In other words, when flag button is selected, and scene is already that color, remove the colored flag. Planned for 1.2.0 Version.

@@ -7,6 +7,10 @@
 report_config = {    
     # Paginate HTML report. Maximum number of results to display on one page, before adding (paginating) an additional page.
     "htmlReportPaginate" : 100,
+    # If enabled, report displays the scene cover as a preview image
+    "htmlIncludeCoverImage" : False,
+    # If enabled, report displays Webp as a preview image
+    "htmlIncludeWebpPreview" : False,
     # If enabled, report displays an image preview similar to sceneDuplicateChecker
     "htmlIncludeImagePreview" : False,
     "htmlImagePreviewSize" : 140,

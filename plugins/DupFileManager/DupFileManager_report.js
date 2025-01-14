@@ -10,6 +10,7 @@ console.log("Cookies = " + document.cookie);
 const StrRemoveToKeepConfirm = "RemoveToKeepConfirm=";
 const StrRemoveValidatePrompt = "RemoveValidatePrompt=";
 const StrDisableReloadPage = "DisableReloadPage=";
+var DupFileManagerPyVer = null;
 function SetPaginateButtonChange(){
     var chkBxRemoveValid = document.getElementById("RemoveValidatePrompt");
     var chkBxDisableDeleteConfirm = document.getElementById("RemoveToKeepConfirm");
@@ -18,9 +19,9 @@ function SetPaginateButtonChange(){
     RemoveValidatePromptValue = StrRemoveValidatePrompt + "false";
     DisableReloadPageValue = StrDisableReloadPage + "false";
     if (chkBxRemoveValid.checked)
-        RemoveToKeepConfirmValue = StrRemoveToKeepConfirm + "true";
-    if (chkBxDisableDeleteConfirm.checked)
         RemoveValidatePromptValue = StrRemoveValidatePrompt + "true";
+    if (chkBxDisableDeleteConfirm.checked)
+        RemoveToKeepConfirmValue = StrRemoveToKeepConfirm + "true";
     if (chkBxDisableReloadPage != null && chkBxDisableReloadPage.checked)
         DisableReloadPageValue = StrDisableReloadPage + "true";
     document.cookie = RemoveToKeepConfirmValue + "&" + RemoveValidatePromptValue + "&" + DisableReloadPageValue + "; SameSite=None; Secure";
@@ -31,6 +32,17 @@ function trim(str, ch) {
     while(start < end && str[start] === ch) ++start;
     while(end > start && str[end - 1] === ch) --end;
     return (start > 0 || end < str.length) ? str.substring(start, end) : str;
+}
+function GetRunPluginOperationJson(result){
+	try{
+		jsonResults = JSON.parse(result);
+		const jsonSubResults = JSON.parse(jsonResults.data.runPluginOperation.replaceAll("'", "\"").replaceAll("\\", "\\\\"));
+		DupFileManagerPyVer = jsonSubResults.DupFileManagerPyVer
+		return jsonSubResults;
+	}catch(error){
+		console.error(error);
+	}
+	return null;
 }
 function RunPluginOperation(Mode, ActionID, button, asyncAjax){ // Mode=Value and ActionID=id
 	if (Mode == null || Mode === ""){
@@ -49,16 +61,26 @@ function RunPluginOperation(Mode, ActionID, button, asyncAjax){ // Mode=Value an
 			query: `mutation RunPluginOperation($plugin_id:ID!,$args:Map!){runPluginOperation(plugin_id:$plugin_id,args:$args)}`,
 			variables: {"plugin_id": "DupFileManager", "args": { "Target" : ActionID, "mode":Mode}},
 		}), success: function(result){
-			console.log(result);
+			console.log("For ActionID '" + ActionID + "' result=" + result);
+			const jsonSubResults = GetRunPluginOperationJson(result);
             if (asyncAjax){
                 $('html').removeClass('wait');
                 $("body").css("cursor", "default");
             }
-            if (Mode.startsWith("copyScene") || Mode.startsWith("renameFile") || Mode === "clearAllSceneFlags" || Mode.startsWith("clearFlag") || Mode.startsWith("mergeScene") || Mode.startsWith("mergeTags") || (Mode !== "deleteScene" && Mode.startsWith("deleteScene"))){
+			if (Mode === "deleteScene" || Mode === "removeScene"){
+				console.log("Delete complete. Setting background color for .ID_" + ActionID);
+				$('.ID_' + ActionID).css('background-color','gray');
+			}
+			else if (Mode === "renameFile" && jsonSubResults != null){
+				const FnId = ".FN_ID_" + jsonSubResults.scene;
+				console.log("Changing existing file name ID (" + FnId + ") '" + $(FnId).text() + "' to '" + jsonSubResults.newName + "'");
+				$(FnId).text(jsonSubResults.newName);
+            }else if (Mode.startsWith("copyScene") || Mode.startsWith("renameFile") || Mode === "clearAllSceneFlags" || Mode.startsWith("clearFlag") || Mode.startsWith("mergeScene") || Mode.startsWith("mergeTags") || (Mode !== "deleteScene" && Mode.startsWith("deleteScene"))){
                 const chkBxDisableReloadPage = document.getElementById("DisableReloadPage");
 				if (chkBxDisableReloadPage == null || !chkBxDisableReloadPage.checked)
 					window.location.reload();
-			} else if (!chkBxRemoveValid.checked && Mode !== "flagScene") alert("Action " + Mode + " for scene(s) ID# " + ActionID + " complete.\\n\\nResults=" + result);
+			} else if (!chkBxRemoveValid.checked && Mode !== "flagScene") 
+				alert("Action " + Mode + " for scene(s) ID# " + ActionID + " complete.\\n\\nResults=" + result);
 		}, error: function(XMLHttpRequest, textStatus, errorThrown) { 
 			console.log("Ajax failed with Status: " + textStatus + "; Error: " + errorThrown); 
             if (asyncAjax){
@@ -218,7 +240,7 @@ $(document).ready(function(){
             if (!chkBxDisableDeleteConfirm.checked && !confirm(question))
                 return;
             if (Mode === "deleteScene" || Mode === "removeScene"){
-                $('.ID_' + ActionID).css('background-color','gray');
+                // $('.ID_' + ActionID).css('background-color','gray');
                 $('.ID_' + ActionID).css('pointer-events','none');
             }
         }

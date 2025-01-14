@@ -108,5 +108,15 @@
 ### 1.1.5
 - After deleting scene from report, disable preview for the deleted scene on the report.
 - Add option to report to avoid reloading page after updating report.
+### 1.1.6 beta
+Note: This is a beta version, because not all of the javascript ajax functions have been tested yet.
+- Added the following to [**Advance Duplicate File Menu**]
+  - Scene cover preview image option
+  - Webp preview video option
+- Fix json string return for all calls made from javascript.
+- Added DupFileManagerPyVer field to json when called from javascript.
+- When deleting scene using Report, replaced completion prompt with scene background set to gray.
+- In Report, when rename occurs, the scene gets renamed inline, without having to reload report page.
+- Added GetRunPluginOperationJson to DupFileManager_report.js which allows result to safely be converted to json. If fails, it gracefully returns null.
 
 
