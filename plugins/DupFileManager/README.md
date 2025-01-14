@@ -36,7 +36,7 @@ It has both **task** and **tools-UI** components.
     - Delete duplicates with specified rating.
     - Delete duplicates with any of the above combinations.
 - Bottom extended portion of the Advanced Menu is for customizing the report.
-  - ![Screenshot 2024-12-13 165238](https://github.com/user-attachments/assets/9ba9ab12-cd60-4be4-bc26-6ffe76a68edc)
+  - ![Screenshot 2025-01-14 141032](https://github.com/user-attachments/assets/a37e2074-cfec-47ae-9eed-a7769fc2245d)
 - Delete duplicate file task with the following options:
   - Tasks (Stash->Settings->Task->[Plugin Tasks]->DupFileManager)
     - **Tag Duplicates** - Set tag DuplicateMarkForDeletion to the duplicates with lower resolution, duration, file name length, and/or black list path.
