@@ -18,6 +18,7 @@ html.wait, html.wait * { cursor: wait !important; }
 <link rel="stylesheet" type="text/css" href="https://www.axter.com/js/jquery.prompt.css"/>
 <script>
 const isChrome = !!window.chrome;
+const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
 const urlParams = new URLSearchParams(window.location.search);
 let thisUrl = "" + window.location;
 const isAxterCom = (thisUrl.search("axter.com") > -1);
@@ -287,8 +288,18 @@ function ProcessClick(This_){
 		if (confirm("Are you sure you want to delete tag scenes " + blackliststr + "having _DuplicateMarkForDeletion tags, and having the selected options" + AddedWarn + "\nSelected options:\n" + Param))
 			RunPluginDupFileManager(ID, Param, true);
 	}
-}	
+}
+
+var scenesPerPageOver250WarningGiven = false;
+var scenesPerPageOver350WarningGiven = false;
 $(document).ready(function(){
+	var scenesPerPageInput = document.getElementById("scenesPerPage");
+	if (isChrome){
+		scenesPerPageInput.setAttribute("max",1000);
+	}
+	else if (isFirefox){
+		scenesPerPageInput.setAttribute("max",5000);
+	}
 	if ($("#IncludePreviewImage").prop('checked')){
 		$("#ImagePreviewSize").prop('disabled', false);
 		$("#ImagePreviewPopupSize").prop('disabled', false);
@@ -368,6 +379,16 @@ $(document).ready(function(){
 		else{
 			$("#VideoPreviewWidth").prop('disabled', true);
 			$("#VideoPreviewHeight").prop('disabled', true);
+		}
+	});
+	$("#scenesPerPage").change(function() {
+		if (!isFirefox && $("#scenesPerPage").val() > 250 && $("#scenesPerPage").val() < 351 && scenesPerPageOver250WarningGiven == false){
+			scenesPerPageOver250WarningGiven = true;
+			alert("Using more than 250 scenes per page will trigger a long page load delay. Browsers like Chrome and MS Edge perform poorly. It's recommend to use Firefox browser for this many scenes per page.");
+		}
+		else if ($("#scenesPerPage").val() > 350 && scenesPerPageOver350WarningGiven == false){
+			scenesPerPageOver350WarningGiven = true;
+			alert("It's not pratical to create a report with more than 350 scenes per page. Some browsers (Chrome & Edge) will hang when trying to load the page.");
 		}
 	});
 });
@@ -2046,7 +2067,7 @@ function DeleteDupInPath(){
 			</div>
 		</td>
 		<td>
-			<div class="easyui-tooltip" title="Number of scenes per page in report. Default value is 100."><label for="scenesPerPage">Scenes Per Page:</label><input type="number" min="25" max="5000" step="25" id="scenesPerPage" name="scenesPerPage" value="100"></div>
+			<div class="easyui-tooltip" title="Number of scenes per page in report. Default value is 100. Over 350 scenes per page is not recommended."><label for="scenesPerPage">Scenes Per Page:</label><input type="number" min="25" max="2000" step="25" id="scenesPerPage" name="scenesPerPage" value="100"></div>
 		</td>
 		<td>
 			<div class="easyui-tooltip" title="The minimum time difference in seconds for report to highlight scene time. This is the time difference between [Duplicate-to-Delete] scene and [Scene-ToKeep]. Default value is 3."><label for="TimeDiffHighlight">Time Diff Highlight:</label><input type="number" min="1" max="300" step="1" id="TimeDiffHighlight" name="TimeDiffHighlight" value="3"></div>	
@@ -2054,7 +2075,7 @@ function DeleteDupInPath(){
 	</tr>
 	<tr>
 		<td>
-			<div class="easyui-tooltip" title="Create report with a collage preview image."><label for="IncludePreviewImage">Collage preview image:</label><input type="checkbox" id="IncludePreviewImage" name="IncludePreviewImage" value="true"></div>
+			<table style="width:100%;border:none;" cellspacing="0" cellpadding="0"><tr><td style="border:none;"><div class="easyui-tooltip" title="Create report with a collage preview image."><label for="IncludePreviewImage">Collage preview image:</label><input type="checkbox" id="IncludePreviewImage" name="IncludePreviewImage" value="true"></div></td><td style="text-align:right;border:none;">[<b style="color:red;" class="easyui-tooltip" title="Recommend using preview image over preview video for report with over 500 scenes per page.">?</b>]</td></tr></table>
 			<div class="easyui-tooltip" title="Create report with scene cover preview image. Requires DupFileManger version 1.1.6 or higher."><label for="IncludeSceneCoverPreviewImage">Scene cover preview image:</label><input type="checkbox" id="IncludeSceneCoverPreviewImage" name="IncludeSceneCoverPreviewImage" value="true"></div>
 		</td>
 		<td>
@@ -2093,7 +2114,7 @@ function DeleteDupInPath(){
 	</tr>
 	<tr>
 		<td rowspan="2">
-			<div class="easyui-tooltip" title="Create report with preview video."><label for="IncludePreviewVideo">Preview video:</label><input type="checkbox" id="IncludePreviewVideo" name="IncludePreviewVideo" value="true" checked></div>
+			<table style="width:100%;border:none;" cellspacing="0" cellpadding="0"><tr><td style="border:none;"><div class="easyui-tooltip" title="Create report with preview video."><label for="IncludePreviewVideo">Preview video:</label><input type="checkbox" id="IncludePreviewVideo" name="IncludePreviewVideo" value="true" checked></div></td><td style="text-align:right;border:none;">[<b style="color:red;" class="easyui-tooltip" title="Recommend using preview image over preview video for report with over 500 scenes per page.">?</b>]</td></tr></table>
 			<div class="easyui-tooltip" title="Create report with Webp preview video. Requires DupFileManger version 1.1.6 or higher."><label for="IncludeWebpPreviewImage">Webp preview video:</label><input type="checkbox" id="IncludeWebpPreviewImage" name="IncludeWebpPreviewImage" value="true"></div>
 		</td>
 		<td colspan="2">

@@ -6,3 +6,6 @@
 - Added Docker support.
 ### 1.0.2
 - Added ability to monitor host file system for multiple Docker Stash installations.
+### 1.0.3
+- Added start and stop FileMonitor button to Tools-UI FileMonitor Status
+- Fixed bug associated with starting FileMonitor service with no jobs waiting.

@@ -16,6 +16,7 @@
     const { Link, NavLink, } = PluginApi.libraries.ReactRouterDOM;
 	var iconToUse = faFileCircleXmark;
 	var FileMonitorRunningStatusStr = "";
+	var StartOrStop_FileMonitorButton = null;
 	var DockerWarning = null;
 	function RunPluginFileMonitor(Mode, ActionID = 0, DataType = "text", Async = false) {
 		console.log("Mode = " + Mode);
@@ -29,10 +30,12 @@
 					if (result.indexOf("FileMonitorStatus:'RUNNING'") > 0){
 						iconToUse = faFileCircleCheck;
 						FileMonitorRunningStatusStr = "FileMonitor is RUNNING...";
+						StartOrStop_FileMonitorButton = React.createElement(Link, { to: "/FileMonitor_Stop", title: "Stops library monitoring within 2 minutes." }, React.createElement(Button, null, "Stop Library Monitor"));
 					}
 					else {
 						iconToUse = faFileCircleXmark;
 						FileMonitorRunningStatusStr = "FileMonitor is NOT running!!!";
+						StartOrStop_FileMonitorButton = React.createElement(Link, { to: "/FileMonitor_Start", title: "Run FileMonitor as a SERVICE to update Stash with any media file changes." }, React.createElement(Button, null, "Start Library Monitor Service"));
 					}
 					if (result.indexOf("IS_DOCKER:'True'") > 0){
 						DockerWarning = React.createElement("div", null, 
@@ -66,7 +69,9 @@
 		});
 	}
 	RunPluginFileMonitor("getFileMonitorRunningStatus");
-    const HomePage = () => {
+	function DisplayFileMonitorRunningStatus(PreCmd = null) {
+		if (PreCmd != null)
+			RunPluginFileMonitor(PreCmd);
 		RunPluginFileMonitor("getFileMonitorRunningStatus", 1);
 		console.log("FileMonitorRunningStatusStr = " + FileMonitorRunningStatusStr);
 		var MyHeader = React.createElement("h1", null, "FileMonitor Running Status Page");
@@ -75,10 +80,22 @@
 				React.createElement("p", null),
 				React.createElement("p", null),
 				React.createElement("h4", null, FileMonitorRunningStatusStr),
-				DockerWarning
+				DockerWarning,
+				StartOrStop_FileMonitorButton
 			));
+	}
+    const HomePage = () => {
+		return DisplayFileMonitorRunningStatus();
     };
+    const FileMonitor_Start = () => {
+		return DisplayFileMonitorRunningStatus("start_library_monitor_service_json");
+    };	
+    const FileMonitor_Stop = () => {
+		return DisplayFileMonitorRunningStatus("stop_library_monitor_json");
+    };	
 	PluginApi.register.route("/FileMonitor", HomePage);
+	PluginApi.register.route("/FileMonitor_Start", FileMonitor_Start);
+	PluginApi.register.route("/FileMonitor_Stop", FileMonitor_Stop);
     PluginApi.patch.before("SettingsToolsSection", function (props) {
         const { Setting, } = PluginApi.components;
         return [

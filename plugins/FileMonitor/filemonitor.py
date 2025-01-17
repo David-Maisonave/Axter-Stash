@@ -65,11 +65,15 @@ stash = StashPluginHelper(
         apiKey=parse_args.apikey
         )
 
-doJsonReturnModeTypes = ["getFileMonitorRunningStatus"]
+doJsonReturnModeTypes = ["getFileMonitorRunningStatus", "start_library_monitor_service_json", "stop_library_monitor_json"]
 doJsonReturn = False
+doJsonReturnFileMonitorStatus = False
 if len(sys.argv) < 2 and stash.PLUGIN_TASK_NAME in doJsonReturnModeTypes:
     doJsonReturn = True
+    doJsonReturnFileMonitorStatus = True
     stash.log_to_norm = stash.LogTo.FILE
+    if stash.PLUGIN_TASK_NAME.endswith("_json"):
+        stash.PLUGIN_TASK_NAME = stash.PLUGIN_TASK_NAME[:-5]
 
 stash.status(logLevel=logging.DEBUG)
 stash.Log(f"\nStarting (__file__={__file__}) (stash.CALLED_AS_STASH_PLUGIN={stash.CALLED_AS_STASH_PLUGIN}) (stash.DEBUG_TRACING={stash.DEBUG_TRACING}) (stash.DRY_RUN={stash.DRY_RUN}) (stash.PLUGIN_TASK_NAME={stash.PLUGIN_TASK_NAME})************************************************")
@@ -213,6 +217,8 @@ def isJobWaitingToRun(getJobIdOf_StartAsAServiceTask = False):
     FileMonitorPluginIsOnTaskQue = False
     jobIsWaiting = False
     taskQue = stash.job_queue()
+    if taskQue == None:
+        return jobIsWaiting
     for jobDetails in taskQue:
         stash.Trace(f"(Job ID({jobDetails['id']})={jobDetails})")
         if getJobIdOf_StartAsAServiceTask:
@@ -882,6 +888,8 @@ def stop_library_monitor():
     stash.Trace(f"Shared memory map opended, and flag set to {shm_buffer[0]}")
     shm_a.close()
     shm_a.unlink()  # Call unlink only once to release the shared memory
+    if doJsonReturnFileMonitorStatus:
+        sys.stdout.write("{" + f"{stash.PLUGIN_TASK_NAME} : 'complete', FileMonitorStatus:'NOT running', IS_DOCKER:'{stash.IS_DOCKER}'" + "}")
 
 def start_library_monitor_service():
     # First check if FileMonitor is already running
@@ -901,6 +909,9 @@ def start_library_monitor_service():
         args += ["-a", stash.API_KEY]
     results = stash.executePythonScript(args)
     stash.Trace(f"executePythonScript results='{results}'")
+    if doJsonReturnFileMonitorStatus:
+        time.sleep(5)
+        sys.stdout.write("{" + f"{stash.PLUGIN_TASK_NAME} : 'complete', FileMonitorStatus:'RUNNING', IS_DOCKER:'{stash.IS_DOCKER}'" + "}")
 
 def synchronize_library(removeScene=False):
     stash.startSpinningProcessBar()
