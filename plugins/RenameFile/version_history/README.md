@@ -6,6 +6,7 @@
 - Change options (performerAppendEnable, studioAppendEnable, tagAppendEnable) to default to True (enabled)
 ### 0.5.7
 - Uploaded missing renamefile.js and renamefile.css files to CommunityScripts
-- Added setting max_performers to renamefile_settings.py, which allows limitting the quantity of performers added to file name.
 ### 0.5.8
+- Added setting max_performers to renamefile_settings.py, which allows limitting the quantity of performers added to file name.
+### 0.5.9
 - 
