@@ -140,12 +140,17 @@ def should_exclude_path(scene_details):
     return False
 
 include_keyField_if_in_name = stash.pluginSettings["z_keyFIeldsIncludeInFileName"]
-excludeIgnoreAutoTags = config["excludeIgnoreAutoTags"]
+excludeIgnoreAutoTags       = config["excludeIgnoreAutoTags"]
+max_performers              = int(config["max_performers"])
 
 def getPerformers(scene, title):
     title = title.lower()
     results = ""
+    qtyPerformers = 0
     for performer in scene['performers']:
+        qtyPerformers += 1
+        if max_performers > -1 and qtyPerformers > max_performers:
+            break
         name = performer['name']
         stash.Trace(f"performer = {name}")
         if not include_keyField_if_in_name:
