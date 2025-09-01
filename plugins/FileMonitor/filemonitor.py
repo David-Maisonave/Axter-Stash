@@ -166,8 +166,8 @@ if stash.IS_DOCKER and stash.PLUGIN_TASK_NAME != "stop_library_monitor" and not 
     # Alternate error:  sys.exit(160) # ERROR_BAD_ARGUMENTS: One or more arguments are not correct.
 
 dockerStashes = {}
-for docker in stash.pluginConfig['dockers']:
-    stash.Log(f"Adding monitoring to Docker Stash {docker['GQL']}")
+def initiateA_dockerStashe(docker):
+    global includePathChanges
     dockerStashes[docker['GQL']] = StashPluginHelper(
             stash_url=docker['GQL'],
             debugTracing=parse_args.trace,
@@ -187,6 +187,14 @@ for docker in stash.pluginConfig['dockers']:
                 continue
             stash.Log(f"Adding monitoring for host path '{key}' which is Docker mount path '{bindMount[key]}' for Stash {docker['GQL']}")
             includePathChanges += [key]
+
+for docker in stash.pluginConfig['dockers']:
+    if stash.pingGql(docker['GQL']) == False:
+        stash.Warn(f"Skipping monitoring Docker Stash {docker['GQL']} because ping failed.")
+        dockerStashes[docker['GQL']] = None
+        continue
+    stash.Log(f"Adding monitoring to Docker Stash {docker['GQL']}")
+    initiateA_dockerStashe(docker)
 stash.Log(f"This Stash instance GQL = {stash.STASH_URL}")
 # for path in includePathChanges:
     # stash.Log(f"[post] includePathChange = {path}")
@@ -829,6 +837,15 @@ def start_library_monitor():
                                 if len(stash.pluginConfig['dockers']) > 0:
                                     for TmpTargetPath in TmpTargetPaths:
                                         for docker in stash.pluginConfig['dockers']:
+                                            if dockerStashes[docker['GQL']] == None:
+                                                # Check if Docker Stash is now online, and if so initiate it
+                                                if stash.pingGql(docker['GQL']) == True:
+                                                    initiateA_dockerStashe(docker)
+                                                else:
+                                                    continue
+                                            elif stash.pingGql(docker['GQL']) == False:
+                                                stash.Error(f"Can not update Docker Stash {docker['GQL']}, because ping failed.")
+                                                continue
                                             for bindMount in docker['bindMounts']:
                                                 for key in bindMount:
                                                     if TmpTargetPath.startswith(key):
