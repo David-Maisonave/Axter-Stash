@@ -57,7 +57,7 @@ config = {
     "tagAppendEnable": True,
     # Enable to move file instead of rename file. (Not recommended for Windows OS)
     "fileRenameViaMove": False,
-    # Maximum allowed performers to be added to file name. If -1=no limit.
+    # Maximum allowed performers to be added to file name. If value -1=no limit.
     "max_performers": -1,
     
     # handleExe is for Windows only.
