@@ -1,5 +1,5 @@
 # Description: This is a Stash plugin which allows users to rename the video (scene) file name by editing the [Title] field located in the scene [Edit] tab.
-# By David Maisonave (aka Axter) Jul-2024 (https://www.axter.com/)
+# By David Maisonave (aka Axter) Jul-2025 (https://www.axter.com/)
 # Get the latest developers version from following link: https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/RenameFile
 # Based on source code from  https://github.com/Serechops/Serechops-Stash/tree/main/plugins/Renamer
 
@@ -453,7 +453,9 @@ def rename_scene(scene_id):
             # ToDo: Add delay rename here
             raise
     
-    if stash.renameFileNameInDB(scene_details['files'][0]['id'], original_file_name, newFilenameWithExt):
+    if dry_run:
+        stash.Log("Dry-Run, so skipping DB renaming")
+    elif stash.renameFileNameInDB(scene_details['files'][0]['id'], original_file_name, newFilenameWithExt):
         stash.Trace("DB rename success")
     elif not taskqueue.tooManyScanOnTaskQueue(maxScanCountForUpdate):
         stash.Trace(f"Calling [metadata_scan] for path {original_parent_directory.resolve().as_posix()}")

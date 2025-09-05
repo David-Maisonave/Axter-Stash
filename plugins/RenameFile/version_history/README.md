@@ -12,5 +12,7 @@
 - Added rename associated file feature. When video file is renamed, associated files will get renamed.
   - Associated files are determind by file extensions listed in variable **associated_files_to_rename** which is in **renamefile_settings.py** file.
   - Option **rename_associated_files_enable** can be used to disable this feature.  It's turned on by default.
-### 0.6.0
+### 1.0.0
+- Fixed Dry-Run bug, which changed the file name in the database when Dry-Run was enabled.
+### 1.0.1
 - 
