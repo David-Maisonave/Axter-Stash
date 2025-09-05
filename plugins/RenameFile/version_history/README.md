@@ -9,4 +9,8 @@
 ### 0.5.8
 - Added setting max_performers to renamefile_settings.py, which allows limitting the quantity of performers added to file name.
 ### 0.5.9
+- Added rename associated file feature. When video file is renamed, associated files will get renamed.
+  - Associated files are determind by file extensions listed in variable **associated_files_to_rename** which is in **renamefile_settings.py** file.
+  - Option **rename_associated_files_enable** can be used to disable this feature.  It's turned on by default.
+### 0.6.0
 - 

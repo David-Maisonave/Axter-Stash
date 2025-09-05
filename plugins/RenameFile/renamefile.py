@@ -139,9 +139,11 @@ def should_exclude_path(scene_details):
             return True
     return False
 
-include_keyField_if_in_name = stash.pluginSettings["z_keyFIeldsIncludeInFileName"]
-excludeIgnoreAutoTags       = config["excludeIgnoreAutoTags"]
-max_performers              = int(config["max_performers"])
+include_keyField_if_in_name     = stash.pluginSettings["z_keyFIeldsIncludeInFileName"]
+excludeIgnoreAutoTags           = config["excludeIgnoreAutoTags"]
+max_performers                  = int(config["max_performers"])
+rename_associated_files_enable  = config["rename_associated_files_enable"]
+associated_files_to_rename      = config["associated_files_to_rename"]
 
 def getPerformers(scene, title):
     title = title.lower()
@@ -394,6 +396,8 @@ def rename_scene(scene_id):
         new_filename = truncated_filename + '_' + hash_suffix + Path(original_file_path).suffix
     newFilenameWithExt  = new_filename + Path(original_file_path).suffix
     new_file_path       = f"{original_parent_directory}{os.sep}{new_filename}{Path(original_file_name).suffix}"
+    org_file_root_stem  = f"{original_parent_directory}{os.sep}{original_file_stem}"
+    new_file_root_stem  = f"{original_parent_directory}{os.sep}{new_filename}"
     stash.Trace(f"(original_file_name={original_file_name}) (newFilenameWithExt={newFilenameWithExt})(new_file_path={new_file_path}) (FileID={scene_details['files'][0]['id']})")
     if original_file_name == newFilenameWithExt or original_file_name == new_filename:
         stash.Log(f"Nothing to do, because new file name matches original file name: (newFilenameWithExt={newFilenameWithExt})")
@@ -406,12 +410,32 @@ def rename_scene(scene_id):
                 stash.Warn(f"Had to close '{original_file_path}', because it was opened by following pids:{results['pids']}")
         if move_files:
             if not dry_run:
+                stash.Trace(f"Moving file '{original_file_path}' to '{new_file_path}'")
                 shutil.move(original_file_path, new_file_path)
+                if rename_associated_files_enable:
+                    stash.Trace(f"rename_associated_files_enable is enabled")
+                    for ext in associated_files_to_rename:
+                        associted_filename = org_file_root_stem + ext
+                        # stash.Trace(f"Checking if file exist: '{associted_filename}'")
+                        if os.path.isfile(associted_filename):
+                            new_associted_filename = new_file_root_stem + ext
+                            stash.Log(f"Renaming file '{associted_filename}' to '{new_associted_filename}'")
+                            shutil.move(associted_filename, new_associted_filename)
             exitMsg = f"{dry_run_prefix}Moved file to '{new_file_path}' from '{original_file_path}'"
         else:
             stash.Trace(f"Rename('{original_file_path}', '{new_file_path}')")
             if not dry_run:
+                stash.Trace(f"Renaming file '{original_file_path}' to '{new_file_path}'")
                 os.rename(original_file_path, new_file_path)
+                if rename_associated_files_enable:
+                    stash.Trace(f"rename_associated_files_enable is enabled...")
+                    for ext in associated_files_to_rename:
+                        associted_filename = org_file_root_stem + ext
+                        # stash.Trace(f"Checking if file exist: '{associted_filename}'")
+                        if os.path.isfile(associted_filename):
+                            new_associted_filename = new_file_root_stem + ext
+                            stash.Log(f"Renaming file '{associted_filename}' to '{new_associted_filename}'")
+                            os.rename(associted_filename, new_associted_filename)
             exitMsg = f"{dry_run_prefix}Renamed file to '{new_file_path}' from '{original_file_path}'"
     except OSError as e:
         exitMsg = f"Failed to move/rename file: From {original_file_path} to {new_file_path}; targetDidExist={targetDidExist}. Error: {e}"
