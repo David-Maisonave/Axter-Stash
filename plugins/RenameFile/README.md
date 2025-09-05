@@ -91,9 +91,9 @@ That's it!!!
       - **SAMI**: Synchronized Accessible Media Interchange -> A Microsoft accessibility initiative released in the summer of 1998.
       - **STL**: Spruce Subtitle File -> Text file for Apple's DVD Studio Pro
       - **MCC**: MacCaption
-      - **info**: A ".info file" is a configuration or metadata file with different meanings depending on the context.
-      - **txt**: A plain text file containing information about the associated video file.
-      - **xml**: Extensible Markup Language -> A text-based file format used for storing and transporting data for the associated video file. It is designed to be both human-readable and machine-readable.
+      - **INFO**: A ".info file" is a configuration or metadata file with different meanings depending on the context.
+      - **TXT**: A plain text file containing information about the associated video file.
+      - **XML**: Extensible Markup Language -> A text-based file format used for storing and transporting data for the associated video file. It is designed to be both human-readable and machine-readable.
   - **handleExe** - Populate this field in order to allow RenameFile plugin to close all open file handles.
     - In Windows, a file can't be renamed if the file is opened by another process. In other words, if a file is being played by Stash or any other video player, the RenameFile plugin will get an access denied error when trying to rename the file.
     - As a workaround, the 'handleExe' field can be populated with the full path to handle.exe or handle64.exe. (See requirements for download link)
