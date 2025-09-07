@@ -176,5 +176,5 @@ Users can setup a private or alternate remote site by changing variables **remot
 
 **Note:**
 The author of this plugin does **not** monitor Discourse. Please post any (**G-Rated**) bugs, feature request, help-request to the following link: [Issues](https://github.com/David-Maisonave/Axter-Stash/issues/new/choose).
-The Discourse link should be use for discussion that would be inappropriate in GitHub.
+The [Discourse link](https://discourse.stashapp.cc/t/dupfilemanager/1331) should be use for discussion that would be inappropriate in GitHub.
 
