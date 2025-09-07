@@ -1,5 +1,11 @@
 # DupFileManager: Ver 1.1.6 beta (By David Maisonave)
 
+https://discourse.stashapp.cc/t/dupfilemanager/1331
+
+### Note: 
+The author of this plugin does **not** monitor Discourse. Please post any (**G-Rated**) bugs, feature request, help-request to the following link: [Issues](https://github.com/David-Maisonave/Axter-Stash/issues/new/choose).
+The Discourse link should be use for discussion that would be inappropriate in GitHub.
+
 DupFileManager is a [Stash](https://github.com/stashapp/stash) plugin which manages duplicate files in the Stash system.
 It has both **task** and **tools-UI** components.
 
@@ -133,6 +139,7 @@ Users can setup a private or alternate remote site by changing variables **remot
 
 ### Future Planned Features, Changes, or Fixes
 - Scheduled Changes
+  - On Adv Menu, add option to set special _ToBeDeletedTag_ under Delete button menu.
   - Remove [Max Dup Process] from the Stash->Plugins GUI. This option already exist in advance menu. Planned for 1.2.0 Version.
   - Add chat icon to report which on hover, displays a popup window showing scene details content. Planned for 1.2.0 Version.
   - Add studio icon to report; on hover show studio name. Planned for 1.2.0 Version.

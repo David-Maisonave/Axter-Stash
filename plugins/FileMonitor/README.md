@@ -1,5 +1,11 @@
 # FileMonitor: Ver 1.0.4 (By David Maisonave)
 
+https://discourse.stashapp.cc/t/filemonitor/1333
+
+### Note: 
+The author of this plugin does **not** monitor Discourse. Please post any (**G-Rated**) bugs, feature request, help-request to the following link: [Issues](https://github.com/David-Maisonave/Axter-Stash/issues/new/choose).
+The Discourse link should be use for discussion that would be inappropriate in GitHub.
+
 FileMonitor is a [Stash](https://github.com/stashapp/stash) plugin with the following two main features:
 
 - Updates Stash when any file changes occurs in the Stash library.
