@@ -1,13 +1,19 @@
 # DupFileManager: Ver 1.1.6 beta (By David Maisonave)
 
-https://discourse.stashapp.cc/t/dupfilemanager/1331
-
-### Note: 
-The author of this plugin does **not** monitor Discourse. Please post any (**G-Rated**) bugs, feature request, help-request to the following link: [Issues](https://github.com/David-Maisonave/Axter-Stash/issues/new/choose).
-The Discourse link should be use for discussion that would be inappropriate in GitHub.
-
 DupFileManager is a [Stash](https://github.com/stashapp/stash) plugin which manages duplicate files in the Stash system.
 It has both **task** and **tools-UI** components.
+
+## Content
+- [Features](#Features)
+- [Requirements](#Requirements)
+- [Installation](#Installation)
+- [Options](#Options)
+- [Advanced Options](#Advanced-Options)
+- [Future Planned Features, Changes, or Fixes](#Future-Planned-Features,-Changes,-or-Fixes)
+- [Stash Password](#Stash-Password)
+- [Screenshots](#Screenshots)
+- [Discourse](#Discourse)
+
 
 ### Features
 
@@ -164,4 +170,11 @@ Users can setup a private or alternate remote site by changing variables **remot
   - Add option to report to automatically strip width & height from name on rename. Example: foofoo - 1920x1080P.mp4
   - Move [Merge Duplicate Tags], [Whitelist Delete In Same Folder], and [Swap Better **] field options from the Stash->Plugins GUI to the advance menu.
     
-  
+
+### Discourse
+[Discourse-DupFileManager](https://discourse.stashapp.cc/t/dupfilemanager/1331)
+
+**Note:**
+The author of this plugin does **not** monitor Discourse. Please post any (**G-Rated**) bugs, feature request, help-request to the following link: [Issues](https://github.com/David-Maisonave/Axter-Stash/issues/new/choose).
+The Discourse link should be use for discussion that would be inappropriate in GitHub.
+
