@@ -9,7 +9,7 @@ It has both **task** and **tools-UI** components.
 - [Installation](#Installation)
 - [Options](#Options)
 - [Advanced Options](#Advanced-Options)
-- [Future Planned Features, Changes, or Fixes](#Future-Planned-Features--Changes--or-Fixes)
+- [Future Planned Features, Changes, or Fixes](#Future-Planned-Features-Changes-or-Fixes)
 - [Stash Password](#Stash-Password)
 - [Screenshots](#Screenshots)
 - [Discourse](#Discourse)
