@@ -71,27 +71,41 @@ stash.convertToAscii = True
 dry_run = stash.Setting("zzdryRun")
 DupFileManagerPyVer = "1.1"
 
-taskName_deleteScene = "deleteScene"
-taskName_copyScene = "copyScene"
-taskName_moveScene = "moveScene"
-taskName_mergeScene = "mergeScene"
-taskName_addExcludeTag = "addExcludeTag"
-taskName_clearFlag = "clearFlag"
+# Starts with commands
+taskNameStartsWith_deleteScene = "deleteScene"
+taskNameStartsWith_copyScene = "copyScene"
+taskNameStartsWith_moveScene = "moveScene"
+taskNameStartsWith_mergeScene = "mergeScene"
+taskNameStartsWith_addExcludeTag = "addExcludeTag"
+taskNameStartsWith_clearFlag = "clearFlag"
+taskNameStartsWith_tag_duplicates_task = "tag_duplicates_task"
+taskNameStartsWith_create_duplicate_report_task = "create_duplicate_report_task"
 
-advanceMenuOptions = [  "applyCombo", "applyComboPinklist", "applyComboGraylist", "applyComboBlacklist", "pathToDelete", "pathToDeleteBlacklist", "sizeToDeleteLess", "sizeToDeleteGreater", "sizeToDeleteBlacklistLess", "sizeToDeleteBlacklistGreater", "durationToDeleteLess", "durationToDeleteGreater", "durationToDeleteBlacklistLess", "durationToDeleteBlacklistGreater", 
-                        "commonResToDeleteLess", "commonResToDeleteEq", "commonResToDeleteGreater", "commonResToDeleteBlacklistLess", "commonResToDeleteBlacklistEq", "commonResToDeleteBlacklistGreater", "resolutionToDeleteLess", "resolutionToDeleteEq", "resolutionToDeleteGreater", 
-                        "resolutionToDeleteBlacklistLess", "resolutionToDeleteBlacklistEq", "resolutionToDeleteBlacklistGreater", "ratingToDeleteLess", "ratingToDeleteEq", "ratingToDeleteGreater", "ratingToDeleteBlacklistLess", "ratingToDeleteBlacklistEq", "ratingToDeleteBlacklistGreater", 
-                        "tagToDelete", "tagToDeleteBlacklist", "titleToDelete", "titleToDeleteBlacklist", "pathStrToDelete", "pathStrToDeleteBlacklist"]
+advanceMenuOptions = [  # advanceMenuOptions also has starts with: tag_duplicates_task and create_duplicate_report_task, 
+                        "pathToDelete", "pathToDeleteBlacklist", # Unit tested 17 Jan 2025
+                        "sizeToDeleteLess", "sizeToDeleteGreater", "sizeToDeleteBlacklistLess", "sizeToDeleteBlacklistGreater", #ToDo: Chk why failed unit test 17 Jan 2025
+                        "durationToDeleteLess", "durationToDeleteGreater", "durationToDeleteBlacklistLess", "durationToDeleteBlacklistGreater", 
+                        "commonResToDeleteLess", "commonResToDeleteEq", "commonResToDeleteGreater", "commonResToDeleteBlacklistLess", "commonResToDeleteBlacklistEq", "commonResToDeleteBlacklistGreater", 
+                        "resolutionToDeleteLess", "resolutionToDeleteEq", "resolutionToDeleteGreater", "resolutionToDeleteBlacklistLess", "resolutionToDeleteBlacklistEq", "resolutionToDeleteBlacklistGreater", 
+                        "ratingToDeleteLess", "ratingToDeleteEq", "ratingToDeleteGreater", "ratingToDeleteBlacklistLess", "ratingToDeleteBlacklistEq", "ratingToDeleteBlacklistGreater", 
+                        "tagToDelete", "tagToDeleteBlacklist", 
+                        "titleToDelete", "titleToDeleteBlacklist", 
+                        "pathStrToDelete", "pathStrToDeleteBlacklist", # Unit tested 17 Jan 2025
+                        "fileNotExistToDelete", "fileNotExistToDeleteBlacklist",
+                        "applyCombo", "applyCombo_", "applyComboBlacklist", "applyComboGraylist", "applyComboPinklist",
+                        ]
 
-doJsonReturnModeTypes = ["tag_duplicates_task", "removeDupTag", "addExcludeTag", "removeExcludeTag", "mergeTags", "getLocalDupReportPath", 
+# Commands from report
+doJsonReturnModeTypes = [taskNameStartsWith_tag_duplicates_task, "removeDupTag", "addExcludeTag", "removeExcludeTag", "mergeTags", "getLocalDupReportPath", 
                          "createDuplicateReportWithoutTagging", "deleteLocalDupReportHtmlFiles", "clear_duplicate_tags_task",
                          "deleteAllDupFileManagerTags", "deleteBlackListTaggedDuplicatesTask", "deleteTaggedDuplicatesLwrResOrLwrDuration",
-                         "deleteBlackListTaggedDuplicatesLwrResOrLwrDuration", "create_duplicate_report_task", "copyScene", "renameFile", "deleteScene",
+                         "deleteBlackListTaggedDuplicatesLwrResOrLwrDuration", taskNameStartsWith_create_duplicate_report_task, "copyScene", "renameFile", "deleteScene",
                          "removeScene", "flagScene", "flagScene", "moveScene"]
 javascriptModeTypes  = ["getReport", "getAdvanceMenu"]
-startsWithCommands   = [taskName_deleteScene, taskName_copyScene, taskName_moveScene, taskName_mergeScene, taskName_addExcludeTag, taskName_clearFlag]
 javascriptModeTypes += advanceMenuOptions
 javascriptModeTypes += doJsonReturnModeTypes
+startsWithCommands   = [taskNameStartsWith_deleteScene, taskNameStartsWith_copyScene, taskNameStartsWith_moveScene, taskNameStartsWith_mergeScene, taskNameStartsWith_addExcludeTag, 
+                        taskNameStartsWith_clearFlag, taskNameStartsWith_tag_duplicates_task, taskNameStartsWith_create_duplicate_report_task ]
 doJsonReturn = False
 def isReportOrAdvMenu():
     if len(sys.argv) < 2:
@@ -188,6 +202,8 @@ htmlReportBackgroundColor   = stash.Setting('htmlReportBackgroundColor')
 htmlReportTextColor         = stash.Setting('htmlReportTextColor')
 htmlVideoPreviewWidth       = stash.Setting('htmlVideoPreviewWidth')
 htmlVideoPreviewHeight      = stash.Setting('htmlVideoPreviewHeight')
+htmlJQueryUI                = stash.Setting('htmlJQueryUI')
+htmlIncludeDropdownMenu     = stash.Setting('htmlIncludeDropdownMenu')
 htmlImagePreviewPopupEnable = True
 
 matchDupDistance            = int(stash.Setting('matchDupDistance'))
@@ -603,6 +619,7 @@ def getPath(Scene, getParent = False):
         return pathlib.Path(path).parent
     return path
 
+htmlJQueryUiLinks         = stash.Setting('htmlJQueryUiLinks')
 htmlReportPrefix = None
 def getHtmlReportTableRow(qtyResults, tagDuplicates):
     global htmlReportPrefix
@@ -612,6 +629,13 @@ def getHtmlReportTableRow(qtyResults, tagDuplicates):
         htmlReportPrefix = file.read()
     htmlReportPrefix = htmlReportPrefix.replace('http://127.0.0.1:9999/graphql', stash.url)
     htmlReportPrefix = htmlReportPrefix.replace('http://localhost:9999/graphql', stash.url)
+    uiCssAndJs = htmlJQueryUiLinks[htmlJQueryUI]
+    if uiCssAndJs != None:
+        for line in uiCssAndJs:
+            if line.endswith("</script>"):
+                htmlReportPrefix = htmlReportPrefix.replace("<!-- JQ Script UI -->", f"<!-- JQ Script UI -->\n{line}")
+            else:
+                htmlReportPrefix = htmlReportPrefix.replace("<!-- CSS UI -->", f"<!-- CSS UI -->\n{line}")
     htmlReportPrefix = htmlReportPrefix.replace("[remoteReportDirURL]", stash.Setting('remoteReportDirURL'))
     htmlReportPrefix = htmlReportPrefix.replace("[js_DirURL]", stash.Setting('js_DirURL'))
     if 'apiKey' in stash.STASH_CONFIGURATION and stash.STASH_CONFIGURATION['apiKey'] != "":
@@ -721,6 +745,35 @@ def writePreview(fileHtmlReport, scene):
     if htmlIncludeVideoPreview or htmlIncludeCoverImage or htmlIncludeImagePreview or htmlIncludeWebpPreview:
         fileHtmlReport.write(f"{getSceneID(scene)}<table><tr>{videoPreview}{webpPreview}{imagePreview}{SceneCoverImg}</tr></table></td>")
 
+menuIndex = 1
+def addPanelToHtmlReport(fileHtmlReport, panelJson):
+    bootstrapIcons = {"icon-save" : "", "icon-cancel" : "", "icon-database-remove" : "", "icon-copy-file" : "", "icon-documents" : "", "icon-rename" : "", "icon-flag-black" : "", "icon-lock" : "", "icon-merge-clear" : "", "icon-flag2" : "", "icon-strike-through" : "", "icon-disable-keyboard" : "", "icon-eraser-minus" : "", "icon-folder" : "", "icon-video-red" : "", "icon-clear" : "", "icon-blue-tag" : "", "icon-headshot" : "", "icon-galleries" : "", "icon-group" : "", "icon-copy" : "", "icon-cancel" : "", "icon-merge" : "", "icon-flag-red" : "", "icon-flag-cyan" : "", "icon-flag-green" : "", "icon-flag-orange" : ""}
+    primeuiIcons = {"icon-save" : "fa-file-o", "icon-cancel" : "", "icon-database-remove" : "", "icon-copy-file" : "", "icon-documents" : "", "icon-rename" : "", "icon-flag-black" : "", "icon-lock" : "", "icon-merge-clear" : "", "icon-flag2" : "", "icon-strike-through" : "", "icon-disable-keyboard" : "", "icon-eraser-minus" : "", "icon-folder" : "", "icon-video-red" : "", "icon-clear" : "", "icon-blue-tag" : "", "icon-headshot" : "", "icon-galleries" : "", "icon-group" : "", "icon-copy" : "", "icon-cancel" : "", "icon-merge" : "", "icon-flag-red" : "", "icon-flag-cyan" : "", "icon-flag-green" : "", "icon-flag-orange" : ""}
+    emptyIcons = {"icon-save" : "", "icon-cancel" : "", "icon-database-remove" : "", "icon-copy-file" : "", "icon-documents" : "", "icon-rename" : "", "icon-flag-black" : "", "icon-lock" : "", "icon-merge-clear" : "", "icon-flag2" : "", "icon-strike-through" : "", "icon-disable-keyboard" : "", "icon-eraser-minus" : "", "icon-folder" : "", "icon-video-red" : "", "icon-clear" : "", "icon-blue-tag" : "", "icon-headshot" : "", "icon-galleries" : "", "icon-group" : "", "icon-copy" : "", "icon-cancel" : "", "icon-merge" : "", "icon-flag-red" : "", "icon-flag-cyan" : "", "icon-flag-green" : "", "icon-flag-orange" : ""}
+    
+    if htmlJQueryUI == "bootstrap":
+        fileHtmlReport.write(f"<nav class=\"navbar navbar-expand-lg bg-body-tertiary\"  style=\"width:{panelJson['panel_width']}px\"><ul class=\"navbar-nav me-auto mb-2 mb-lg-0\">") # <div class="container-fluid">
+    elif htmlJQueryUI == "primeui":
+        fileHtmlReport.write(f"<p-menubar class=\"{panelJson['panel_class_id']}\" style=\"width:{panelJson['panel_width']}px\">")
+    else htmlJQueryUI == "easyui":
+        fileHtmlReport.write(f"<div class=\"easyui-panel {panelJson['panel_class_id']}\" style=\"width:{panelJson['panel_width']}px\">")
+    
+    for drpDwnMenu in panelJson["drpDwnMenus"]:
+        if htmlJQueryUI == "bootstrap":
+            # Need to verify if icons work for bootstrap. Unit test shows problems. Consider using JQuery UI icons (https://api.jqueryui.com/theming/icons)
+            fileHtmlReport.write(f"<div class=\"dropdown\"><button class=\"btn btn-secondary dropdown-toggle icon-link\" type=\"button\" data-bs-toggle=\"dropdown\" aria-expanded=\"false\"><svg class=\"bi\" aria-hidden=\"true\"><use xlink:href=\"#{bootstrapIcons[drpDwnMenu['icon']]}\"></use></svg>{drpDwnMenu['name']}</button>")
+        elif htmlJQueryUI == "primeui":
+            fileHtmlReport.write(f"<p-submenu value=\"{drpDwnMenu['name']}\" icon=\"{primeuiIcons[drpDwnMenu['icon']]}\">")
+        else htmlJQueryUI == "easyui":
+            fileHtmlReport.write(f"<a class=\"easyui-menubutton\" data-options=\"menu:'#{panelJson['main_id']}_mm{menuIndex}', iconCls:'{drpDwnMenu['icon']}'\">{drpDwnMenu['name']}</a>")
+    
+    if htmlJQueryUI == "bootstrap":
+        fileHtmlReport.write("</ul></nav>")
+    elif htmlJQueryUI == "primeui":
+        fileHtmlReport.write("</p-menubar>")
+    else htmlJQueryUI == "easyui":
+        fileHtmlReport.write("</div>")
+    return
 
 # //////////////////////////////////////////////////////////////////////////////
 # //////////////////////////////////////////////////////////////////////////////
@@ -773,33 +826,139 @@ def writeRowToHtmlReport(fileHtmlReport, DupFile, DupFileToKeep, itemIndex, tagD
     
     QtyIconsOnToolBar = 2
     MaxQtyIconsOnToolBar = 7
+    panelJson = {}
+    panelJson['main_id'] = DupFile['id']
+    panelJson['panel_class_id'] = f"Btn-ID-{DupFile['id']}"
+    panelJson['panel_width'] = 430
     fileHtmlReport.write(f"<div class=\"easyui-panel Btn-ID-{DupFile['id']}\" style=\"width:430px\">")
-    fileHtmlReport.write(f"<a class=\"easyui-menubutton\" data-options=\"menu:'#{DupFile['id']}_mm1',iconCls:'icon-save'\">File</a>")
-    fileHtmlReport.write(f"<a class=\"easyui-menubutton\" data-options=\"menu:'#{DupFile['id']}_mm2',iconCls:'icon-flag-black'\">Tag/Flag</a>")   
+    if htmlIncludeDropdownMenu:
+        drpDwnMenus = [
+            {"name" : "File", "icon" : "icon-save", "MenuItems" : [
+                        {"name" : "Delete", "tip" : "Delete file and remove scene from stash", "value" : "deleteScene", "id" : f"{DupFile['id']}", "icon" : "icon-cancel"},
+                        {"name" : "Remove Scene", "tip" : "Remove scene from stash only. Do NOT delete file.", "value" : "removeScene", "id" : f"{DupFile['id']}", "icon" : "icon-database-remove"},
+                        {"name" : "menu-sep"},
+                        {"name" : "", "tip" : "Copy duplicate to [Duplicate-to-Keep].", "value" : "copyScene", "id" : f"{DupFile['id']}:{DupFileToKeep['id']}", "icon" : "icon-copy-file"},
+                        {"name" : "Move to [Duplicate to Keep] and Metadata", "tip" : "Replace [Duplicate-to-Keep] with this duplicate, and copy metadata from this duplicate to [Duplicate-to-Keep].", "value" : "moveScene", "id" : f"{DupFile['id']}:{DupFileToKeep['id']}", "icon" : "icon-documents"},
+                        {"name" : "menu-sep"},
+                        {"name" : "", "tip" : "Rename [Duplicate-to-Keep] file name with this duplicate file name.", "value" : "renameFile", "id" : f"{DupFileToKeep['id']}:{stash.asc2(pathlib.Path(DupFile['files'][0]['path']).stem)}", "icon" : "icon-rename"},
+                        ]},
+            {"name" : "Tag/Flag", "icon" : "icon-flag-black", "MenuItems" : [
+                        {"name" : "Add Exclude Tag", "tip" : "Add exclude tag to scene. This will exclude scene from deletion via deletion tag", "value" : "addExcludeTag", "id" : f"{DupFile['id']}", "icon" : "icon-lock"},
+                        {"name" : "Merge Tags, Performers, & Galleries", "tip" : "Merge duplicate scene Tags, Performers, & Galleries with [Duplicate-to-Keep] scene Tags, Performers, & Galleries", "value" : "mergeTags", "id" : f"{DupFile['id']}:{DupFileToKeep['id']}", "icon" : "icon-merge-clear"},
+                        {"name" : "menu-sep"},
+                        {"name" : "Flag this scene", "tip" : "Flag scene as reviewed or as awaiting further action.", "value" : "flagScene", "id" : f"{DupFile['id']}", "icon" : "icon-flag-black"},
+                        {"name" : "Flag Cyan",   "tip" : "Flag scene as reviewed or as awaiting further action.", "value" : "flagScenecyan highlight", "id" : f"{DupFile['id']}", "icon" : "icon-flag2"  , "style" : "color:black;background-color:Cyan;"},
+                        {"name" : "Flag Green",  "tip" : "Flag scene as reviewed or as awaiting further action.", "value" : "flagScenegreen highlight", "id" : f"{DupFile['id']}", "icon" : "icon-flag2" , "style" : "color:black;background-color:Green;"},
+                        {"name" : "Flag Orange", "tip" : "Flag scene as reviewed or as awaiting further action.", "value" : "flagSceneorange highlight", "id" : f"{DupFile['id']}", "icon" : "icon-flag2", "style" : "color:black;background-color:Orange;"},
+                        {"name" : "Flag Yellow", "tip" : "Flag scene as reviewed or as awaiting further action.", "value" : "flagSceneyellow highlight", "id" : f"{DupFile['id']}", "icon" : "icon-flag2", "style" : "color:black;background-color:Yellow;"},
+                        {"name" : "Flag Pink",   "tip" : "Flag scene as reviewed or as awaiting further action.", "value" : "flagScenepink highlight", "id" : f"{DupFile['id']}", "icon" : "icon-flag2"  , "style" : "color:black;background-color:Pink;"},
+                        {"name" : "Flag Red",    "tip" : "Flag scene as reviewed or as awaiting further action.", "value" : "flagScenered highlight", "id" : f"{DupFile['id']}", "icon" : "icon-flag2"   , "style" : "color:black;background-color:Red;"},
+                        {"name" : "menu-sep"},
+                        {"name" : "Flag Strike-through", "tip" : "Flag scene as reviewed or as requiring NO further action.", "value" : "flagScenestrike-through", "id" : f"{DupFile['id']}", "icon" : "icon-strike-through"},
+                        {"name" : "Flag Disable-scene", "tip" : "Flag scene as reviewed or as requiring NO further action.", "value" : "flagScenedisable-scene", "id" : f"{DupFile['id']}", "icon" : "icon-disable-keyboard"},
+                        {"name" : "menu-sep"},
+                        {"name" : "Erase All Flags", "tip" : "Remove all flags from this scene.", "value" : "flagSceneremove all flags", "id" : f"{DupFile['id']}", "icon" : "icon-eraser-minus"},
+                        # {"name" : "", "tip" : "", "value" : "", "id" : f"", "icon" : "icon-"},
+                        ]},
+        ]
+        fileHtmlReport.write(f"<a class=\"easyui-menubutton\" data-options=\"menu:'#{DupFile['id']}_mm1',iconCls:'icon-save'\">File</a>")
+        fileHtmlReport.write(f"<div id=\"{DupFile['id']}_mm1\">")
+        fileHtmlReport.write(f"<div iconCls=\"icon-cancel\" title=\"Delete file and remove scene from stash\" value=\"deleteScene\" id=\"{DupFile['id']}\">Delete</div>")
+        fileHtmlReport.write(f"<div iconCls=\"icon-database-remove\" title=\"Remove scene from stash only. Do NOT delete file.\" value=\"removeScene\" id=\"{DupFile['id']}\">Remove Scene</div>")
+        fileHtmlReport.write('<div class="menu-sep"></div>')
+        fileHtmlReport.write(f"<div iconCls=\"icon-copy-file\" title=\"Copy duplicate to [Duplicate-to-Keep].\" value=\"copyScene\" id=\"{DupFile['id']}:{DupFileToKeep['id']}\">Copy to [Duplicate to Keep]</div>")
+        fileHtmlReport.write(f"<div iconCls=\"icon-documents\" title=\"Replace [Duplicate-to-Keep] with this duplicate, and copy metadata from this duplicate to [Duplicate-to-Keep].\" value=\"moveScene\" id=\"{DupFile['id']}:{DupFileToKeep['id']}\">Move to [Duplicate to Keep] and Metadata</div>")
+        fileHtmlReport.write('<div class="menu-sep"></div>')
+        fileHtmlReport.write(f"<div iconCls=\"icon-rename\" title=\"Rename [Duplicate-to-Keep] file name with this duplicate file name.\" value=\"renameFile\" id=\"{DupFileToKeep['id']}:{stash.asc2(pathlib.Path(DupFile['files'][0]['path']).stem)}\">Copy this Name to [Duplicate to Keep]</div>")
+        if dupFileExist:
+            fileHtmlReport.write('<div class="menu-sep"></div>')
+            fileHtmlReport.write(f"<div iconCls=\"icon-folder\" style=\"background-color:Gold;\"><a class=\"link-items\" title=\"Open folder\" href=\"file://{getPath(DupFile, True)}\">[Folder]</a></div>")
+            fileHtmlReport.write(f"<div iconCls=\"icon-video-red\" style=\"background-color:Gold;\"><a class=\"link-items\" title=\"Play file locally\" href=\"file://{getPath(DupFile)}\">[Play]</a></div>")
+            drpDwnMenus[0]["MenuItems"] += [{"name" : "menu-sep"}, {"name" : "[Folder]", "tip" : "Open folder", "value" : "", "id" : "", "icon" : "icon-folder", "href" : f"file://{getPath(DupFile, True)}" , "style" : "background-color:Gold;"}, {"name" : "[Play]", "tip" : "Play file locally", "value" : "", "id" : "", "icon" : "icon-video-red", "href" : f"file://{getPath(DupFile)}" , "style" : "background-color:Gold;"}]
+        fileHtmlReport.write("</div>")
+        
+        fileHtmlReport.write(f"<a class=\"easyui-menubutton\" data-options=\"menu:'#{DupFile['id']}_mm2',iconCls:'icon-flag-black'\">Tag/Flag</a>")   
+        fileHtmlReport.write(f"<div id=\"{DupFile['id']}_mm2\">")
+        if dupFileExist and tagDuplicates:
+            fileHtmlReport.write(f"<div iconCls=\"icon-clear\"title=\"Remove duplicate tag from scene.\" value=\"removeDupTag\" id=\"{DupFile['id']}\">Remove Duplicate Tag</div>")
+            drpDwnMenus[1]["MenuItems"] = [{"name" : "Remove Duplicate Tag", "tip" : "Remove duplicate tag from scene.", "value" : "removeDupTag", "id" : f"{DupFile['id']}", "icon" : "icon-clear"}] + drpDwnMenus[1]["MenuItems"]
+        fileHtmlReport.write(f"<div iconCls=\"icon-lock\" title=\"Add exclude tag to scene. This will exclude scene from deletion via deletion tag\" value=\"addExcludeTag\" id=\"{DupFile['id']}\">Add Exclude Tag</div>")
+        fileHtmlReport.write(f"<div iconCls=\"icon-merge-clear\" title=\"Merge duplicate scene Tags, Performers, & Galleries with [Duplicate-to-Keep] scene Tags, Performers, & Galleries\" value=\"mergeTags\" id=\"{DupFile['id']}:{DupFileToKeep['id']}\">Merge Tags, Performers, & Galleries</div>")
+        fileHtmlReport.write('<div class="menu-sep"></div>')
+        fileHtmlReport.write(f"<div iconCls=\"icon-flag-black\" title=\"Flag scene as reviewed or as awaiting further action.\" value=\"flagScene\" id=\"{DupFile['id']}\">Flag this scene</div>")
+        fileHtmlReport.write(f"<div iconCls=\"icon-flag2\" title=\"Flag scene as reviewed or as awaiting further action.\" value=\"flagScenecyan highlight\" id=\"{DupFile['id']}\" style=\"background-color:cyan;color:black;\">Flag Cyan</div>")
+        fileHtmlReport.write(f"<div iconCls=\"icon-flag2\" title=\"Flag scene as reviewed or as awaiting further action.\" value=\"flagScenegreen highlight\" id=\"{DupFile['id']}\" style=\"background-color:#00FF00;color:black;\">Flag Green</div>")
+        fileHtmlReport.write(f"<div iconCls=\"icon-flag2\" title=\"Flag scene as reviewed or as awaiting further action.\" value=\"flagSceneorange highlight\" id=\"{DupFile['id']}\" style=\"background-color:orange;color:black;\">Flag Orange</div>")
+        fileHtmlReport.write(f"<div iconCls=\"icon-flag2\" title=\"Flag scene as reviewed or as awaiting further action.\" value=\"flagSceneyellow highlight\" id=\"{DupFile['id']}\" style=\"background-color:yellow;color:black;\">Flag Yellow</div>")
+        fileHtmlReport.write(f"<div iconCls=\"icon-flag2\" title=\"Flag scene as reviewed or as awaiting further action.\" value=\"flagScenepink highlight\" id=\"{DupFile['id']}\" style=\"background-color:pink;color:black;\">Flag Pink</div>")
+        fileHtmlReport.write(f"<div iconCls=\"icon-flag2\" title=\"Flag scene as reviewed or as awaiting further action.\" value=\"flagScenered highlight\" id=\"{DupFile['id']}\" style=\"background-color:red;color:black;\">Flag Red</div>")
+        fileHtmlReport.write('<div class="menu-sep"></div>')
+        fileHtmlReport.write(f"<div iconCls=\"icon-strike-through\" title=\"Flag scene as reviewed or as requiring NO further action.\" value=\"flagScenestrike-through\" id=\"{DupFile['id']}\">Flag Strike-through</div>")
+        fileHtmlReport.write(f"<div iconCls=\"icon-disable-keyboard\" title=\"Flag scene as reviewed or as requiring NO further action.\" value=\"flagScenedisable-scene\" id=\"{DupFile['id']}\">Flag Disable-scene</div>")
+        fileHtmlReport.write('<div class="menu-sep"></div>')
+        fileHtmlReport.write(f"<div iconCls=\"icon-eraser-minus\" class=\"easyui-tooltip\" title=\"Remove all flags from this scene.\" value=\"flagSceneremove all flags\" id=\"{DupFile['id']}\">Erase All Flags</div>")
+        fileHtmlReport.write("</div>")
+        panelJson["drpDwnMenus"] = drpDwnMenus
     if len(DupFile['tags']) > 0:
         QtyIconsOnToolBar += 1
+        drpDwnMenu = {"name" : "", "icon" : "icon-blue-tag", "tip" : "List of tags for this scene"}
         menuitem =  f"<a class=\"easyui-menubutton\" title=\"List of tags for this scene\" data-options=\"menu:'#{DupFile['id']}_mm4',iconCls:'icon-blue-tag'\"></a>"
         if DupToKeepMissingTag:
             menuitem = menuitem.replace("icon-blue-tag", "icon-yellow-tag")
+            drpDwnMenu["icon"] = "icon-yellow-tag"
         fileHtmlReport.write(menuitem)
+        fileHtmlReport.write(f"<div id=\"{DupFile['id']}_mm4\" value=\"DoNothing\">")
+        for tag in DupFile['tags']:
+            # if not tag['ignore_auto_tag']:
+            fileHtmlReport.write(f"<div iconCls=\"icon-blue-tag\" value=\"DoNothing\">{tag['name']}</div>")
+            drpDwnMenu["MenuItems"] += [{"name" : f"{tag['name']}", "value" : "DoNothing", "id" : "", "icon" : "icon-blue-tag"}]
+        fileHtmlReport.write("</div>")
+        panelJson["drpDwnMenus"] += [drpDwnMenu]
     if len(DupFile['performers']) > 0:
         QtyIconsOnToolBar += 1
+        drpDwnMenu = {"name" : "", "icon" : "icon-headshot", "tip" : "List of actors for this scene"}
         menuitem = f"<a class=\"easyui-menubutton\" title=\"List of actors for this scene\" data-options=\"menu:'#{DupFile['id']}_mm5',iconCls:'icon-headshot'\"></a>"
         if DupToKeepMissingPerformer:
             menuitem = menuitem.replace("icon-headshot", "icon-yellow-headshot")
+            drpDwnMenu["icon"] = "icon-yellow-headshot"
         fileHtmlReport.write(menuitem)
+        fileHtmlReport.write(f"<div id=\"{DupFile['id']}_mm5\" value=\"DoNothing\">")
+        for performer in DupFile['performers']:
+            fileHtmlReport.write(f"<div iconCls=\"icon-headshot\" value=\"DoNothing\">{performer['name']}</div>")
+            drpDwnMenu["MenuItems"] += [{"name" : f"{performer['name']}", "value" : "DoNothing", "id" : "", "icon" : "icon-headshot"}]
+        fileHtmlReport.write("</div>")
+        panelJson["drpDwnMenus"] += [drpDwnMenu]
     if len(DupFile['galleries']) > 0:
         QtyIconsOnToolBar += 1
+        drpDwnMenu = {"name" : "", "icon" : "icon-galleries", "tip" : "List of galleries for this scene"}
         menuitem = f"<a class=\"easyui-menubutton\" title=\"List of galleries for this scene\" data-options=\"menu:'#{DupFile['id']}_mm6',iconCls:'icon-galleries'\"></a>"
         if DupToKeepMissingGallery:
             menuitem = menuitem.replace("icon-galleries", "icon-yellow-galleries")
+            drpDwnMenu["icon"] = "icon-yellow-galleries"
         fileHtmlReport.write(menuitem)
+        fileHtmlReport.write(f"<div id=\"{DupFile['id']}_mm6\" value=\"DoNothing\">")
+        for gallery in DupFile['galleries']:
+            gallery = stash.getGalleryName(gallery['id'])
+            fileHtmlReport.write(f"<div iconCls=\"icon-galleries\" value=\"DoNothing\">{gallery['title']}</div>")
+            drpDwnMenu["MenuItems"] += [{"name" : f"{gallery['title']}", "value" : "DoNothing", "id" : "", "icon" : "icon-galleries"}]
+        fileHtmlReport.write("</div>")
+        panelJson["drpDwnMenus"] += [drpDwnMenu]
     if len(DupFile['groups']) > 0:
         QtyIconsOnToolBar += 1
+        drpDwnMenu = {"name" : "", "icon" : "icon-group", "tip" : "List of groups for this scene"}
         menuitem = f"<a class=\"easyui-menubutton\" title=\"List of groups for this scene\" data-options=\"menu:'#{DupFile['id']}_mm7',iconCls:'icon-group'\"></a>"
         if DupToKeepMissingGroup:
             menuitem = menuitem.replace("icon-group", "icon-yellow-group")
+            drpDwnMenu["icon"] = "icon-yellow-group"
         fileHtmlReport.write(menuitem)
+        fileHtmlReport.write(f"<div id=\"{DupFile['id']}_mm7\" value=\"DoNothing\">")
+        for group in DupFile['groups']:
+            fileHtmlReport.write(f"<div iconCls=\"icon-group\" value=\"DoNothing\">{group['group']['name']}</div>")
+            drpDwnMenu["MenuItems"] += [{"name" : f"{group['group']['name']}", "value" : "DoNothing", "id" : "", "icon" : "icon-group"}]
+        fileHtmlReport.write("</div>")
+        panelJson["drpDwnMenus"] += [drpDwnMenu]
+    panelJson["drpDwnMenus"] += [{"name" : "", "icon" : "icon-cancel", "tip" : "Delete file and remove scene from stash.", "value" : "deleteScene", "id" : f"{DupFile['id']}"}]
+    panelJson["drpDwnMenus"] += [{"name" : "", "icon" : "icon-copy", "tip" : "Copy duplicate to [Duplicate-to-Keep].", "value" : "copyScene", "id" : f"{DupFile['id']}:{DupFileToKeep['id']}"}]
     fileHtmlReport.write(f"<a class=\"easyui-linkbutton easyui-tooltip\" iconCls=\"icon-cancel\" title=\"Delete file and remove scene from stash\" value=\"deleteScene\" id=\"{DupFile['id']}\"></a>")
     fileHtmlReport.write(f"<a class=\"easyui-linkbutton easyui-tooltip\" iconCls=\"icon-copy\" title=\"Copy duplicate to [Duplicate-to-Keep].\" value=\"copyScene\" id=\"{DupFile['id']}:{DupFileToKeep['id']}\"></a>")
     if QtyIconsOnToolBar > 5:
@@ -809,73 +968,25 @@ def writeRowToHtmlReport(fileHtmlReport, DupFile, DupFileToKeep, itemIndex, tagD
     if QtyIconsOnToolBar < MaxQtyIconsOnToolBar:
         QtyIconsOnToolBar += 1
         fileHtmlReport.write(f"<a class=\"easyui-linkbutton easyui-tooltip\" iconCls=\"icon-merge\" title=\"Merge duplicate scene Tags, Performers, & Galleries with [Duplicate-to-Keep] scene Tags, Performers, & Galleries\" value=\"mergeTags\" id=\"{DupFile['id']}:{DupFileToKeep['id']}\"></a>")	
+        panelJson["drpDwnMenus"] += [{"name" : "", "icon" : "icon-merge", "tip" : "Merge duplicate scene Tags, Performers, & Galleries with [Duplicate-to-Keep] scene Tags, Performers, & Galleries", "value" : "mergeTags", "id" : f"{DupFile['id']}:{DupFileToKeep['id']}"}]
     if QtyIconsOnToolBar < MaxQtyIconsOnToolBar:
         QtyIconsOnToolBar += 1
+        panelJson["drpDwnMenus"] += [{"name" : "", "icon" : "icon-flag-red", "tip" : "Flag scene as reviewed or as awaiting further action with red flag.", "value" : "flagScenered highlight", "id" : f"{DupFile['id']}"}]
         fileHtmlReport.write(f"<a class=\"easyui-linkbutton easyui-tooltip\" iconCls=\"icon-flag-red\" title=\"Flag scene as reviewed or as awaiting further action with red flag.\" value=\"flagScenered highlight\" id=\"{DupFile['id']}\"></a>")
     if QtyIconsOnToolBar < MaxQtyIconsOnToolBar:
         QtyIconsOnToolBar += 1
+        panelJson["drpDwnMenus"] += [{"name" : "", "icon" : "icon-flag-cyan", "tip" : "Flag scene as reviewed or as awaiting further action with cyan flag.", "value" : "flagScenecyan highlight", "id" : f"{DupFile['id']}"}]
         fileHtmlReport.write(f"<a class=\"easyui-linkbutton easyui-tooltip\" iconCls=\"icon-flag-cyan\" title=\"Flag scene as reviewed or as awaiting further action with cyan flag.\" value=\"flagScenecyan highlight\" id=\"{DupFile['id']}\"></a>")
     if QtyIconsOnToolBar < MaxQtyIconsOnToolBar:
         QtyIconsOnToolBar += 1
+        panelJson["drpDwnMenus"] += [{"name" : "", "icon" : "icon-flag-green", "tip" : "Flag scene as reviewed or as awaiting further action with green flag.", "value" : "flagScenegreen highlight", "id" : f"{DupFile['id']}"}]
         fileHtmlReport.write(f"<a class=\"easyui-linkbutton easyui-tooltip\" iconCls=\"icon-flag-green\" title=\"Flag scene as reviewed or as awaiting further action with green flag.\" value=\"flagScenegreen highlight\" id=\"{DupFile['id']}\"></a>")
     if QtyIconsOnToolBar < MaxQtyIconsOnToolBar:
         QtyIconsOnToolBar += 1
+        panelJson["drpDwnMenus"] += [{"name" : "", "icon" : "icon-flag-orange", "tip" : "Flag scene as reviewed or as awaiting further action with orange flag.", "value" : "flagSceneorange highlight", "id" : f"{DupFile['id']}"}]
         fileHtmlReport.write(f"<a class=\"easyui-linkbutton easyui-tooltip\" iconCls=\"icon-flag-orange\" title=\"Flag scene as reviewed or as awaiting further action with orange flag.\" value=\"flagSceneorange highlight\" id=\"{DupFile['id']}\"></a>")
     fileHtmlReport.write("</div>")
-    fileHtmlReport.write(f"<div id=\"{DupFile['id']}_mm1\">")
-    fileHtmlReport.write(f"<div iconCls=\"icon-cancel\" title=\"Delete file and remove scene from stash\" value=\"deleteScene\" id=\"{DupFile['id']}\">Delete</div>")
-    fileHtmlReport.write(f"<div iconCls=\"icon-database-remove\" title=\"Remove scene from stash only. Do NOT delete file.\" value=\"removeScene\" id=\"{DupFile['id']}\">Remove Scene</div>")
-    fileHtmlReport.write('<div class="menu-sep"></div>')
-    fileHtmlReport.write(f"<div iconCls=\"icon-copy-file\" title=\"Copy duplicate to [Duplicate-to-Keep].\" value=\"copyScene\" id=\"{DupFile['id']}:{DupFileToKeep['id']}\">Copy to [Duplicate to Keep]</div>")
-    fileHtmlReport.write(f"<div iconCls=\"icon-documents\" title=\"Replace [Duplicate-to-Keep] with this duplicate, and copy metadata from this duplicate to [Duplicate-to-Keep].\" value=\"moveScene\" id=\"{DupFile['id']}:{DupFileToKeep['id']}\">Move to [Duplicate to Keep] and Metadata</div>")
-    fileHtmlReport.write('<div class="menu-sep"></div>')
-    fileHtmlReport.write(f"<div iconCls=\"icon-rename\" title=\"Rename [Duplicate-to-Keep] file name with this duplicate file name.\" value=\"renameFile\" id=\"{DupFileToKeep['id']}:{stash.asc2(pathlib.Path(DupFile['files'][0]['path']).stem)}\">Copy this Name to [Duplicate to Keep]</div>")
-    if dupFileExist:
-        fileHtmlReport.write('<div class="menu-sep"></div>')
-        fileHtmlReport.write(f"<div iconCls=\"icon-folder\" style=\"background-color:Gold;\"><a class=\"link-items\" title=\"Open folder\" href=\"file://{getPath(DupFile, True)}\">[Folder]</a></div>")
-        fileHtmlReport.write(f"<div iconCls=\"icon-video-red\" style=\"background-color:Gold;\"><a class=\"link-items\" title=\"Play file locally\" href=\"file://{getPath(DupFile)}\">[Play]</a></div>")
-    fileHtmlReport.write("</div>")
-    fileHtmlReport.write(f"<div id=\"{DupFile['id']}_mm2\">")
-    if dupFileExist and tagDuplicates:
-        fileHtmlReport.write(f"<div iconCls=\"icon-clear\"title=\"Remove duplicate tag from scene.\" value=\"removeDupTag\" id=\"{DupFile['id']}\">Remove Duplicate Tag</div>")
-    fileHtmlReport.write(f"<div iconCls=\"icon-lock\" title=\"Add exclude tag to scene. This will exclude scene from deletion via deletion tag\" value=\"addExcludeTag\" id=\"{DupFile['id']}\">Add Exclude Tag</div>")
-    fileHtmlReport.write(f"<div iconCls=\"icon-merge-clear\" title=\"Merge duplicate scene Tags, Performers, & Galleries with [Duplicate-to-Keep] scene Tags, Performers, & Galleries\" value=\"mergeTags\" id=\"{DupFile['id']}:{DupFileToKeep['id']}\">Merge Tags, Performers, & Galleries</div>")
-    fileHtmlReport.write('<div class="menu-sep"></div>')
-    fileHtmlReport.write(f"<div iconCls=\"icon-flag-black\" title=\"Flag scene as reviewed or as awaiting further action.\" value=\"flagScene\" id=\"{DupFile['id']}\">Flag this scene</div>")
-    fileHtmlReport.write(f"<div iconCls=\"icon-flag2\" title=\"Flag scene as reviewed or as awaiting further action.\" value=\"flagScenecyan highlight\" id=\"{DupFile['id']}\" style=\"background-color:cyan;color:black;\">Flag Cyan</div>")
-    fileHtmlReport.write(f"<div iconCls=\"icon-flag2\" title=\"Flag scene as reviewed or as awaiting further action.\" value=\"flagScenegreen highlight\" id=\"{DupFile['id']}\" style=\"background-color:#00FF00;color:black;\">Flag Green</div>")
-    fileHtmlReport.write(f"<div iconCls=\"icon-flag2\" title=\"Flag scene as reviewed or as awaiting further action.\" value=\"flagSceneorange highlight\" id=\"{DupFile['id']}\" style=\"background-color:orange;color:black;\">Flag Orange</div>")
-    fileHtmlReport.write(f"<div iconCls=\"icon-flag2\" title=\"Flag scene as reviewed or as awaiting further action.\" value=\"flagSceneyellow highlight\" id=\"{DupFile['id']}\" style=\"background-color:yellow;color:black;\">Flag Yellow</div>")
-    fileHtmlReport.write(f"<div iconCls=\"icon-flag2\" title=\"Flag scene as reviewed or as awaiting further action.\" value=\"flagScenepink highlight\" id=\"{DupFile['id']}\" style=\"background-color:pink;color:black;\">Flag Pink</div>")
-    fileHtmlReport.write(f"<div iconCls=\"icon-flag2\" title=\"Flag scene as reviewed or as awaiting further action.\" value=\"flagScenered highlight\" id=\"{DupFile['id']}\" style=\"background-color:red;color:black;\">Flag Red</div>")
-    fileHtmlReport.write('<div class="menu-sep"></div>')
-    fileHtmlReport.write(f"<div iconCls=\"icon-strike-through\" title=\"Flag scene as reviewed or as requiring NO further action.\" value=\"flagScenestrike-through\" id=\"{DupFile['id']}\">Flag Strike-through</div>")
-    fileHtmlReport.write(f"<div iconCls=\"icon-disable-keyboard\" title=\"Flag scene as reviewed or as requiring NO further action.\" value=\"flagScenedisable-scene\" id=\"{DupFile['id']}\">Flag Disable-scene</div>")
-    fileHtmlReport.write('<div class="menu-sep"></div>')
-    fileHtmlReport.write(f"<div iconCls=\"icon-eraser-minus\" class=\"easyui-tooltip\" title=\"Remove all flags from this scene.\" value=\"flagSceneremove all flags\" id=\"{DupFile['id']}\">Erase All Flags</div>")
-    fileHtmlReport.write("</div>")
-    if len(DupFile['tags']) > 0:
-        fileHtmlReport.write(f"<div id=\"{DupFile['id']}_mm4\" value=\"DoNothing\">")
-        for tag in DupFile['tags']:
-            # if not tag['ignore_auto_tag']:
-            fileHtmlReport.write(f"<div iconCls=\"icon-blue-tag\" value=\"DoNothing\">{tag['name']}</div>")
-        fileHtmlReport.write("</div>")
-    if len(DupFile['performers']) > 0:
-        fileHtmlReport.write(f"<div id=\"{DupFile['id']}_mm5\" value=\"DoNothing\">")
-        for performer in DupFile['performers']:
-            fileHtmlReport.write(f"<div iconCls=\"icon-headshot\" value=\"DoNothing\">{performer['name']}</div>")
-        fileHtmlReport.write("</div>")
-    if len(DupFile['galleries']) > 0:
-        fileHtmlReport.write(f"<div id=\"{DupFile['id']}_mm6\" value=\"DoNothing\">")
-        for gallery in DupFile['galleries']:
-            gallery = stash.getGalleryName(gallery['id'])
-            fileHtmlReport.write(f"<div iconCls=\"icon-galleries\" value=\"DoNothing\">{gallery['title']}</div>")
-        fileHtmlReport.write("</div>")
-    if len(DupFile['groups']) > 0:
-        fileHtmlReport.write(f"<div id=\"{DupFile['id']}_mm7\" value=\"DoNothing\">")
-        for group in DupFile['groups']:
-            fileHtmlReport.write(f"<div iconCls=\"icon-group\" value=\"DoNothing\">{group['group']['name']}</div>")
-        fileHtmlReport.write("</div>")
+    # addPanelToHtmlReport(fileHtmlReport, panelJson)
     if not dupFileExist:
         fileHtmlReport.write(fileDoesNotExistStr)  
     fileHtmlReport.write("</p></td>")
@@ -887,85 +998,85 @@ def writeRowToHtmlReport(fileHtmlReport, DupFile, DupFileToKeep, itemIndex, tagD
     fileHtmlReport.write(f"<p><table><tr class=\"scene-details\"><th>Res</th><th>Durration</th><th>BitRate</th><th>Codec</th><th>FrameRate</th><th>size</th><th>ID</th></tr>")
     fileHtmlReport.write(f"<tr class=\"scene-details\"><td>{DupFileToKeep['files'][0]['width']}x{DupFileToKeep['files'][0]['height']}</td><td>{DupFileToKeep['files'][0]['duration']}</td><td>{DupFileToKeep['files'][0]['bit_rate']}</td><td>{DupFileToKeep['files'][0]['video_codec']}</td><td>{DupFileToKeep['files'][0]['frame_rate']}</td><td>{DupFileToKeep['files'][0]['size']}</td><td>{DupFileToKeep['id']}</td></tr></table>")
     
+    panelJson = {}
+    panelJson["main_id"] = DupFileToKeep['id']
+    panelJson["panel_class_id"] = f"Btn-ID-{DupFileToKeep['id']}"
+    panelJson["panel_width"] = 380
     fileHtmlReport.write(f"<div class=\"easyui-panel Btn-ID-{DupFileToKeep['id']}\" style=\"width:380px\">")
-    fileHtmlReport.write(f"<a class=\"easyui-menubutton\" data-options=\"menu:'#{DupFile['id']}_{DupFileToKeep['id']}_mm1',iconCls:'icon-save'\">File</a>")
-    fileHtmlReport.write(f"<a class=\"easyui-menubutton\" data-options=\"menu:'#{DupFile['id']}_{DupFileToKeep['id']}_mm2',iconCls:'icon-flag-black'\">Tag/Flag</a>")   
+    if htmlIncludeDropdownMenu:
+        fileHtmlReport.write(f"<a class=\"easyui-menubutton\" data-options=\"menu:'#{DupFile['id']}_{DupFileToKeep['id']}_mm1',iconCls:'icon-save'\">File</a>")
+        fileHtmlReport.write(f"<div id=\"{DupFile['id']}_{DupFileToKeep['id']}_mm1\">")
+        fileHtmlReport.write(f"<div iconCls=\"icon-cancel\" title=\"Delete [DupFileToKeep] and remove scene from stash\" value=\"deleteScene\" id=\"{DupFileToKeep['id']}\">Delete</div>")
+        fileHtmlReport.write(f"<div iconCls=\"icon-database-remove\" title=\"Remove scene from stash only. Do NOT delete file.\" value=\"removeScene\" id=\"{DupFileToKeep['id']}\">Remove</div>")
+        fileHtmlReport.write(f"<div iconCls=\"icon-rename\" title=\"Rename [Duplicate-to-Keep].\" value=\"newName\" id=\"{DupFileToKeep['id']}:{stash.asc2(pathlib.Path(DupFileToKeep['files'][0]['path']).stem)}\">Rename</div>")
+        fileHtmlReport.write('<div class="menu-sep"></div>')
+        fileHtmlReport.write(f"<div iconCls=\"icon-folder\" style=\"background-color:Gold;\"><a class=\"link-items\" title=\"Open folder\" href=\"file://{getPath(DupFileToKeep, True)}\">[Folder]</a></div>")
+        if toKeepFileExist:
+            fileHtmlReport.write(f"<div iconCls=\"icon-video-red\" style=\"background-color:Gold;\"><a class=\"link-items\" title=\"Play file locally\" href=\"file://{getPath(DupFileToKeep)}\">[Play]</a></div>")
+        fileHtmlReport.write("</div>")
+        
+        fileHtmlReport.write(f"<a class=\"easyui-menubutton\" data-options=\"menu:'#{DupFile['id']}_{DupFileToKeep['id']}_mm2',iconCls:'icon-flag-black'\">Tag/Flag</a>")   
+        fileHtmlReport.write(f"<div id=\"{DupFile['id']}_{DupFileToKeep['id']}_mm2\">")
+        if isTaggedExcluded(DupFileToKeep):
+            fileHtmlReport.write(f"<div iconCls=\"icon-lock\" title=\"Remove exclude scene from deletion tag\" value=\"removeExcludeTag\" id=\"{DupFileToKeep['id']}\">Remove Exclude Tag</div>")
+            fileHtmlReport.write('<div class="menu-sep"></div>')
+        fileHtmlReport.write(f"<div iconCls=\"icon-flag-black\" title=\"Flag scene as reviewed or as awaiting review.\" value=\"flagScene\" id=\"{DupFileToKeep['id']}\">Flag this scene</div>")
+        fileHtmlReport.write(f"<div iconCls=\"icon-flag2\" title=\"Flag scene as reviewed or as awaiting review.\" value=\"flagScenecyan highlight\" id=\"{DupFileToKeep['id']}\" style=\"background-color:cyan\">Flag Cyan</div>")
+        fileHtmlReport.write(f"<div iconCls=\"icon-flag2\" title=\"Flag scene as reviewed or as awaiting review.\" value=\"flagScenegreen highlight\" id=\"{DupFileToKeep['id']}\" style=\"background-color:#00FF00\">Flag Green</div>")
+        fileHtmlReport.write(f"<div iconCls=\"icon-flag2\" title=\"Flag scene as reviewed or as awaiting review.\" value=\"flagSceneorange highlight\" id=\"{DupFileToKeep['id']}\" style=\"background-color:orange\">Flag Orange</div>")
+        fileHtmlReport.write(f"<div iconCls=\"icon-flag2\" title=\"Flag scene as reviewed or as awaiting review.\" value=\"flagSceneyellow highlight\" id=\"{DupFileToKeep['id']}\" style=\"background-color:yellow\">Flag Yellow</div>")
+        fileHtmlReport.write(f"<div iconCls=\"icon-flag2\" title=\"Flag scene as reviewed or as awaiting review.\" value=\"flagScenepink highlight\" id=\"{DupFileToKeep['id']}\" style=\"background-color:pink\">Flag Pink</div>")
+        fileHtmlReport.write(f"<div iconCls=\"icon-flag2\" title=\"Flag scene as reviewed or as awaiting review.\" value=\"flagScenered highlight\" id=\"{DupFileToKeep['id']}\" style=\"background-color:red\">Flag Red</div>")
+        fileHtmlReport.write('<div class="menu-sep"></div>')
+        fileHtmlReport.write(f"<div iconCls=\"icon-strike-through\" title=\"Flag scene as reviewed or as awaiting review.\" value=\"flagScenestrike-through\" id=\"{DupFileToKeep['id']}\">Flag Strike-through</div>")
+        fileHtmlReport.write(f"<div iconCls=\"icon-disable-keyboard\" title=\"Flag scene as reviewed or as awaiting review.\" value=\"flagScenedisable-scene\" id=\"{DupFileToKeep['id']}\">Flag Disable-scene</div>")
+        fileHtmlReport.write('<div class="menu-sep"></div>')
+        fileHtmlReport.write(f"<div iconCls=\"icon-clear\" title=\"Flag scene as reviewed or as awaiting review.\" value=\"flagSceneremove all flags\" id=\"{DupFileToKeep['id']}\">Remove All Flags</div>")
+        fileHtmlReport.write("</div>")
     if len(DupFileToKeep['tags']) > 0:
         QtyIconsOnToolBar += 1
         menuitem =  f"<a class=\"easyui-menubutton\" title=\"List of tags for this scene\" data-options=\"menu:'#{DupFile['id']}_{DupFileToKeep['id']}_mm4',iconCls:'icon-blue-tag'\"></a>"
         if DelCandidateMissingTag:
             menuitem = menuitem.replace("icon-blue-tag", "icon-pink-tag")
         fileHtmlReport.write(menuitem)
-    if len(DupFileToKeep['performers']) > 0:
-        QtyIconsOnToolBar += 1
-        menuitem = f"<a class=\"easyui-menubutton\" title=\"List of actors for this scene\" data-options=\"menu:'#{DupFile['id']}_{DupFileToKeep['id']}_mm5',iconCls:'icon-headshot'\"></a>"
-        if DelCandidateMissingPerformer:
-            menuitem = menuitem.replace("icon-headshot", "icon-pink-headshot")
-        fileHtmlReport.write(menuitem)
-    if len(DupFileToKeep['galleries']) > 0:
-        QtyIconsOnToolBar += 1
-        menuitem = f"<a class=\"easyui-menubutton\" title=\"List of galleries for this scene\" data-options=\"menu:'#{DupFile['id']}_{DupFileToKeep['id']}_mm6',iconCls:'icon-galleries'\"></a>"
-        if DelCandidateMissingGallery:
-            menuitem = menuitem.replace("icon-galleries", "icon-pink-galleries")
-        fileHtmlReport.write(menuitem)
-    if len(DupFileToKeep['groups']) > 0:
-        QtyIconsOnToolBar += 1
-        menuitem = f"<a class=\"easyui-menubutton\" title=\"List of groups for this scene\" data-options=\"menu:'#{DupFile['id']}_{DupFileToKeep['id']}_mm7',iconCls:'icon-group'\"></a>"
-        if DelCandidateMissingGroup:
-            menuitem = menuitem.replace("icon-group", "icon-pink-group")
-        fileHtmlReport.write(menuitem)
-    fileHtmlReport.write("</div>")
-    
-    fileHtmlReport.write(f"<div id=\"{DupFile['id']}_{DupFileToKeep['id']}_mm1\">")
-    fileHtmlReport.write(f"<div iconCls=\"icon-cancel\" title=\"Delete [DupFileToKeep] and remove scene from stash\" value=\"deleteScene\" id=\"{DupFileToKeep['id']}\">Delete</div>")
-    fileHtmlReport.write(f"<div iconCls=\"icon-database-remove\" title=\"Remove scene from stash only. Do NOT delete file.\" value=\"removeScene\" id=\"{DupFileToKeep['id']}\">Remove</div>")
-    fileHtmlReport.write(f"<div iconCls=\"icon-rename\" title=\"Rename [Duplicate-to-Keep].\" value=\"newName\" id=\"{DupFileToKeep['id']}:{stash.asc2(pathlib.Path(DupFileToKeep['files'][0]['path']).stem)}\">Rename</div>")
-    fileHtmlReport.write('<div class="menu-sep"></div>')
-    fileHtmlReport.write(f"<div iconCls=\"icon-folder\" style=\"background-color:Gold;\"><a class=\"link-items\" title=\"Open folder\" href=\"file://{getPath(DupFileToKeep, True)}\">[Folder]</a></div>")
-    if toKeepFileExist:
-        fileHtmlReport.write(f"<div iconCls=\"icon-video-red\" style=\"background-color:Gold;\"><a class=\"link-items\" title=\"Play file locally\" href=\"file://{getPath(DupFileToKeep)}\">[Play]</a></div>")
-    fileHtmlReport.write("</div>")
-    
-    fileHtmlReport.write(f"<div id=\"{DupFile['id']}_{DupFileToKeep['id']}_mm2\">")
-    if isTaggedExcluded(DupFileToKeep):
-        fileHtmlReport.write(f"<div iconCls=\"icon-lock\" title=\"Remove exclude scene from deletion tag\" value=\"removeExcludeTag\" id=\"{DupFileToKeep['id']}\">Remove Exclude Tag</div>")
-        fileHtmlReport.write('<div class="menu-sep"></div>')
-    fileHtmlReport.write(f"<div iconCls=\"icon-flag-black\" title=\"Flag scene as reviewed or as awaiting review.\" value=\"flagScene\" id=\"{DupFileToKeep['id']}\">Flag this scene</div>")
-    fileHtmlReport.write(f"<div iconCls=\"icon-flag2\" title=\"Flag scene as reviewed or as awaiting review.\" value=\"flagScenecyan highlight\" id=\"{DupFileToKeep['id']}\" style=\"background-color:cyan\">Flag Cyan</div>")
-    fileHtmlReport.write(f"<div iconCls=\"icon-flag2\" title=\"Flag scene as reviewed or as awaiting review.\" value=\"flagScenegreen highlight\" id=\"{DupFileToKeep['id']}\" style=\"background-color:#00FF00\">Flag Green</div>")
-    fileHtmlReport.write(f"<div iconCls=\"icon-flag2\" title=\"Flag scene as reviewed or as awaiting review.\" value=\"flagSceneorange highlight\" id=\"{DupFileToKeep['id']}\" style=\"background-color:orange\">Flag Orange</div>")
-    fileHtmlReport.write(f"<div iconCls=\"icon-flag2\" title=\"Flag scene as reviewed or as awaiting review.\" value=\"flagSceneyellow highlight\" id=\"{DupFileToKeep['id']}\" style=\"background-color:yellow\">Flag Yellow</div>")
-    fileHtmlReport.write(f"<div iconCls=\"icon-flag2\" title=\"Flag scene as reviewed or as awaiting review.\" value=\"flagScenepink highlight\" id=\"{DupFileToKeep['id']}\" style=\"background-color:pink\">Flag Pink</div>")
-    fileHtmlReport.write(f"<div iconCls=\"icon-flag2\" title=\"Flag scene as reviewed or as awaiting review.\" value=\"flagScenered highlight\" id=\"{DupFileToKeep['id']}\" style=\"background-color:red\">Flag Red</div>")
-    fileHtmlReport.write('<div class="menu-sep"></div>')
-    fileHtmlReport.write(f"<div iconCls=\"icon-strike-through\" title=\"Flag scene as reviewed or as awaiting review.\" value=\"flagScenestrike-through\" id=\"{DupFileToKeep['id']}\">Flag Strike-through</div>")
-    fileHtmlReport.write(f"<div iconCls=\"icon-disable-keyboard\" title=\"Flag scene as reviewed or as awaiting review.\" value=\"flagScenedisable-scene\" id=\"{DupFileToKeep['id']}\">Flag Disable-scene</div>")
-    fileHtmlReport.write('<div class="menu-sep"></div>')
-    fileHtmlReport.write(f"<div iconCls=\"icon-clear\" title=\"Flag scene as reviewed or as awaiting review.\" value=\"flagSceneremove all flags\" id=\"{DupFileToKeep['id']}\">Remove All Flags</div>")
-    fileHtmlReport.write("</div>")
-    
-    if len(DupFileToKeep['tags']) > 0:
         fileHtmlReport.write(f"<div id=\"{DupFile['id']}_{DupFileToKeep['id']}_mm4\" value=\"DoNothing\">")
         for tag in DupFileToKeep['tags']:
             # if not tag['ignore_auto_tag']:
             fileHtmlReport.write(f"<div iconCls=\"icon-blue-tag\" value=\"DoNothing\">{tag['name']}</div>")
         fileHtmlReport.write("</div>")
     if len(DupFileToKeep['performers']) > 0:
+        QtyIconsOnToolBar += 1
+        menuitem = f"<a class=\"easyui-menubutton\" title=\"List of actors for this scene\" data-options=\"menu:'#{DupFile['id']}_{DupFileToKeep['id']}_mm5',iconCls:'icon-headshot'\"></a>"
+        if DelCandidateMissingPerformer:
+            menuitem = menuitem.replace("icon-headshot", "icon-pink-headshot")
+        fileHtmlReport.write(menuitem)
         fileHtmlReport.write(f"<div id=\"{DupFile['id']}_{DupFileToKeep['id']}_mm5\" value=\"DoNothing\">")
         for performer in DupFileToKeep['performers']:
             fileHtmlReport.write(f"<div iconCls=\"icon-headshot\" value=\"DoNothing\">{performer['name']}</div>")
         fileHtmlReport.write("</div>")
     if len(DupFileToKeep['galleries']) > 0:
+        QtyIconsOnToolBar += 1
+        menuitem = f"<a class=\"easyui-menubutton\" title=\"List of galleries for this scene\" data-options=\"menu:'#{DupFile['id']}_{DupFileToKeep['id']}_mm6',iconCls:'icon-galleries'\"></a>"
+        if DelCandidateMissingGallery:
+            menuitem = menuitem.replace("icon-galleries", "icon-pink-galleries")
+        fileHtmlReport.write(menuitem)
         fileHtmlReport.write(f"<div id=\"{DupFile['id']}_{DupFileToKeep['id']}_mm6\" value=\"DoNothing\">")
         for gallery in DupFileToKeep['galleries']:
             gallery = stash.getGalleryName(gallery['id'])
             fileHtmlReport.write(f"<div iconCls=\"icon-galleries\" value=\"DoNothing\">{gallery['title']}</div>")
         fileHtmlReport.write("</div>")
     if len(DupFileToKeep['groups']) > 0:
+        QtyIconsOnToolBar += 1
+        menuitem = f"<a class=\"easyui-menubutton\" title=\"List of groups for this scene\" data-options=\"menu:'#{DupFile['id']}_{DupFileToKeep['id']}_mm7',iconCls:'icon-group'\"></a>"
+        if DelCandidateMissingGroup:
+            menuitem = menuitem.replace("icon-group", "icon-pink-group")
+        fileHtmlReport.write(menuitem)
         fileHtmlReport.write(f"<div id=\"{DupFile['id']}_{DupFileToKeep['id']}_mm7\" value=\"DoNothing\">")
         for group in DupFileToKeep['groups']:
             fileHtmlReport.write(f"<div iconCls=\"icon-group\" value=\"DoNothing\">{group['group']['name']}</div>")
         fileHtmlReport.write("</div>")
+    fileHtmlReport.write("</div>")
+    
     
     if not toKeepFileExist:
         fileHtmlReport.write(fileDoesNotExistStr)
@@ -2242,28 +2353,28 @@ try:
     elif stash.PLUGIN_TASK_NAME == "addExcludeTag":
         addExcludeTag()
         stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
-    elif stash.PLUGIN_TASK_NAME.startswith(taskName_deleteScene):
-        flagColor = stash.PLUGIN_TASK_NAME[len(taskName_deleteScene):]
+    elif stash.PLUGIN_TASK_NAME.startswith(taskNameStartsWith_deleteScene):
+        flagColor = stash.PLUGIN_TASK_NAME[len(taskNameStartsWith_deleteScene):]
         manageDuplicatesTaggedOrInReport(deleteScenes=True, flagColor=flagColor)
         stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
-    elif stash.PLUGIN_TASK_NAME.startswith(taskName_copyScene):
-        flagColor = stash.PLUGIN_TASK_NAME[len(taskName_copyScene):]
-        manageDuplicatesTaggedOrInReport(flagColor=flagColor, flagAction=taskName_copyScene)
+    elif stash.PLUGIN_TASK_NAME.startswith(taskNameStartsWith_copyScene):
+        flagColor = stash.PLUGIN_TASK_NAME[len(taskNameStartsWith_copyScene):]
+        manageDuplicatesTaggedOrInReport(flagColor=flagColor, flagAction=taskNameStartsWith_copyScene)
         stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
-    elif stash.PLUGIN_TASK_NAME.startswith(taskName_moveScene):
-        flagColor = stash.PLUGIN_TASK_NAME[len(taskName_moveScene):]
-        manageDuplicatesTaggedOrInReport(flagColor=flagColor, flagAction=taskName_moveScene)
+    elif stash.PLUGIN_TASK_NAME.startswith(taskNameStartsWith_moveScene):
+        flagColor = stash.PLUGIN_TASK_NAME[len(taskNameStartsWith_moveScene):]
+        manageDuplicatesTaggedOrInReport(flagColor=flagColor, flagAction=taskNameStartsWith_moveScene)
         stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
-    elif stash.PLUGIN_TASK_NAME.startswith(taskName_mergeScene):
-        flagColor = stash.PLUGIN_TASK_NAME[len(taskName_mergeScene):]
-        manageDuplicatesTaggedOrInReport(flagColor=flagColor, flagAction=taskName_mergeScene)
+    elif stash.PLUGIN_TASK_NAME.startswith(taskNameStartsWith_mergeScene):
+        flagColor = stash.PLUGIN_TASK_NAME[len(taskNameStartsWith_mergeScene):]
+        manageDuplicatesTaggedOrInReport(flagColor=flagColor, flagAction=taskNameStartsWith_mergeScene)
         stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
-    elif stash.PLUGIN_TASK_NAME.startswith(taskName_addExcludeTag):
-        flagColor = stash.PLUGIN_TASK_NAME[len(taskName_addExcludeTag):]
-        manageDuplicatesTaggedOrInReport(flagColor=flagColor, flagAction=taskName_addExcludeTag)
+    elif stash.PLUGIN_TASK_NAME.startswith(taskNameStartsWith_addExcludeTag):
+        flagColor = stash.PLUGIN_TASK_NAME[len(taskNameStartsWith_addExcludeTag):]
+        manageDuplicatesTaggedOrInReport(flagColor=flagColor, flagAction=taskNameStartsWith_addExcludeTag)
         stash.Debug(f"{stash.PLUGIN_TASK_NAME} EXIT")
-    elif stash.PLUGIN_TASK_NAME.startswith(taskName_clearFlag):
-        flagColor = stash.PLUGIN_TASK_NAME[len(taskName_clearFlag):]
+    elif stash.PLUGIN_TASK_NAME.startswith(taskNameStartsWith_clearFlag):
+        flagColor = stash.PLUGIN_TASK_NAME[len(taskNameStartsWith_clearFlag):]
         flagColor = flagColor.replace("Flag", "").lower()
         if flagColor == "green":
             flagColor = "#00FF00"

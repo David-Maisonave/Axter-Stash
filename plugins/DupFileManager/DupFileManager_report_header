@@ -9,12 +9,10 @@ var apiKey = "";
 var GraphQl_URL = "http://localhost:9999/graphql";
 </script>
 <link rel="stylesheet" type="text/css" href="[remoteReportDirURL]DupFileManager_report.css">
-<!-- <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"> -->
-<link rel="stylesheet" type="text/css" href="[js_DirURL]easyui/themes/black/easyui.css">
-<link rel="stylesheet" type="text/css" href="[js_DirURL]easyui/themes/icon.css">
+<!-- CSS UI -->
 <link rel="stylesheet" type="text/css" href="[js_DirURL]jquery.prompt.css"/>
 <script type="text/javascript" src="[js_DirURL]jquery-3.7.1.min.js"></script>
-<script type="text/javascript" src="[js_DirURL]easyui/jquery.easyui.min.js"></script>
+<!-- JQ Script UI -->
 <script type="text/javascript" src="[js_DirURL]jquery.prompt.js"></script>
 <script type="text/javascript" src="[remoteReportDirURL]DupFileManager_report.js"></script>
 <style>

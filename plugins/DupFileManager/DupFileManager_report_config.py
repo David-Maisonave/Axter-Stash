@@ -47,10 +47,53 @@ report_config = {
     "htmlReportVideoPreview" : "controls", # Alternative option "autoplay loop controls" or "autoplay controls"
     # Name of the HTML file to create
     "htmlReportName" : "DuplicateTagScenes.html",
+    # Includes scene dropdown menu
+    "htmlIncludeDropdownMenu" : True,
     # If enabled, create an HTML report when tagging duplicate files
     "createHtmlReport" : True,
     # To use a private or an alternate site to access report and advance menu
     "remoteReportDirURL" : "https://stash.axter.com/1.1/",
     # To use a private or an alternate site to access jquery, easyui, and jquery.prompt
     "js_DirURL" : "https://www.axter.com/js/",
+    # Alternative JQuery UI interface option.
+    "htmlJQueryUI" : "easyui", # Only easyui and easyuiPrim is currently supported.
+    # Alternative JQuery UI stylesheet and script
+    "htmlJQueryUiLinks" : {
+        # http://www.jeasyui.com/demo/main/index.php?plugin=SplitButton&theme=material-teal&dir=ltr&pitem=&sort=asc
+        "easyui"    : ['<link rel="stylesheet" type="text/css" href="[js_DirURL]easyui/themes/icon.css">',
+                    '<link rel="stylesheet" type="text/css" href="[js_DirURL]easyui/themes/black/easyui.css">',
+                    '<script type="text/javascript" src="[js_DirURL]easyui/jquery.easyui.min.js"></script>'],
+        # https://getbootstrap.com/docs/5.3/components/dropdowns/
+        "bootstrap" : ['<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">',
+                    '<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>',
+                    '<link rel="stylesheet" type="text/css" href="https://axter.com/js/jqueryui/jquery-ui.min.css">',
+                    '<script type="text/javascript" src="https://axter.com/js/jqueryui/jquery-ui.min.js"></script>'],
+        # https://www.primefaces.org/primeui/index.html#splitbutton
+        "primeui" : ['<link rel="stylesheet" type="text/css" href="[js_DirURL]primeui/primeui-all.min.css">',
+                    '<script type="text/javascript" src="[js_DirURL]primeui/primeui-all.min.js"></script>'],
+        # https://docs.webix.com/desktop__menu.html
+        "webix"     : ['<link rel="stylesheet" type="text/css" href="[js_DirURL]webix/codebase/webix.css">',
+                    '<script type="text/javascript" src="[js_DirURL]webix/codebase/webix.js"></script>'],
+        # https://primereact.org/splitbutton/
+        "primereact": ['<link rel="stylesheet" type="text/css" href="">',
+                    '<script type="text/javascript" src=""></script>'],
+        # https://jqueryui.com/resources/demos/controlgroup/splitbutton.html
+        "jeasyui": ['<link rel="stylesheet" type="text/css" href="https://axter.com/js/jqueryui/jquery-ui.min.css">',
+                    '<script type="text/javascript" src="https://axter.com/js/jqueryui/jquery-ui.min.js"></script>',
+                    '<link rel="stylesheet" type="text/css" href="https://axter.com/js/jqueryui/jquery-ui.theme.min.css">',
+                    '<link rel="stylesheet" type="text/css" href="https://axter.com/js/jqueryui/jquery-ui.structure.min.css">'],
+        # The following is to test mixing UI's
+        # primeui seems to work well with easyui
+        "easyuiPrim": ['<link rel="stylesheet" type="text/css" href="[js_DirURL]easyui/themes/icon.css">',
+                    '<link rel="stylesheet" type="text/css" href="[js_DirURL]easyui/themes/black/easyui.css">',
+                    '<script type="text/javascript" src="[js_DirURL]easyui/jquery.easyui.min.js"></script>',
+                    '<link rel="stylesheet" type="text/css" href="[js_DirURL]primeui/primeui-all.min.css">',
+                    '<script type="text/javascript" src="[js_DirURL]primeui/primeui-all.min.js"></script>'],
+        # bootstrap does NOT work well with easyui
+        "easyuiBoot": ['<link rel="stylesheet" type="text/css" href="[js_DirURL]easyui/themes/icon.css">',
+                    '<link rel="stylesheet" type="text/css" href="[js_DirURL]easyui/themes/black/easyui.css">',
+                    '<script type="text/javascript" src="[js_DirURL]easyui/jquery.easyui.min.js"></script>',
+                    '<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">',
+                    '<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>'],
+    },
 }
