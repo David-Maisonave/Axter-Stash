@@ -55,7 +55,7 @@ stash = StashPluginHelper(
         config=config,
         maxbytes=10*1024*1024,
         )
-# stash.status(logLevel=logging.DEBUG)
+stash.status(logLevel=logging.DEBUG)
 if stash.PLUGIN_ID in stash.PLUGIN_CONFIGURATION:
     stash.pluginSettings.update(stash.PLUGIN_CONFIGURATION[stash.PLUGIN_ID])
 if stash.IS_DOCKER:

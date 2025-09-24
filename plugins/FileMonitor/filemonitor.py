@@ -76,7 +76,7 @@ if len(sys.argv) < 2 and stash.PLUGIN_TASK_NAME in doJsonReturnModeTypes:
         stash.PLUGIN_TASK_NAME = stash.PLUGIN_TASK_NAME[:-5]
 
 stash.status(logLevel=logging.DEBUG)
-stash.Log(f"\nStarting (__file__={__file__}) (stash.CALLED_AS_STASH_PLUGIN={stash.CALLED_AS_STASH_PLUGIN}) (stash.DEBUG_TRACING={stash.DEBUG_TRACING}) (stash.DRY_RUN={stash.DRY_RUN}) (stash.PLUGIN_TASK_NAME={stash.PLUGIN_TASK_NAME})************************************************")
+stash.Log(f"\nStarting (__file__={__file__}) (stash.CALLED_AS_STASH_PLUGIN={stash.CALLED_AS_STASH_PLUGIN}) (stash.DEBUG_TRACING={stash.DEBUG_TRACING}) (stash.DRY_RUN={stash.DRY_RUN})************************************************")
 stash.Trace(f"stash.JSON_INPUT={stash.JSON_INPUT}")
 
 exitMsg = "Change success!!"
