@@ -80,6 +80,10 @@ config = {
     "endpoint_Host" : "0.0.0.0", # Define endpoint to use when contacting the Stash server
     "endpoint_Port" : 9999, # Define endpoint to use when contacting the Stash server
     
+    # SharedMemory Name. Only change these values if having problems opening OS shared memory
+    "SharedMemory_Name_POSIX" : "Axter_FileMon",
+    "SharedMemory_Name_Windows" : "DavidMaisonaveAxter_FileMonitor",
+    
     # The following are advanced user options.
     # Enable to run scan when triggered by on_any_event.
     "onAnyEvent": False, # If enabled may cause excessive triggers.

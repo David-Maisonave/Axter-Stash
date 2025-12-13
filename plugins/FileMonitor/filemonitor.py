@@ -84,7 +84,10 @@ mutex = Lock()
 signal = Condition(mutex)
 shouldUpdate = False
 
-SHAREDMEMORY_NAME = "DavidMaisonaveAxter_FileMonitor" # Unique name for shared memory
+# SHAREDMEMORY_NAME needs to be maximum 14 characters long for POSIX systems, because some POSIX systems have a 14 character max limit.
+SHAREDMEMORY_NAME = stash.pluginConfig['SharedMemory_Name_POSIX'] # POSIX unique name for shared memory
+if stash.IS_WINDOWS:
+    SHAREDMEMORY_NAME = stash.pluginConfig['SharedMemory_Name_Windows'] # Windows unique name for shared memory
 SHAREDMEMORY_SIZE = 4
 RECURSIVE = stash.pluginSettings["recursiveDisabled"] == False
 SCAN_MODIFIED = stash.pluginConfig["scanModified"]

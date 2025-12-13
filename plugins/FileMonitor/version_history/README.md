@@ -10,4 +10,4 @@
 - Added start and stop FileMonitor button to Tools-UI FileMonitor Status
 - Fixed bug associated with starting FileMonitor service with no jobs waiting.
 ### 1.0.4
-- 
+- Added fix for SharedMemory file name in POSIX systems which have a 14 character limit.
